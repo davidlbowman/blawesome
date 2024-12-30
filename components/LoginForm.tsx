@@ -34,15 +34,26 @@ function LoginFormContent() {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const user = await verifyUser(data);
+			const user = await verifyUser(data).catch((error) => {
+				console.error("Verify user error:", error);
+				throw error;
+			});
+
 			if (!user) {
 				setError("root", { message: "Invalid email or password" });
 				return;
 			}
 
-			const session = await createUserSession(user);
+			const session = await createUserSession(user).catch((error) => {
+				console.error("Session creation error:", error);
+				throw error;
+			});
+
 			if (!session.success) {
-				console.error("Session creation error:", session.error);
+				console.error("Session creation error details:", {
+					error: session.error,
+					user: user.id,
+				});
 				setError("root", {
 					message: session.error || "Failed to create session",
 				});
@@ -51,10 +62,19 @@ function LoginFormContent() {
 
 			router.push(callbackUrl);
 			router.refresh();
-		} catch (error) {
-			console.error("Login error:", error);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				console.error("Login error details:", {
+					name: error.name,
+					message: error.message,
+					stack: error.stack,
+				});
+			} else {
+				console.error("Unknown login error:", error);
+			}
+
 			setError("root", {
-				message: "An error occurred during login",
+				message: "An error occurred during login. Please try again.",
 			});
 		}
 	}
