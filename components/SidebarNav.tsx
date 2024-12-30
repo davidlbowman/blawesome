@@ -83,24 +83,24 @@ const data = {
 		},
 		{
 			title: "Modules",
-			url: "#",
+			url: "/modules",
 			icon: Bot,
 			items: [
 				{
 					title: "Strength Training",
-					url: "#",
+					url: "/modules/strength-training",
 				},
 				{
 					title: "Flexibility",
-					url: "#",
+					url: "/modules/flexibility",
 				},
 				{
 					title: "Peloton",
-					url: "#",
+					url: "/modules/peloton",
 				},
 				{
 					title: "Meditation",
-					url: "#",
+					url: "/modules/meditation",
 				},
 			],
 		},
