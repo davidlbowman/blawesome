@@ -42,6 +42,7 @@ function LoginFormContent() {
 
 			const session = await createUserSession(user);
 			if (!session.success) {
+				console.error("Session creation error:", session.error);
 				setError("root", {
 					message: session.error || "Failed to create session",
 				});
@@ -51,6 +52,7 @@ function LoginFormContent() {
 			router.push(callbackUrl);
 			router.refresh();
 		} catch (error) {
+			console.error("Login error:", error);
 			setError("root", {
 				message: "An error occurred during login",
 			});
