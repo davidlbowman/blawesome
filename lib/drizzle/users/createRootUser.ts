@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/drizzle/db";
 import { users } from "@/lib/drizzle/schemas/users";
+import bcrypt from "bcrypt";
 
 export async function createRootUser() {
 	try {
@@ -14,9 +15,7 @@ export async function createRootUser() {
 			);
 		}
 
-		const hash = await Bun.password.hash(password, {
-			algorithm: "bcrypt",
-		});
+		const hash = await bcrypt.hash(password, 10);
 
 		const user = await db.insert(users).values({
 			email,

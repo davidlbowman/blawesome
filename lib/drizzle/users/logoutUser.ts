@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 
 export async function logoutUser() {
 	try {
-		// Delete the session cookie
 		const cookiesStore = await cookies();
 		cookiesStore.delete("session");
 		return { success: true };

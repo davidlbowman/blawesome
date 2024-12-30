@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/drizzle/db";
 import { type User, users } from "@/lib/drizzle/schemas/users";
+import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
 interface VerifyUserParams {
@@ -19,11 +20,7 @@ export async function verifyUser(data: VerifyUserParams) {
 		throw new Error("User not found");
 	}
 
-	const isPasswordMatched = await Bun.password.verify(
-		data.password,
-		user.password,
-		"bcrypt",
-	);
+	const isPasswordMatched = await bcrypt.compare(data.password, user.password);
 
 	if (!isPasswordMatched) {
 		throw new Error("Invalid password");
