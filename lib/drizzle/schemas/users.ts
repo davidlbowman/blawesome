@@ -1,4 +1,6 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
+import type { z } from "zod";
 
 export const users = pgTable("users", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -7,3 +9,7 @@ export const users = pgTable("users", {
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export type User = z.infer<typeof userSelectSchema>;
+
+export const userSelectSchema = createSelectSchema(users);
