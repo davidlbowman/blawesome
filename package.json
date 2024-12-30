@@ -4,9 +4,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "bunx --bun next dev",
-		"build": "next build",
-		"start": "next start",
-		"lint": "next lint",
+		"build": "bunx --bun next build",
+		"start": "bunx --bun next start",
 		"check": "bunx biome check --write",
 		"format": "bunx biome format --write",
 		"db:push": "bunx drizzle-kit push",

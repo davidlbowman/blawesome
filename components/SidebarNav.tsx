@@ -58,6 +58,9 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { logoutUser } from "@/lib/drizzle/users/logoutUser";
+import { useRouter } from "next/navigation";
+
 const data = {
 	user: {
 		name: "David Bowman",
@@ -150,6 +153,16 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ children }: SidebarNavProps) {
+	const router = useRouter();
+
+	const handleLogout = async () => {
+		const result = await logoutUser();
+		if (result.success) {
+			router.push("/");
+			router.refresh();
+		}
+	};
+
 	return (
 		<SidebarProvider>
 			<Sidebar variant="inset">
@@ -295,7 +308,7 @@ export function SidebarNav({ children }: SidebarNavProps) {
 										</DropdownMenuItem>
 									</DropdownMenuGroup>
 									<DropdownMenuSeparator />
-									<DropdownMenuItem>
+									<DropdownMenuItem onClick={handleLogout}>
 										<LogOut />
 										Log out
 									</DropdownMenuItem>

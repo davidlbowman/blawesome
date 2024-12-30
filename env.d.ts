@@ -4,6 +4,7 @@ const envSchema = z.object({
 	POSTGRES_URL: z.string().url(),
 	ROOT_USER: z.string().email(),
 	ROOT_PASSWORD: z.string(),
+	JWT_SECRET: z.string(),
 });
 
 declare global {
