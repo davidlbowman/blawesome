@@ -22,10 +22,8 @@ export const Status = {
 	Completed: "completed",
 } as const;
 
-export const exercises = pgTable("exercises", {
+export const exerciseDefinitions = pgTable("exercise_definitions", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id").references(() => users.id),
-	workoutId: uuid("workout_id").references(() => workouts.id),
 	name: text("name").notNull(),
 	type: text("type")
 		.$type<(typeof ExerciseType)[keyof typeof ExerciseType]>()
@@ -33,6 +31,17 @@ export const exercises = pgTable("exercises", {
 	primaryLiftDay: text("primary_lift_day")
 		.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
 		.notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const exercises = pgTable("exercises", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	userId: uuid("user_id").references(() => users.id),
+	workoutId: uuid("workout_id").references(() => workouts.id),
+	exerciseDefinitionId: uuid("exercise_definition_id").references(
+		() => exerciseDefinitions.id,
+	),
 	oneRepMax: integer("one_rep_max"),
 	order: integer("order").notNull(),
 	status: text("status")
