@@ -1,22 +1,6 @@
 "use client";
 
 import {
-	BadgeCheck,
-	Bell,
-	BookOpen,
-	Bot,
-	ChevronRight,
-	ChevronsUpDown,
-	Command,
-	CreditCard,
-	LogOut,
-	Settings2,
-	Sparkles,
-	SquareTerminal,
-} from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
 	Breadcrumb,
 	BreadcrumbItem,
 	BreadcrumbLink,
@@ -59,13 +43,27 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { logoutUser } from "@/lib/drizzle/users/logoutUser";
+import {
+	BadgeCheck,
+	Bell,
+	BookOpen,
+	Bot,
+	ChevronRight,
+	ChevronsUpDown,
+	Command,
+	CreditCard,
+	LogOut,
+	Settings2,
+	Sparkles,
+	SquareTerminal,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const data = {
 	user: {
 		name: "David Bowman",
 		email: "david@theinnovationlab.dev",
-		avatar: "/avatars/shadcn.jpg",
+		// avatar: "/vercel.svg",
 	},
 	navMain: [
 		{
@@ -240,13 +238,13 @@ export function SidebarNav({ children }: SidebarNavProps) {
 										size="lg"
 										className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 									>
-										<Avatar className="h-8 w-8 rounded-lg">
+										{/* <Avatar className="h-8 w-8 rounded-lg">
 											<AvatarImage
 												src={data.user.avatar}
 												alt={data.user.name}
 											/>
 											<AvatarFallback className="rounded-lg">CN</AvatarFallback>
-										</Avatar>
+										</Avatar> */}
 										<div className="grid flex-1 text-left text-sm leading-tight">
 											<span className="truncate font-semibold">
 												{data.user.name}
@@ -266,7 +264,7 @@ export function SidebarNav({ children }: SidebarNavProps) {
 								>
 									<DropdownMenuLabel className="p-0 font-normal">
 										<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-											<Avatar className="h-8 w-8 rounded-lg">
+											{/* <Avatar className="h-8 w-8 rounded-lg">
 												<AvatarImage
 													src={data.user.avatar}
 													alt={data.user.name}
@@ -274,7 +272,7 @@ export function SidebarNav({ children }: SidebarNavProps) {
 												<AvatarFallback className="rounded-lg">
 													CN
 												</AvatarFallback>
-											</Avatar>
+											</Avatar> */}
 											<div className="grid flex-1 text-left text-sm leading-tight">
 												<span className="truncate font-semibold">
 													{data.user.name}

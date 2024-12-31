@@ -78,7 +78,3 @@ Detailed module creation documentation coming soon.
 ## License
 
 MIT License - see LICENSE file for details
-
-Citations:
-[1] https://nextjs.org
-[2] https://nextjs.org/docs/app/api-reference/cli/create-next-app

@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createUserSession } from "@/lib/drizzle/users/createUserSession";
 import { verifyUser } from "@/lib/drizzle/users/verifyUser";
@@ -23,13 +31,12 @@ function LoginFormContent() {
 	const searchParams = useSearchParams();
 	const callbackUrl = searchParams.get("callbackUrl") || "/modules";
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting },
-		setError,
-	} = useForm<z.infer<typeof formSchema>>({
+	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
+		defaultValues: {
+			email: "",
+			password: "",
+		},
 	});
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
@@ -40,7 +47,7 @@ function LoginFormContent() {
 			});
 
 			if (!user) {
-				setError("root", { message: "Invalid email or password" });
+				form.setError("root", { message: "Invalid email or password" });
 				return;
 			}
 
@@ -54,7 +61,7 @@ function LoginFormContent() {
 					error: session.error,
 					user: user.id,
 				});
-				setError("root", {
+				form.setError("root", {
 					message: session.error || "Failed to create session",
 				});
 				return;
@@ -73,7 +80,7 @@ function LoginFormContent() {
 				console.error("Unknown login error:", error);
 			}
 
-			setError("root", {
+			form.setError("root", {
 				message: "An error occurred during login. Please try again.",
 			});
 		}
@@ -85,37 +92,46 @@ function LoginFormContent() {
 				<CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-					<div>
-						<Input
-							type="email"
-							placeholder="Email"
-							{...register("email")}
-							className="w-full"
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+						<FormField
+							control={form.control}
+							name="email"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Email</FormLabel>
+									<FormControl>
+										<Input type="email" placeholder="Email" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
 						/>
-						{errors.email && (
-							<p className="text-sm text-red-500 mt-1">
-								{errors.email.message}
-							</p>
-						)}
-					</div>
-					<div>
-						<Input
-							type="password"
-							placeholder="Password"
-							{...register("password")}
-							className="w-full"
+						<FormField
+							control={form.control}
+							name="password"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Password</FormLabel>
+									<FormControl>
+										<Input type="password" placeholder="Password" {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
 						/>
-						{errors.password && (
-							<p className="text-sm text-red-500 mt-1">
-								{errors.password.message}
-							</p>
+						{form.formState.errors.root && (
+							<FormMessage>{form.formState.errors.root.message}</FormMessage>
 						)}
-					</div>
-					<Button type="submit" className="w-full">
-						{"Log in"}
-					</Button>
-				</form>
+						<Button
+							type="submit"
+							className="w-full"
+							disabled={form.formState.isSubmitting}
+						>
+							{form.formState.isSubmitting ? "Logging in..." : "Log in"}
+						</Button>
+					</form>
+				</Form>
 			</CardContent>
 		</Card>
 	);

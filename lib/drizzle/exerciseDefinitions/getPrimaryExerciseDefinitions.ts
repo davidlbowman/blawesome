@@ -16,7 +16,5 @@ export async function getPrimaryExerciseDefinitions(): Promise<
 		.from(exerciseDefinitions)
 		.where(eq(exerciseDefinitions.type, ExerciseType.Primary));
 
-	const json = JSON.parse(JSON.stringify(primaryExercises));
-
 	return primaryExercises;
 }

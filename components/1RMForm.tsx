@@ -19,9 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { insertOneRepMax } from "@/lib/drizzle/1RM/insertOneRepMax";
 import { getPrimaryExerciseDefinitions } from "@/lib/drizzle/exerciseDefinitions/getPrimaryExerciseDefinitions";
-import { ExerciseType } from "@/lib/drizzle/schemas/strength-training";
 import { getUserId } from "@/lib/drizzle/users/getUserId";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -45,6 +45,7 @@ const formSchema = z.object({
 });
 
 export function OneRMForm() {
+	const router = useRouter();
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	});
@@ -88,6 +89,8 @@ export function OneRMForm() {
 			await Promise.all(
 				validExercises.map((exercise) => insertOneRepMax(exercise)),
 			);
+
+			router.refresh();
 		} catch (error) {
 			console.error("Error inserting 1RMs:", error);
 			throw error;
