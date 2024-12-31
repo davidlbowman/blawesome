@@ -1,39 +1,83 @@
 import { users } from "@/lib/drizzle/schemas/users";
-// import { drizzle } from 'drizzle-orm/vercel-postgres';
-// import { sql } from '@vercel/postgres';
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+	integer,
+	pgTable,
+	text,
+	timestamp,
+	unique,
+	uuid,
+} from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import type { z } from "zod";
 
 export const PrimaryLift = {
 	Squat: "squat",
 	Bench: "bench",
 	Deadlift: "deadlift",
 	Overhead: "overhead",
-} as const;
+};
 
 export const ExerciseType = {
 	Primary: "primary",
 	Variation: "variation",
 	Accessory: "accessory",
-} as const;
+};
 
 export const Status = {
 	Pending: "pending",
 	InProgress: "in_progress",
 	Completed: "completed",
-} as const;
+};
 
-export const exerciseDefinitions = pgTable("exercise_definitions", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	name: text("name").notNull(),
-	type: text("type")
-		.$type<(typeof ExerciseType)[keyof typeof ExerciseType]>()
-		.notNull(),
-	primaryLiftDay: text("primary_lift_day")
-		.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
-		.notNull(),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const exerciseDefinitions = pgTable(
+	"exercise_definitions",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		name: text("name").notNull(),
+		type: text("type")
+			.$type<(typeof ExerciseType)[keyof typeof ExerciseType]>()
+			.notNull(),
+		primaryLiftDay: text("primary_lift_day")
+			.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
+			.notNull(),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+	},
+	(table) => ({
+		nameTypeUnique: unique().on(table.name, table.type),
+	}),
+);
+
+export const exerciseDefinitionsInsertSchema =
+	createInsertSchema(exerciseDefinitions);
+export type ExerciseDefinitionsInsert = z.infer<
+	typeof exerciseDefinitionsInsertSchema
+>;
+export const exerciseDefinitionsSelectSchema =
+	createSelectSchema(exerciseDefinitions);
+export type ExerciseDefinitionsSelect = z.infer<
+	typeof exerciseDefinitionsSelectSchema
+>;
+
+export const oneRepMaxes = pgTable(
+	"one_rep_maxes",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: uuid("user_id").references(() => users.id),
+		exerciseDefinitionId: uuid("exercise_definition_id")
+			.references(() => exerciseDefinitions.id)
+			.notNull(),
+		weight: integer("weight").notNull(),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+	},
+	(table) => ({
+		userExerciseUnique: unique().on(table.userId, table.exerciseDefinitionId),
+	}),
+);
+
+export const oneRepMaxesInsertSchema = createInsertSchema(oneRepMaxes);
+export type OneRepMaxesInsert = z.infer<typeof oneRepMaxesInsertSchema>;
 
 export const exercises = pgTable("exercises", {
 	id: uuid("id").defaultRandom().primaryKey(),

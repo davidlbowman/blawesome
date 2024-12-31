@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["./components/ui/**/*.tsx"]
+		"ignore": ["./components/ui/**/*.tsx", "./hooks/**/*.ts"]
 	},
 	"formatter": {
 		"enabled": true,

@@ -15,6 +15,27 @@
 			"when": 1735606506326,
 			"tag": "0001_famous_thanos",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1735663474818,
+			"tag": "0002_unusual_genesis",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1735664776536,
+			"tag": "0003_aberrant_lifeguard",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1735667458956,
+			"tag": "0004_burly_doctor_spectrum",
+			"breakpoints": true
 		}
 	]
 }

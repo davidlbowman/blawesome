@@ -10,6 +10,5 @@ export const users = pgTable("users", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export type User = z.infer<typeof userSelectSchema>;
-
 export const userSelectSchema = createSelectSchema(users);
+export type User = z.infer<typeof userSelectSchema>;

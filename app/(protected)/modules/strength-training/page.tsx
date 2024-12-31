@@ -1,3 +1,9 @@
+import { OneRMForm } from "@/components/1RMForm";
+
 export default function StrengthTrainingPage() {
-	return <div>Strength Training</div>;
+	return (
+		<div>
+			<OneRMForm />
+		</div>
+	);
 }
