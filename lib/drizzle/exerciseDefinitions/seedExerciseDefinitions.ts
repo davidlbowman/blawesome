@@ -33,11 +33,20 @@ export async function seedExerciseDefinitions() {
 	];
 
 	try {
-		await db.insert(exerciseDefinitions).values(primaryLifts);
-		console.log("New exercises added");
+		const result = await db.insert(exerciseDefinitions).values(primaryLifts);
+		return result;
 	} catch (error) {
-		console.log("Some exercises might already exist");
+		console.error("Failed to seed exercise definitions:", error);
+
+		return {
+			success: false,
+			error: "Failed to seed exercise definitions",
+		};
 	}
 }
 
-seedExerciseDefinitions();
+seedExerciseDefinitions()
+	.then((result) => {
+		console.log("Exercise definitions seeded:", result);
+	})
+	.catch(console.error);

@@ -54,10 +54,6 @@ export function OneRMForm() {
 			const userId = await getUserId();
 			const exerciseDefinitions = await getPrimaryExerciseDefinitions();
 
-			console.log("Found exercise definitions:", exerciseDefinitions);
-			console.log("User ID:", userId);
-			// console.log("Form values:", values);
-
 			const exercises = [
 				{
 					id: exerciseDefinitions.find((e) => e.name === "Squat")?.id,
@@ -76,8 +72,6 @@ export function OneRMForm() {
 					weight: values.overheadPress,
 				},
 			];
-
-			console.log("Prepared exercises:", exercises);
 
 			const validExercises = exercises
 				.filter(
