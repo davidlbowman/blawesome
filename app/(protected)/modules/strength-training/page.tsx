@@ -1,4 +1,6 @@
 import { OneRMForm } from "@/components/1RMForm";
+import { createCycle } from "@/lib/drizzle/cycles/createCycle";
+import { getCycles } from "@/lib/drizzle/cycles/getCycles";
 import { db } from "@/lib/drizzle/db";
 import { getPrimaryExerciseDefinitions } from "@/lib/drizzle/exerciseDefinitions/getPrimaryExerciseDefinitions";
 import { oneRepMaxes } from "@/lib/drizzle/schemas/strength-training";
@@ -27,7 +29,23 @@ async function getUserOneRepMaxes() {
 }
 
 export default async function StrengthTrainingPage() {
+	const userId = await getUserId();
 	const hasAllLifts = await getUserOneRepMaxes();
 
-	return <div>{hasAllLifts ? <div>Hello World</div> : <OneRMForm />}</div>;
+	if (!hasAllLifts) {
+		return <OneRMForm />;
+	}
+
+	let cycles = await getCycles(userId);
+
+	if (cycles.length === 0) {
+		const newCycle = await createCycle(userId);
+		cycles = [newCycle];
+	}
+
+	return (
+		<div>
+			<pre>{JSON.stringify(cycles, null, 2)}</pre>
+		</div>
+	);
 }

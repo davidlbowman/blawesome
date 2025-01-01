@@ -102,7 +102,6 @@ export const cycles = pgTable("cycles", {
 	userId: uuid("user_id").references(() => users.id),
 	startDate: timestamp("start_date").notNull(),
 	endDate: timestamp("end_date"),
-	weekNumber: integer("week_number").notNull(),
 	status: text("status")
 		.$type<(typeof Status)[keyof typeof Status]>()
 		.notNull()
@@ -111,6 +110,11 @@ export const cycles = pgTable("cycles", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 	completedAt: timestamp("completed_at"),
 });
+
+export const cyclesInsertSchema = createInsertSchema(cycles);
+export type CyclesInsert = z.infer<typeof cyclesInsertSchema>;
+export const cyclesSelectSchema = createSelectSchema(cycles);
+export type CyclesSelect = z.infer<typeof cyclesSelectSchema>;
 
 export const workouts = pgTable("workouts", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -128,6 +132,11 @@ export const workouts = pgTable("workouts", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 	completedAt: timestamp("completed_at"),
 });
+
+export const workoutsInsertSchema = createInsertSchema(workouts);
+export type WorkoutsInsert = z.infer<typeof workoutsInsertSchema>;
+export const workoutsSelectSchema = createSelectSchema(workouts);
+export type WorkoutsSelect = z.infer<typeof workoutsSelectSchema>;
 
 export const sets = pgTable("sets", {
 	id: uuid("id").defaultRandom().primaryKey(),
