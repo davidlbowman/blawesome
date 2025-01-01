@@ -20,8 +20,9 @@ export const PrimaryLift = {
 export const ExerciseType = {
 	Primary: "primary",
 	Variation: "variation",
-	Accessory: "accessory",
-};
+	Compound: "compound",
+	Isolation: "isolation",
+} as const;
 
 export const Status = {
 	Pending: "pending",
@@ -155,3 +156,8 @@ export const sets = pgTable("sets", {
 	updatedAt: timestamp("updated_at").defaultNow(),
 	completedAt: timestamp("completed_at"),
 });
+
+export const setsInsertSchema = createInsertSchema(sets);
+export type SetsInsert = z.infer<typeof setsInsertSchema>;
+export const setsSelectSchema = createSelectSchema(sets);
+export type SetsSelect = z.infer<typeof setsSelectSchema>;
