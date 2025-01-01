@@ -7,6 +7,7 @@ import {
 	Status,
 } from "@/lib/drizzle/schemas/strength-training";
 import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
+import Link from "next/link";
 
 interface WorkoutCycleCardProps
 	extends Omit<CyclesSelect, "userId" | "createdAt" | "updatedAt"> {
@@ -66,59 +67,61 @@ export function WorkoutCycleCard({
 	};
 
 	return (
-		<Card className="w-full max-w-md">
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-sm font-medium">
-					Workout Cycle {id.slice(0, 8)}
-				</CardTitle>
-				<Badge className={getStatusColor(status)}>
-					{status.charAt(0).toUpperCase() + status.slice(1)}
-				</Badge>
-			</CardHeader>
-			<CardContent>
-				<div className="flex items-center space-x-4 text-sm text-muted-foreground">
-					<Calendar className="h-4 w-4" />
-					<span>
-						{status === Status.Completed && completedAt
-							? `Completed on ${formatDate(completedAt)}`
-							: `Started on ${formatDate(startDate)}`}
-					</span>
-				</div>
-				<div className="mt-4 space-y-2">
-					<div className="flex items-center justify-between text-sm">
-						<span>Progress</span>
-						<span className="font-medium">
-							{completedWorkouts} / {totalWorkouts}
-						</span>
-					</div>
-					<Progress value={progressPercentage} className="h-2" />
-				</div>
-				{status !== Status.Completed && nextWorkout && (
-					<div className="mt-4 flex items-center space-x-4 text-sm">
-						{nextWorkout.status === Status.Completed ? (
-							<CheckCircle className="h-4 w-4 text-green-500" />
-						) : (
-							<Dumbbell className="h-4 w-4 text-muted-foreground" />
-						)}
+		<Link href={`/modules/strength-training/${id}`} className="block">
+			<Card className="w-full max-w-md transition-colors hover:bg-muted/50">
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle className="text-sm font-medium">
+						Workout Cycle {id.slice(0, 8)}
+					</CardTitle>
+					<Badge className={getStatusColor(status)}>
+						{status.charAt(0).toUpperCase() + status.slice(1)}
+					</Badge>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-center space-x-4 text-sm text-muted-foreground">
+						<Calendar className="h-4 w-4" />
 						<span>
-							{nextWorkout.status === Status.InProgress
-								? "Current Workout: "
-								: nextWorkout.status === Status.Completed
-									? "Last Completed: "
-									: "Next Workout: "}
-							<span className="font-medium">
-								{getPrimaryLiftDisplayName(nextWorkout.primaryLift)}
-							</span>
+							{status === Status.Completed && completedAt
+								? `Completed on ${formatDate(completedAt)}`
+								: `Started on ${formatDate(startDate)}`}
 						</span>
 					</div>
-				)}
-				{status === Status.Completed && (
-					<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
-						<CheckCircle className="h-4 w-4" />
-						<span className="font-medium">Cycle Completed</span>
+					<div className="mt-4 space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span>Progress</span>
+							<span className="font-medium">
+								{completedWorkouts} / {totalWorkouts}
+							</span>
+						</div>
+						<Progress value={progressPercentage} className="h-2" />
 					</div>
-				)}
-			</CardContent>
-		</Card>
+					{status !== Status.Completed && nextWorkout && (
+						<div className="mt-4 flex items-center space-x-4 text-sm">
+							{nextWorkout.status === Status.Completed ? (
+								<CheckCircle className="h-4 w-4 text-green-500" />
+							) : (
+								<Dumbbell className="h-4 w-4 text-muted-foreground" />
+							)}
+							<span>
+								{nextWorkout.status === Status.InProgress
+									? "Current Workout: "
+									: nextWorkout.status === Status.Completed
+										? "Last Completed: "
+										: "Next Workout: "}
+								<span className="font-medium">
+									{getPrimaryLiftDisplayName(nextWorkout.primaryLift)}
+								</span>
+							</span>
+						</div>
+					)}
+					{status === Status.Completed && (
+						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
+							<CheckCircle className="h-4 w-4" />
+							<span className="font-medium">Cycle Completed</span>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+		</Link>
 	);
 }
