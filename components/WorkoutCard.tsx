@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import {
 	type ExerciseDefinitionsSelect,
+	ExerciseType,
 	Status,
 	type WorkoutsSelect,
 } from "@/lib/drizzle/schemas/strength-training";
@@ -131,32 +132,46 @@ export function WorkoutCard({
 						</div>
 
 						<div className="grid gap-4 md:grid-cols-2">
-							{accessoryExercises.map((exercise) => (
-								<div
-									key={exercise.definition.id}
-									className="bg-muted p-4 rounded-lg"
-								>
-									<h4 className="text-base font-medium mb-1">
-										{exercise.definition.name}
-									</h4>
-									<p className="text-sm text-muted-foreground mb-2">
-										Type: {exercise.definition.type}
-									</p>
-									<div className="space-y-2">
-										{exercise.sets.map((set) => (
-											<div
-												key={`${exercise.definition.id}-${set.setNumber}`}
-												className="grid grid-cols-4 gap-2 text-sm"
-											>
-												<div>Set {set.setNumber}</div>
-												<div>{set.weight} lbs</div>
-												<div>{set.reps} reps</div>
-												<div>{set.status}</div>
+							{accessoryExercises.map((exercise) => {
+								const repRange =
+									exercise.definition.type === ExerciseType.Variation
+										? "6-10"
+										: exercise.definition.type === ExerciseType.Compound
+											? "8-12"
+											: "10-15";
+								const rpeRange =
+									exercise.definition.type === ExerciseType.Variation
+										? "5-7"
+										: exercise.definition.type === ExerciseType.Compound
+											? "5-8"
+											: "5-10";
+
+								return (
+									<div
+										key={exercise.definition.id}
+										className="bg-muted p-4 rounded-lg"
+									>
+										<h4 className="text-base font-medium mb-1">
+											{exercise.definition.name}
+										</h4>
+										<p className="text-sm text-muted-foreground mb-2">
+											Type: {exercise.definition.type}
+										</p>
+										<div className="grid grid-cols-3 gap-2 text-sm">
+											<div>
+												<span className="font-medium">RPE:</span> {rpeRange}
 											</div>
-										))}
+											<div>
+												<span className="font-medium">Reps:</span> {repRange}
+											</div>
+											<div>
+												<span className="font-medium">Sets:</span>{" "}
+												{exercise.sets.length}
+											</div>
+										</div>
 									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					</div>
 				)}
