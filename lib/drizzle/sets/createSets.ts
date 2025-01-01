@@ -26,36 +26,38 @@ const PRIMARY_LIFT_PATTERNS = {
 	week1: [
 		{ reps: 10, percentageOfMax: 45 },
 		{ reps: 5, percentageOfMax: 55 },
-		{ reps: 5, percentageOfMax: 65 },
-		{ reps: 5, percentageOfMax: 75 },
-		{ reps: 5, percentageOfMax: 85 },
-		{ reps: 5, percentageOfMax: 85 },
+		// { reps: 5, percentageOfMax: 65 },
+		// { reps: 5, percentageOfMax: 75 },
+		// { reps: 5, percentageOfMax: 85 },
+		// { reps: 5, percentageOfMax: 85 },
 	],
 	week2: [
 		{ reps: 8, percentageOfMax: 50 },
 		{ reps: 3, percentageOfMax: 60 },
-		{ reps: 3, percentageOfMax: 70 },
-		{ reps: 3, percentageOfMax: 80 },
-		{ reps: 3, percentageOfMax: 90 },
-		{ reps: 3, percentageOfMax: 90 },
+		// { reps: 3, percentageOfMax: 70 },
+		// { reps: 3, percentageOfMax: 80 },
+		// { reps: 3, percentageOfMax: 90 },
+		// { reps: 3, percentageOfMax: 90 },
 	],
 	week3: [
 		{ reps: 10, percentageOfMax: 50 },
 		{ reps: 5, percentageOfMax: 70 },
-		{ reps: 3, percentageOfMax: 80 },
-		{ reps: 2, percentageOfMax: 85 },
-		{ reps: 1, percentageOfMax: 90 },
-		{ reps: 1, percentageOfMax: 95 },
+		// { reps: 3, percentageOfMax: 80 },
+		// { reps: 2, percentageOfMax: 85 },
+		// { reps: 1, percentageOfMax: 90 },
+		// { reps: 1, percentageOfMax: 95 },
 	],
 	week4: [
 		{ reps: 10, percentageOfMax: 50 },
 		{ reps: 8, percentageOfMax: 60 },
-		{ reps: 5, percentageOfMax: 70 },
-		{ reps: 5, percentageOfMax: 70 },
-		{ reps: 5, percentageOfMax: 70 },
-		{ reps: 5, percentageOfMax: 70 },
+		// { reps: 5, percentageOfMax: 70 },
+		// { reps: 5, percentageOfMax: 70 },
+		// { reps: 5, percentageOfMax: 70 },
+		// { reps: 5, percentageOfMax: 70 },
 	],
 };
+
+const NON_PRIMARY_SETS = 2;
 
 function getWeekNumber(workoutIndex: number): 1 | 2 | 3 | 4 {
 	return ((Math.floor(workoutIndex / 4) % 4) + 1) as 1 | 2 | 3 | 4;
@@ -95,8 +97,8 @@ function calculateSetScheme(
 				: undefined,
 	};
 
-	// Return 6 sets with the same pattern
-	return Array(6).fill(pattern);
+	// Return only NON_PRIMARY_SETS number of sets with the same pattern
+	return Array(NON_PRIMARY_SETS).fill(pattern);
 }
 
 export async function createSets(

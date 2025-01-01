@@ -81,6 +81,9 @@ export function WorkoutCard({
 				setCurrentSetIndex(0);
 			} else {
 				setStatus(Status.Completed);
+				setTimeout(() => {
+					window.location.reload();
+				}, 1000);
 			}
 		}
 	};
