@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +14,7 @@ import {
 import { Status } from "@/lib/drizzle/schemas/strength-training";
 import type { WorkoutDetails } from "@/lib/drizzle/workouts/getWorkoutDetails";
 import { Dumbbell } from "lucide-react";
+import { useState } from "react";
 
 function getStatusColor(status: string) {
 	switch (status) {
@@ -36,9 +39,13 @@ export function WorkoutCard({
 	id,
 	date,
 	primaryLift,
-	status,
+	status: initialStatus,
 	exercises,
 }: WorkoutDetails) {
+	const [status, setStatus] = useState(initialStatus);
+	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+	const [currentSetIndex, setCurrentSetIndex] = useState(0);
+
 	const sortedExercises = [...exercises].sort(
 		(a, b) => a.exercise.order - b.exercise.order,
 	);
@@ -50,6 +57,39 @@ export function WorkoutCard({
 	const accessoryExercises = sortedExercises.filter(
 		(e) => e.definition.type !== "primary",
 	);
+
+	const allExercises = mainExercise
+		? [mainExercise, ...accessoryExercises]
+		: accessoryExercises;
+
+	const handleButtonClick = () => {
+		if (status === Status.Pending) {
+			console.log("Starting workout");
+			setStatus(Status.InProgress);
+		} else if (
+			currentSetIndex <
+			allExercises[currentExerciseIndex].sets.length - 1
+		) {
+			console.log("Moving to next set");
+			setCurrentSetIndex(currentSetIndex + 1);
+		} else if (currentExerciseIndex < allExercises.length - 1) {
+			console.log("Moving to next exercise");
+			setCurrentExerciseIndex(currentExerciseIndex + 1);
+			setCurrentSetIndex(0);
+		} else {
+			console.log("Finishing workout");
+			setStatus(Status.Completed);
+		}
+	};
+
+	const getButtonText = () => {
+		if (status === Status.Pending) return "Start Workout";
+		if (status === Status.Completed) return "Workout Completed";
+		if (currentSetIndex < allExercises[currentExerciseIndex].sets.length - 1)
+			return "Next Set";
+		if (currentExerciseIndex < allExercises.length - 1) return "Next Exercise";
+		return "Finish Workout";
+	};
 
 	return (
 		<Card className="w-full max-w-4xl">
@@ -75,7 +115,7 @@ export function WorkoutCard({
 				</h3>
 
 				{mainExercise && (
-					<div className="space-y-6">
+					<div className="space-y-6 mb-6">
 						<div className="bg-muted p-4 rounded-lg">
 							<h4 className="text-lg font-medium mb-1">
 								{mainExercise.definition.name}
@@ -94,9 +134,16 @@ export function WorkoutCard({
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{mainExercise.sets.map((set) => (
+									{mainExercise.sets.map((set, setIndex) => (
 										<TableRow
 											key={`${mainExercise.definition.id}-${set.setNumber}`}
+											className={
+												status === Status.InProgress &&
+												currentExerciseIndex === 0 &&
+												setIndex === currentSetIndex
+													? "bg-primary/20"
+													: ""
+											}
 										>
 											<TableCell>{set.setNumber}</TableCell>
 											<TableCell>{set.weight}</TableCell>
@@ -110,41 +157,55 @@ export function WorkoutCard({
 								</TableBody>
 							</Table>
 						</div>
-
-						<div className="grid gap-4 md:grid-cols-2">
-							{accessoryExercises.map((exercise) => (
-								<div
-									key={exercise.definition.id}
-									className="bg-muted p-4 rounded-lg"
-								>
-									<h4 className="text-base font-medium mb-1">
-										{exercise.definition.name}
-									</h4>
-									<p className="text-sm text-muted-foreground mb-2">
-										{`Type: ${exercise.definition.type.charAt(0).toUpperCase()}${exercise.definition.type.slice(1)}`}
-									</p>
-									<div className="grid grid-cols-3 gap-2 text-sm">
-										<div>
-											<span className="font-medium">RPE:</span>{" "}
-											{exercise.definition.rpeMin}-{exercise.definition.rpeMax}
-										</div>
-										<div>
-											<span className="font-medium">Reps:</span>{" "}
-											{exercise.definition.repMin}-{exercise.definition.repMax}
-										</div>
-										<div>
-											<span className="font-medium">Sets:</span>{" "}
-											{exercise.sets.length}
-										</div>
-									</div>
-								</div>
-							))}
-						</div>
 					</div>
 				)}
 
-				{status === Status.Pending && (
-					<Button className="w-full mt-6">Start Workout</Button>
+				<div className="grid gap-4 md:grid-cols-2">
+					{accessoryExercises.map((exercise, index) => (
+						<div
+							key={exercise.definition.id}
+							className={`bg-muted p-4 rounded-lg ${
+								status === Status.InProgress &&
+								currentExerciseIndex === index + 1
+									? "ring-2 ring-primary"
+									: ""
+							}`}
+						>
+							<h4 className="text-base font-medium mb-1">
+								{exercise.definition.name}
+							</h4>
+							<p className="text-sm text-muted-foreground mb-2">
+								{`Type: ${exercise.definition.type.charAt(0).toUpperCase()}${exercise.definition.type.slice(1)}`}
+							</p>
+							<div className="grid grid-cols-3 gap-2 text-sm">
+								<div>
+									<span className="font-medium">RPE:</span>{" "}
+									{exercise.definition.rpeMin}-{exercise.definition.rpeMax}
+								</div>
+								<div>
+									<span className="font-medium">Reps:</span>{" "}
+									{exercise.definition.repMin}-{exercise.definition.repMax}
+								</div>
+								<div>
+									<span className="font-medium">Sets:</span>{" "}
+									{status === Status.InProgress &&
+									currentExerciseIndex === index + 1
+										? `${currentSetIndex + 1}/${exercise.sets.length}`
+										: exercise.sets.length}
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+
+				{status !== Status.Completed && (
+					<Button
+						className="w-full mt-6"
+						onClick={handleButtonClick}
+						disabled={status === Status.Completed}
+					>
+						{getButtonText()}
+					</Button>
 				)}
 			</CardContent>
 		</Card>
