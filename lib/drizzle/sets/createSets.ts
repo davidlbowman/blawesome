@@ -62,18 +62,18 @@ const ACCESSORY_PATTERNS = {
 		rpeRange: { min: 5, max: 7 },
 		repRange: { min: 6, max: 10 },
 	},
-	compound: {
+	accessory: {
 		rpeRange: { min: 5, max: 8 },
-		repRange: { min: 8, max: 12 },
+		repRange: { min: 8, max: 15 },
 	},
-	isolation: {
-		rpeRange: { min: 5, max: 10 },
-		repRange: { min: 10, max: 15 },
-	},
-};
+} as const;
 
 function getWeekNumber(workoutIndex: number): 1 | 2 | 3 | 4 {
 	return ((Math.floor(workoutIndex / 4) % 4) + 1) as 1 | 2 | 3 | 4;
+}
+
+function roundToNearest5(weight: number): number {
+	return Math.floor(weight / 5) * 5;
 }
 
 function calculateSetScheme(
@@ -87,7 +87,9 @@ function calculateSetScheme(
 	if (exerciseType === ExerciseType.Primary && oneRepMax) {
 		return PRIMARY_LIFT_PATTERNS[weekKey].map((pattern) => ({
 			...pattern,
-			weight: Math.round((oneRepMax * (pattern.percentageOfMax || 0)) / 100),
+			weight: roundToNearest5(
+				Math.round((oneRepMax * (pattern.percentageOfMax || 0)) / 100),
+			),
 		}));
 	}
 
@@ -95,9 +97,7 @@ function calculateSetScheme(
 	const pattern =
 		exerciseType === ExerciseType.Variation
 			? ACCESSORY_PATTERNS.variation
-			: exerciseType === ExerciseType.Compound
-				? ACCESSORY_PATTERNS.compound
-				: ACCESSORY_PATTERNS.isolation;
+			: ACCESSORY_PATTERNS.accessory;
 
 	// Return 6 sets with the same pattern
 	return Array(6).fill(pattern);

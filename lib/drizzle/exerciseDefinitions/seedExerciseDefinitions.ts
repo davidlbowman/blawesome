@@ -126,25 +126,25 @@ export async function seedExerciseDefinitions() {
 		// Compound Leg Accessories
 		{
 			name: "Front Squats",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Lunges",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Leg Press",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Hack Squats",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
@@ -152,31 +152,31 @@ export async function seedExerciseDefinitions() {
 		// Leg Isolation Accessories
 		{
 			name: "Leg Extensions",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.QuadAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Leg Curls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.HamstringGluteAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Romanian Deadlifts",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.HamstringGluteAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Calf Raises (Seated)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CalfAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Calf Raises (Straight Leg)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CalfAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
@@ -184,25 +184,25 @@ export async function seedExerciseDefinitions() {
 		// Chest Accessories
 		{
 			name: "Incline Press (DB/BB/M)",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Decline Press (DB/BB/M)",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Flat Press (DB/M)",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Chest Flies",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
@@ -210,19 +210,19 @@ export async function seedExerciseDefinitions() {
 		// Tricep Accessories
 		{
 			name: "Overhead Extension (French)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Frontal Extension (Skullcrusher)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Downward Extension (Pushdown)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
@@ -230,37 +230,37 @@ export async function seedExerciseDefinitions() {
 		// Pull Accessories
 		{
 			name: "Pull-Ups",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Pulldowns (M/C)",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Face Pulls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Bent-over Rows (BB/DB)",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Rows (C/M)",
-			type: ExerciseType.Compound,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Face Pulls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
@@ -268,31 +268,31 @@ export async function seedExerciseDefinitions() {
 		// Bicep Accessories
 		{
 			name: "Curls (DB/EZ/C)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Hammer Curls (DB/C)",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Preacher Curls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Concentrated Curls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "High Side Cable Curls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
@@ -300,31 +300,31 @@ export async function seedExerciseDefinitions() {
 		// Delt Accessories
 		{
 			name: "Front Delt Raise",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
 			name: "Side Delt Raise",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
 			name: "Rear Delt Raise",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
 			name: "Trap Shrugs",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
 			name: "Face Pulls",
-			type: ExerciseType.Isolation,
+			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
@@ -365,8 +365,8 @@ export async function seedExerciseDefinitions() {
 }
 
 // Only run this if you need to seed the database
-seedExerciseDefinitions()
-	.then((result) => {
-		console.log("Exercise definitions seeded:", result);
-	})
-	.catch(console.error);
+// seedExerciseDefinitions()
+// 	.then((result) => {
+// 		console.log("Exercise definitions seeded:", result);
+// 	})
+// 	.catch(console.error);

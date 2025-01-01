@@ -49,11 +49,11 @@ const WORKOUT_CATEGORIES = {
 	],
 	[PrimaryLift.Overhead]: [
 		ExerciseCategory.MainLift,
-		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.DeltAccessory,
 		ExerciseCategory.DeltAccessory,
 		ExerciseCategory.DeltAccessory,
-		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.BicepAccessory,
+		ExerciseCategory.TricepAccessory,
 	],
 } as const;
 

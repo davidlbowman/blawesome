@@ -32,6 +32,19 @@ interface WorkoutCardProps extends WorkoutsSelect {
 	}>;
 }
 
+function getExerciseTypeLabel(type: string): string {
+	switch (type) {
+		case ExerciseType.Primary:
+			return "Primary";
+		case ExerciseType.Variation:
+			return "Variation";
+		case ExerciseType.Accessory:
+			return "Accessory";
+		default:
+			return type;
+	}
+}
+
 export function WorkoutCard({
 	id,
 	date,
@@ -99,7 +112,7 @@ export function WorkoutCard({
 								{mainExercise.definition.name}
 							</h4>
 							<p className="text-sm text-muted-foreground mb-3">
-								Type: {mainExercise.definition.type}
+								Type: {getExerciseTypeLabel(mainExercise.definition.type)}
 							</p>
 							<Table>
 								<TableHeader>
@@ -107,7 +120,6 @@ export function WorkoutCard({
 										<TableHead>Set</TableHead>
 										<TableHead>Weight (lbs)</TableHead>
 										<TableHead>Reps</TableHead>
-										<TableHead>RPE</TableHead>
 										<TableHead>% of Max</TableHead>
 										<TableHead>Status</TableHead>
 									</TableRow>
@@ -120,7 +132,6 @@ export function WorkoutCard({
 											<TableCell>{set.setNumber}</TableCell>
 											<TableCell>{set.weight}</TableCell>
 											<TableCell>{set.reps}</TableCell>
-											<TableCell>{set.rpe || "-"}</TableCell>
 											<TableCell>
 												{set.percentageOfMax ? `${set.percentageOfMax}%` : "-"}
 											</TableCell>
@@ -136,15 +147,11 @@ export function WorkoutCard({
 								const repRange =
 									exercise.definition.type === ExerciseType.Variation
 										? "6-10"
-										: exercise.definition.type === ExerciseType.Compound
-											? "8-12"
-											: "10-15";
+										: "8-15";
 								const rpeRange =
 									exercise.definition.type === ExerciseType.Variation
 										? "5-7"
-										: exercise.definition.type === ExerciseType.Compound
-											? "5-8"
-											: "5-10";
+										: "5-8";
 
 								return (
 									<div
@@ -155,7 +162,7 @@ export function WorkoutCard({
 											{exercise.definition.name}
 										</h4>
 										<p className="text-sm text-muted-foreground mb-2">
-											Type: {exercise.definition.type}
+											Type: {getExerciseTypeLabel(exercise.definition.type)}
 										</p>
 										<div className="grid grid-cols-3 gap-2 text-sm">
 											<div>

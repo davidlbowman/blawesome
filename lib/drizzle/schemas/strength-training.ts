@@ -20,8 +20,7 @@ export const PrimaryLift = {
 export const ExerciseType = {
 	Primary: "primary",
 	Variation: "variation",
-	Compound: "compound",
-	Isolation: "isolation",
+	Accessory: "accessory",
 } as const;
 
 export const ExerciseCategory = {
