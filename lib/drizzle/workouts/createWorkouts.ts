@@ -52,8 +52,8 @@ const WORKOUT_CATEGORIES = {
 		ExerciseCategory.DeltAccessory,
 		ExerciseCategory.DeltAccessory,
 		ExerciseCategory.DeltAccessory,
-		ExerciseCategory.BicepAccessory,
 		ExerciseCategory.TricepAccessory,
+		ExerciseCategory.BicepAccessory,
 	],
 } as const;
 
@@ -89,6 +89,10 @@ export async function createWorkouts(
 		async (workout, workoutIndex) => {
 			// Get the categories for this workout day
 			const categories = WORKOUT_CATEGORIES[workout.primaryLift];
+			console.log(
+				`Creating exercises for ${workout.primaryLift} day with categories:`,
+				categories,
+			);
 
 			// Get all exercise definitions for this primary lift day
 			const dayExerciseDefinitions = await db
@@ -96,11 +100,24 @@ export async function createWorkouts(
 				.from(exerciseDefinitions)
 				.where(eq(exerciseDefinitions.primaryLiftDay, workout.primaryLift));
 
+			console.log(
+				`Found ${dayExerciseDefinitions.length} exercise definitions for ${workout.primaryLift} day:`,
+				dayExerciseDefinitions.map((d) => ({
+					name: d.name,
+					category: d.category,
+				})),
+			);
+
 			// Create exercises for each category
 			const exerciseValues = categories.map((category, order) => {
 				// Find an exercise definition that matches this category
 				const definition = dayExerciseDefinitions.find(
 					(def) => def.category === category,
+				);
+
+				console.log(
+					`Looking for exercise in category ${category}:`,
+					definition ? definition.name : "Not found",
 				);
 
 				if (!definition) {
@@ -157,6 +174,7 @@ export async function createWorkouts(
 					definition.type as (typeof ExerciseType)[keyof typeof ExerciseType],
 					workoutIndex,
 					oneRepMax,
+					definition,
 				);
 			});
 

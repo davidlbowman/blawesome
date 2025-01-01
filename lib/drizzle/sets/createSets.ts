@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/drizzle/db";
 import {
+	type ExerciseDefinitionsSelect,
 	ExerciseType,
 	type SetsInsert,
 	Status,
@@ -56,18 +57,6 @@ const PRIMARY_LIFT_PATTERNS = {
 	],
 };
 
-// Patterns for accessory lifts
-const ACCESSORY_PATTERNS = {
-	variation: {
-		rpeRange: { min: 5, max: 7 },
-		repRange: { min: 6, max: 10 },
-	},
-	accessory: {
-		rpeRange: { min: 5, max: 8 },
-		repRange: { min: 8, max: 15 },
-	},
-} as const;
-
 function getWeekNumber(workoutIndex: number): 1 | 2 | 3 | 4 {
 	return ((Math.floor(workoutIndex / 4) % 4) + 1) as 1 | 2 | 3 | 4;
 }
@@ -80,6 +69,7 @@ function calculateSetScheme(
 	exerciseType: (typeof ExerciseType)[keyof typeof ExerciseType],
 	workoutIndex: number,
 	oneRepMax: number | null,
+	definition: ExerciseDefinitionsSelect,
 ): SetScheme[] {
 	const weekNumber = getWeekNumber(workoutIndex);
 	const weekKey = `week${weekNumber}` as keyof typeof PRIMARY_LIFT_PATTERNS;
@@ -93,11 +83,17 @@ function calculateSetScheme(
 		}));
 	}
 
-	// For variations and accessories, use RPE ranges
-	const pattern =
-		exerciseType === ExerciseType.Variation
-			? ACCESSORY_PATTERNS.variation
-			: ACCESSORY_PATTERNS.accessory;
+	// For variations and accessories, use the definition's ranges
+	const pattern = {
+		rpeRange:
+			definition.rpeMin && definition.rpeMax
+				? { min: definition.rpeMin, max: definition.rpeMax }
+				: undefined,
+		repRange:
+			definition.repMin && definition.repMax
+				? { min: definition.repMin, max: definition.repMax }
+				: undefined,
+	};
 
 	// Return 6 sets with the same pattern
 	return Array(6).fill(pattern);
@@ -109,8 +105,14 @@ export async function createSets(
 	exerciseType: (typeof ExerciseType)[keyof typeof ExerciseType],
 	workoutIndex: number,
 	oneRepMax: number | null,
+	definition: ExerciseDefinitionsSelect,
 ): Promise<SetsInsert[]> {
-	const setSchemes = calculateSetScheme(exerciseType, workoutIndex, oneRepMax);
+	const setSchemes = calculateSetScheme(
+		exerciseType,
+		workoutIndex,
+		oneRepMax,
+		definition,
+	);
 
 	const setValues: SetsInsert[] = setSchemes.map((scheme, index) => ({
 		userId,

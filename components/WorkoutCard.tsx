@@ -143,42 +143,33 @@ export function WorkoutCard({
 						</div>
 
 						<div className="grid gap-4 md:grid-cols-2">
-							{accessoryExercises.map((exercise) => {
-								const repRange =
-									exercise.definition.type === ExerciseType.Variation
-										? "6-10"
-										: "8-15";
-								const rpeRange =
-									exercise.definition.type === ExerciseType.Variation
-										? "5-7"
-										: "5-8";
-
-								return (
-									<div
-										key={exercise.definition.id}
-										className="bg-muted p-4 rounded-lg"
-									>
-										<h4 className="text-base font-medium mb-1">
-											{exercise.definition.name}
-										</h4>
-										<p className="text-sm text-muted-foreground mb-2">
-											Type: {getExerciseTypeLabel(exercise.definition.type)}
-										</p>
-										<div className="grid grid-cols-3 gap-2 text-sm">
-											<div>
-												<span className="font-medium">RPE:</span> {rpeRange}
-											</div>
-											<div>
-												<span className="font-medium">Reps:</span> {repRange}
-											</div>
-											<div>
-												<span className="font-medium">Sets:</span>{" "}
-												{exercise.sets.length}
-											</div>
+							{accessoryExercises.map((exercise) => (
+								<div
+									key={exercise.definition.id}
+									className="bg-muted p-4 rounded-lg"
+								>
+									<h4 className="text-base font-medium mb-1">
+										{exercise.definition.name}
+									</h4>
+									<p className="text-sm text-muted-foreground mb-2">
+										Type: {getExerciseTypeLabel(exercise.definition.type)}
+									</p>
+									<div className="grid grid-cols-3 gap-2 text-sm">
+										<div>
+											<span className="font-medium">RPE:</span>{" "}
+											{exercise.definition.rpeMin}-{exercise.definition.rpeMax}
+										</div>
+										<div>
+											<span className="font-medium">Reps:</span>{" "}
+											{exercise.definition.repMin}-{exercise.definition.repMax}
+										</div>
+										<div>
+											<span className="font-medium">Sets:</span>{" "}
+											{exercise.sets.length}
 										</div>
 									</div>
-								);
-							})}
+								</div>
+							))}
 						</div>
 					</div>
 				)}
