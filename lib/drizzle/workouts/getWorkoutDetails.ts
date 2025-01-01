@@ -20,7 +20,7 @@ export async function getWorkoutDetails(workoutId: string) {
 		return null;
 	}
 
-	// Get exercises with their definitions
+	// Get exercises with their definitions and sets
 	const workoutExercises = await db
 		.select({
 			exercise: exercises,
@@ -42,10 +42,7 @@ export async function getWorkoutDetails(workoutId: string) {
 				.where(eq(sets.exerciseId, exercise.id))
 				.orderBy(sets.setNumber);
 
-			return {
-				exercise,
-				sets: exerciseSets,
-			};
+			return exerciseSets;
 		}),
 	);
 
@@ -54,7 +51,7 @@ export async function getWorkoutDetails(workoutId: string) {
 		...workout,
 		exercises: workoutExercises.map(({ definition }, index) => ({
 			definition,
-			sets: exerciseSets[index].sets,
+			sets: exerciseSets[index],
 		})),
 	};
 }
