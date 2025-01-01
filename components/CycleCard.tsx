@@ -5,7 +5,7 @@ import {
 	type CyclesSelect,
 	PrimaryLift,
 	Status,
-} from "@/lib/drizzle/schemas/strength-training";
+} from "@/drizzle/modules/strength-training/schemas";
 import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
 import Link from "next/link";
 

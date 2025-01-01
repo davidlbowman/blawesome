@@ -42,7 +42,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { logoutUser } from "@/lib/drizzle/users/logoutUser";
+import { logoutUser } from "@/drizzle/core/functions/users/logoutUser";
 import {
 	BadgeCheck,
 	Bell,

@@ -17,9 +17,9 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { getPrimaryExerciseDefinitions } from "@/lib/drizzle/exerciseDefinitions/getPrimaryExerciseDefinitions";
-import { insertOneRepMax } from "@/lib/drizzle/oneRepMaxes/insertOneRepMax";
-import { getUserId } from "@/lib/drizzle/users/getUserId";
+import { getUserId } from "@/drizzle/core/functions/users/getUserId";
+import { getPrimaryExerciseDefinitions } from "@/drizzle/modules/strength-training/functions/exerciseDefinitions/getPrimaryExerciseDefinitions";
+import { insertOneRepMax } from "@/drizzle/modules/strength-training/functions/oneRepMaxes/insertOneRepMax";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";

@@ -11,10 +11,13 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Status } from "@/lib/drizzle/schemas/strength-training";
-import { completeSet } from "@/lib/drizzle/sets/completeSet";
-import type { WorkoutDetails } from "@/lib/drizzle/workouts/getWorkoutDetails";
-import { startWorkout } from "@/lib/drizzle/workouts/startWorkout";
+import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
+import type { WorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
+import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
+import {
+	type SetsSelect,
+	Status,
+} from "@/drizzle/modules/strength-training/schemas";
 import { Dumbbell } from "lucide-react";
 import { useState } from "react";
 
@@ -140,26 +143,30 @@ export function WorkoutCard({
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{mainExercise.sets.map((set, setIndex) => (
-										<TableRow
-											key={`${mainExercise.exercise.id}-${set.id}`}
-											className={
-												status === Status.InProgress &&
-												currentExerciseIndex === 0 &&
-												setIndex === currentSetIndex
-													? "bg-primary/20"
-													: ""
-											}
-										>
-											<TableCell>{set.setNumber}</TableCell>
-											<TableCell>{set.weight}</TableCell>
-											<TableCell>{set.reps}</TableCell>
-											<TableCell>
-												{set.percentageOfMax ? `${set.percentageOfMax}%` : "-"}
-											</TableCell>
-											<TableCell>{set.status}</TableCell>
-										</TableRow>
-									))}
+									{mainExercise.sets.map(
+										(set: SetsSelect, setIndex: number) => (
+											<TableRow
+												key={`${mainExercise.exercise.id}-${set.id}`}
+												className={
+													status === Status.InProgress &&
+													currentExerciseIndex === 0 &&
+													setIndex === currentSetIndex
+														? "bg-primary/20"
+														: ""
+												}
+											>
+												<TableCell>{set.setNumber}</TableCell>
+												<TableCell>{set.weight}</TableCell>
+												<TableCell>{set.reps}</TableCell>
+												<TableCell>
+													{set.percentageOfMax
+														? `${set.percentageOfMax}%`
+														: "-"}
+												</TableCell>
+												<TableCell>{set.status}</TableCell>
+											</TableRow>
+										),
+									)}
 								</TableBody>
 							</Table>
 						</div>

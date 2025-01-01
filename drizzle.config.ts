@@ -1,4 +1,4 @@
-import "@/lib/drizzle/envConfig";
+import "@/drizzle/envConfig";
 import { defineConfig } from "drizzle-kit";
 
 const url = process.env.POSTGRES_URL;

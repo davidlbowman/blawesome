@@ -11,8 +11,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createUserSession } from "@/lib/drizzle/users/createUserSession";
-import { verifyUser } from "@/lib/drizzle/users/verifyUser";
+import { createUserSession } from "@/drizzle/core/functions/users/createUserSession";
+import { verifyUser } from "@/drizzle/core/functions/users/verifyUser";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -41,7 +41,7 @@ function LoginFormContent() {
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
-			const user = await verifyUser(data).catch((error) => {
+			const user = await verifyUser(data).catch((error: unknown) => {
 				console.error("Verify user error:", error);
 				throw error;
 			});
@@ -51,7 +51,7 @@ function LoginFormContent() {
 				return;
 			}
 
-			const session = await createUserSession(user).catch((error) => {
+			const session = await createUserSession(user).catch((error: unknown) => {
 				console.error("Session creation error:", error);
 				throw error;
 			});

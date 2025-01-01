@@ -1,7 +1,7 @@
 import { WorkoutCard } from "@/components/WorkoutCard";
-import type { CyclesSelect } from "@/lib/drizzle/schemas/strength-training";
-import { getActiveWorkouts } from "@/lib/drizzle/workouts/getActiveWorkouts";
-import { getWorkoutDetails } from "@/lib/drizzle/workouts/getWorkoutDetails";
+import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
+import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
 
 interface PageProps {
 	params: Promise<{

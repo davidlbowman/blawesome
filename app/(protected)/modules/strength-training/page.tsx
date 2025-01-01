@@ -1,14 +1,14 @@
 import { OneRMForm } from "@/components/1RMForm";
 import { WorkoutCycleCard } from "@/components/CycleCard";
-import { createCycle } from "@/lib/drizzle/cycles/createCycle";
-import { getCycles } from "@/lib/drizzle/cycles/getCycles";
-import { hasAllMain1RepMaxes } from "@/lib/drizzle/oneRepMaxes/hasAllMain1RepMaxes";
+import { getUserId } from "@/drizzle/core/functions/users/getUserId";
+import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
+import { getCycles } from "@/drizzle/modules/strength-training/functions/cycles/getCycles";
+import { hasAllMain1RepMaxes } from "@/drizzle/modules/strength-training/functions/oneRepMaxes/hasAllMain1RepMaxes";
+import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import {
 	type PrimaryLift,
 	Status,
-} from "@/lib/drizzle/schemas/strength-training";
-import { getUserId } from "@/lib/drizzle/users/getUserId";
-import { getActiveWorkouts } from "@/lib/drizzle/workouts/getActiveWorkouts";
+} from "@/drizzle/modules/strength-training/schemas";
 
 export default async function StrengthTrainingPage() {
 	const userId = await getUserId();
