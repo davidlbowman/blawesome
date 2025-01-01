@@ -8,7 +8,7 @@ import {
 } from "@/lib/drizzle/schemas/strength-training";
 import { eq } from "drizzle-orm";
 
-export async function hasAllMainLifts(userId: string): Promise<boolean> {
+export async function hasAllMain1RepMaxes(userId: string): Promise<boolean> {
 	const allExerciseDefinitions = await getPrimaryExerciseDefinitions();
 
 	const mainLifts = allExerciseDefinitions.filter((def) =>

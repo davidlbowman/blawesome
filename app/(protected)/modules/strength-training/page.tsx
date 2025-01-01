@@ -2,21 +2,19 @@ import { OneRMForm } from "@/components/1RMForm";
 import { WorkoutCycleCard } from "@/components/CycleCard";
 import { createCycle } from "@/lib/drizzle/cycles/createCycle";
 import { getCycles } from "@/lib/drizzle/cycles/getCycles";
-import { db } from "@/lib/drizzle/db";
-import { hasAllMainLifts } from "@/lib/drizzle/oneRepMaxes/hasAllMainLifts";
+import { hasAllMain1RepMaxes } from "@/lib/drizzle/oneRepMaxes/hasAllMain1RepMaxes";
 import {
 	type PrimaryLift,
 	Status,
-	workouts,
 } from "@/lib/drizzle/schemas/strength-training";
 import { getUserId } from "@/lib/drizzle/users/getUserId";
-import { eq } from "drizzle-orm";
+import { getActiveWorkouts } from "@/lib/drizzle/workouts/getActiveWorkouts";
 
 export default async function StrengthTrainingPage() {
 	const userId = await getUserId();
 
 	// Check if user has recorded all main lifts
-	if (!(await hasAllMainLifts(userId))) {
+	if (!(await hasAllMain1RepMaxes(userId))) {
 		return <OneRMForm />;
 	}
 
@@ -26,24 +24,16 @@ export default async function StrengthTrainingPage() {
 		cycles = [await createCycle(userId)];
 	}
 
-	// Find active cycle and its workouts
+	// Find active cycle
 	const activeCycle = cycles.find(
 		(cycle) =>
 			cycle.status === Status.Pending || cycle.status === Status.InProgress,
 	);
 
-	const activeWorkouts = activeCycle
-		? await db
-				.select()
-				.from(workouts)
-				.where(eq(workouts.cycleId, activeCycle.id))
-		: [];
-
-	const totalWorkouts = activeWorkouts.length;
-	const completedWorkouts = activeWorkouts.filter(
-		(w) => w.status === Status.Completed,
-	).length;
-	const nextWorkout = activeWorkouts.find((w) => w.status === Status.Pending);
+	// Get active workouts if there's an active cycle
+	const { totalWorkouts, completedWorkouts, nextWorkout } = activeCycle
+		? await getActiveWorkouts(activeCycle.id)
+		: { totalWorkouts: 0, completedWorkouts: 0, nextWorkout: undefined };
 
 	return (
 		<div className="container mx-auto p-6 space-y-6">
