@@ -9,27 +9,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import {
-	type ExerciseDefinitionsSelect,
-	Status,
-	type WorkoutsSelect,
-} from "@/lib/drizzle/schemas/strength-training";
+import { Status } from "@/lib/drizzle/schemas/strength-training";
+import type { WorkoutDetails } from "@/lib/drizzle/workouts/getWorkoutDetails";
 import { Dumbbell } from "lucide-react";
-
-interface WorkoutCardProps extends WorkoutsSelect {
-	exercises: Array<{
-		definition: ExerciseDefinitionsSelect;
-		order: number;
-		sets: Array<{
-			weight: number;
-			reps: number;
-			rpe?: number | null;
-			percentageOfMax?: number | null;
-			setNumber: number;
-			status: (typeof Status)[keyof typeof Status];
-		}>;
-	}>;
-}
 
 function getStatusColor(status: string) {
 	switch (status) {
@@ -56,8 +38,10 @@ export function WorkoutCard({
 	primaryLift,
 	status,
 	exercises,
-}: WorkoutCardProps) {
-	const sortedExercises = [...exercises].sort((a, b) => a.order - b.order);
+}: WorkoutDetails) {
+	const sortedExercises = [...exercises].sort(
+		(a, b) => a.exercise.order - b.exercise.order,
+	);
 
 	const mainExercise = sortedExercises.find(
 		(e) => e.definition.type === "primary",

@@ -2,6 +2,9 @@
 
 import { db } from "@/lib/drizzle/db";
 import {
+	type ExerciseDefinitionsSelect,
+	type SetsSelect,
+	type WorkoutsSelect,
 	exerciseDefinitions,
 	exercises,
 	sets,
@@ -9,7 +12,17 @@ import {
 } from "@/lib/drizzle/schemas/strength-training";
 import { eq } from "drizzle-orm";
 
-export async function getWorkoutDetails(workoutId: string) {
+export type WorkoutDetails = WorkoutsSelect & {
+	exercises: Array<{
+		definition: ExerciseDefinitionsSelect;
+		exercise: typeof exercises.$inferSelect;
+		sets: Array<SetsSelect>;
+	}>;
+};
+
+export async function getWorkoutDetails(
+	workoutId: string,
+): Promise<WorkoutDetails | null> {
 	// Get the workout
 	const [workout] = await db
 		.select()
@@ -52,7 +65,7 @@ export async function getWorkoutDetails(workoutId: string) {
 		...workout,
 		exercises: workoutExercises.map(({ exercise, definition }, index) => ({
 			definition,
-			order: exercise.order,
+			exercise,
 			sets: exerciseSets[index],
 		})),
 	};
