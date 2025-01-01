@@ -17,8 +17,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { insertOneRepMax } from "@/lib/drizzle/1RM/insertOneRepMax";
 import { getPrimaryExerciseDefinitions } from "@/lib/drizzle/exerciseDefinitions/getPrimaryExerciseDefinitions";
+import { insertOneRepMax } from "@/lib/drizzle/oneRepMaxes/insertOneRepMax";
 import { getUserId } from "@/lib/drizzle/users/getUserId";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";

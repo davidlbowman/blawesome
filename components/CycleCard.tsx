@@ -13,10 +13,27 @@ interface WorkoutCycleCardProps
 	completedWorkouts: number;
 	totalWorkouts: number;
 	nextWorkout?: {
-		primaryLift: keyof typeof PrimaryLift;
-		status: keyof typeof Status;
+		primaryLift: (typeof PrimaryLift)[keyof typeof PrimaryLift];
+		status: (typeof Status)[keyof typeof Status];
 	};
 }
+
+const getPrimaryLiftDisplayName = (
+	lift: (typeof PrimaryLift)[keyof typeof PrimaryLift],
+) => {
+	switch (lift) {
+		case PrimaryLift.Squat:
+			return "Squat";
+		case PrimaryLift.Bench:
+			return "Bench Press";
+		case PrimaryLift.Deadlift:
+			return "Deadlift";
+		case PrimaryLift.Overhead:
+			return "Overhead Press";
+		default:
+			return lift;
+	}
+};
 
 export function WorkoutCycleCard({
 	id,
@@ -90,7 +107,7 @@ export function WorkoutCycleCard({
 									? "Last Completed: "
 									: "Next Workout: "}
 							<span className="font-medium">
-								{PrimaryLift[nextWorkout.primaryLift]}
+								{getPrimaryLiftDisplayName(nextWorkout.primaryLift)}
 							</span>
 						</span>
 					</div>

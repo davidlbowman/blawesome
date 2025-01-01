@@ -3,49 +3,30 @@ import { WorkoutCycleCard } from "@/components/CycleCard";
 import { createCycle } from "@/lib/drizzle/cycles/createCycle";
 import { getCycles } from "@/lib/drizzle/cycles/getCycles";
 import { db } from "@/lib/drizzle/db";
-import { getPrimaryExerciseDefinitions } from "@/lib/drizzle/exerciseDefinitions/getPrimaryExerciseDefinitions";
-import { oneRepMaxes } from "@/lib/drizzle/schemas/strength-training";
-import { Status, workouts } from "@/lib/drizzle/schemas/strength-training";
+import { hasAllMainLifts } from "@/lib/drizzle/oneRepMaxes/hasAllMainLifts";
+import {
+	type PrimaryLift,
+	Status,
+	workouts,
+} from "@/lib/drizzle/schemas/strength-training";
 import { getUserId } from "@/lib/drizzle/users/getUserId";
 import { eq } from "drizzle-orm";
 
-async function getUserOneRepMaxes() {
-	const userId = await getUserId();
-	const allExerciseDefinitions = await getPrimaryExerciseDefinitions();
-
-	const mainLiftNames = ["Squat", "Bench Press", "Deadlift", "Overhead Press"];
-	const mainLifts = allExerciseDefinitions.filter((def) =>
-		mainLiftNames.includes(def.name),
-	);
-
-	const lifts = await db
-		.select()
-		.from(oneRepMaxes)
-		.where(eq(oneRepMaxes.userId, userId));
-
-	const hasAllLifts = mainLifts.every((def) =>
-		lifts.some((lift) => lift.exerciseDefinitionId === def.id),
-	);
-
-	return hasAllLifts;
-}
-
 export default async function StrengthTrainingPage() {
 	const userId = await getUserId();
-	const hasAllLifts = await getUserOneRepMaxes();
 
-	if (!hasAllLifts) {
+	// Check if user has recorded all main lifts
+	if (!(await hasAllMainLifts(userId))) {
 		return <OneRMForm />;
 	}
 
+	// Get or create cycles
 	let cycles = await getCycles(userId);
-
 	if (cycles.length === 0) {
-		const newCycle = await createCycle(userId);
-		cycles = [newCycle];
+		cycles = [await createCycle(userId)];
 	}
 
-	// Find the active cycle and its workouts
+	// Find active cycle and its workouts
 	const activeCycle = cycles.find(
 		(cycle) =>
 			cycle.status === Status.Pending || cycle.status === Status.InProgress,
@@ -58,62 +39,38 @@ export default async function StrengthTrainingPage() {
 				.where(eq(workouts.cycleId, activeCycle.id))
 		: [];
 
-	// Calculate stats
 	const totalWorkouts = activeWorkouts.length;
 	const completedWorkouts = activeWorkouts.filter(
 		(w) => w.status === Status.Completed,
 	).length;
-	const nextWorkout =
-		activeCycle?.status !== Status.Completed
-			? activeWorkouts.find((w) => w.status === Status.Pending)
-			: undefined;
+	const nextWorkout = activeWorkouts.find((w) => w.status === Status.Pending);
 
 	return (
 		<div className="container mx-auto p-6 space-y-6">
 			<h1 className="text-2xl font-bold mb-6">Your Training Cycles</h1>
 			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{cycles.map((cycle) => {
-					console.log("Cycle Status:", cycle.status);
-					console.log(
-						"Rendering Next Workout:",
-						cycle.status !== Status.Completed && nextWorkout
-							? {
-									primaryLift: nextWorkout.primaryLift,
-									status: nextWorkout.status,
-								}
-							: undefined,
-					);
-					return (
-						<WorkoutCycleCard
-							key={cycle.id}
-							{...cycle}
-							completedWorkouts={
-								cycle.status === Status.Completed
-									? totalWorkouts
-									: completedWorkouts
-							}
-							totalWorkouts={totalWorkouts}
-							nextWorkout={
-								cycle.status !== Status.Completed && nextWorkout
-									? {
-											primaryLift: (nextWorkout.primaryLift
-												.charAt(0)
-												.toUpperCase() + nextWorkout.primaryLift.slice(1)) as
-												| "Squat"
-												| "Bench"
-												| "Deadlift"
-												| "Overhead",
-											status: (nextWorkout.status.charAt(0).toUpperCase() +
-												nextWorkout.status.slice(1)) as
-												| "Pending"
-												| "InProgress"
-												| "Completed",
-										}
-									: undefined
-							}
-						/>
-					);
-				})}
+				{cycles.map((cycle) => (
+					<WorkoutCycleCard
+						key={cycle.id}
+						{...cycle}
+						completedWorkouts={
+							cycle.status === Status.Completed
+								? totalWorkouts
+								: completedWorkouts
+						}
+						totalWorkouts={totalWorkouts}
+						nextWorkout={
+							cycle.status !== Status.Completed && nextWorkout
+								? {
+										primaryLift:
+											nextWorkout.primaryLift as (typeof PrimaryLift)[keyof typeof PrimaryLift],
+										status:
+											nextWorkout.status as (typeof Status)[keyof typeof Status],
+									}
+								: undefined
+						}
+					/>
+				))}
 			</div>
 		</div>
 	);
