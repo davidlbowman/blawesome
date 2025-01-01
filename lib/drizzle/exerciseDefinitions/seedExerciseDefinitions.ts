@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/drizzle/db";
 import {
+	ExerciseCategory,
 	ExerciseType,
 	PrimaryLift,
 	exerciseDefinitions,
@@ -14,6 +15,7 @@ export async function seedExerciseDefinitions() {
 			id: exerciseDefinitions.id,
 			name: exerciseDefinitions.name,
 			type: exerciseDefinitions.type,
+			category: exerciseDefinitions.category,
 		})
 		.from(exerciseDefinitions);
 
@@ -27,21 +29,25 @@ export async function seedExerciseDefinitions() {
 		{
 			name: "Squat",
 			type: ExerciseType.Primary,
+			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Bench Press",
 			type: ExerciseType.Primary,
+			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Deadlift",
 			type: ExerciseType.Primary,
+			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Overhead Press",
 			type: ExerciseType.Primary,
+			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 
@@ -49,33 +55,39 @@ export async function seedExerciseDefinitions() {
 		{
 			name: "Pause Squat",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Front Squat",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Box Squats",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 
 		// Bench Press Variations
 		{
-			name: "Incline Barbell Bench Press",
+			name: "Incline Bench Press",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
-			name: "Decline Barbell Bench Press",
+			name: "Decline Bench Press",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
-			name: "Flat Dumbbell Press",
+			name: "Dumbbell Press",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 
@@ -83,109 +95,135 @@ export async function seedExerciseDefinitions() {
 		{
 			name: "Romanian Deadlift",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Straight Leg Deadlift",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Deficit Deadlift",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Rack Pull",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Sumo Deadlift",
 			type: ExerciseType.Variation,
+			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 
-		// Compound Leg Exercises
+		// Compound Leg Accessories
 		{
-			name: "Bulgarian Split Squats",
+			name: "Front Squats",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Lunges",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Leg Press",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Hack Squats",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 
-		// Isolation Exercises
+		// Leg Isolation Accessories
 		{
 			name: "Leg Extensions",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.QuadAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Leg Curls",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.HamstringGluteAccessory,
+			primaryLiftDay: PrimaryLift.Squat,
+		},
+		{
+			name: "Romanian Deadlifts",
+			type: ExerciseType.Compound,
+			category: ExerciseCategory.HamstringGluteAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
 			name: "Calf Raises (Seated)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.CalfAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 		{
-			name: "Calf Raises (Standing)",
+			name: "Calf Raises (Straight Leg)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.CalfAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
 		},
 
 		// Chest Accessories
 		{
-			name: "Incline Dumbbell Press",
+			name: "Incline Press (DB/BB/M)",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
-			name: "Decline Dumbbell Press",
+			name: "Decline Press (DB/BB/M)",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
-			name: "Machine Chest Press",
+			name: "Flat Press (DB/M)",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
 			name: "Chest Flies",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 
 		// Tricep Accessories
 		{
-			name: "Overhead Extension (French Press)",
+			name: "Overhead Extension (French)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
-			name: "Skullcrushers",
+			name: "Frontal Extension (Skullcrusher)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 		{
-			name: "Tricep Pushdown",
+			name: "Downward Extension (Pushdown)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
 		},
 
@@ -193,75 +231,101 @@ export async function seedExerciseDefinitions() {
 		{
 			name: "Pull-Ups",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
-			name: "Lat Pulldowns",
+			name: "Pulldowns (M/C)",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
-			name: "Face Pulls (Back)",
+			name: "Face Pulls",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
-			name: "Bent-over Rows",
+			name: "Bent-over Rows (BB/DB)",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
-			name: "Cable Rows",
+			name: "Rows (C/M)",
 			type: ExerciseType.Compound,
+			category: ExerciseCategory.LateralPullAccessory,
+			primaryLiftDay: PrimaryLift.Deadlift,
+		},
+		{
+			name: "Face Pulls",
+			type: ExerciseType.Isolation,
+			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 
 		// Bicep Accessories
 		{
-			name: "Barbell Curls",
+			name: "Curls (DB/EZ/C)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
-			name: "Hammer Curls",
+			name: "Hammer Curls (DB/C)",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
 			name: "Preacher Curls",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 		{
-			name: "Concentration Curls",
+			name: "Concentrated Curls",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.BicepAccessory,
+			primaryLiftDay: PrimaryLift.Deadlift,
+		},
+		{
+			name: "High Side Cable Curls",
+			type: ExerciseType.Isolation,
+			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
 		},
 
-		// Shoulder Accessories
+		// Delt Accessories
 		{
 			name: "Front Delt Raise",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
 			name: "Side Delt Raise",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
 			name: "Rear Delt Raise",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
-			name: "Face Pulls (Shoulders)",
+			name: "Trap Shrugs",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 		{
-			name: "Shrugs",
+			name: "Face Pulls",
 			type: ExerciseType.Isolation,
+			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
 		},
 	] as const;
@@ -278,6 +342,7 @@ export async function seedExerciseDefinitions() {
 					id: exerciseDefinitions.id,
 					name: exerciseDefinitions.name,
 					type: exerciseDefinitions.type,
+					category: exerciseDefinitions.category,
 				});
 		});
 
@@ -300,8 +365,8 @@ export async function seedExerciseDefinitions() {
 }
 
 // Only run this if you need to seed the database
-// seedExerciseDefinitions()
-// 	.then((result) => {
-// 		console.log("Exercise definitions seeded:", result);
-// 	})
-// 	.catch(console.error);
+seedExerciseDefinitions()
+	.then((result) => {
+		console.log("Exercise definitions seeded:", result);
+	})
+	.catch(console.error);

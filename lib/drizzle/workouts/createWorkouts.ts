@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/drizzle/db";
 import {
+	ExerciseCategory,
 	ExerciseType,
 	PrimaryLift,
 	Status,
@@ -19,6 +20,42 @@ const WORKOUT_SEQUENCE = [
 	PrimaryLift.Deadlift,
 	PrimaryLift.Overhead,
 ] as const;
+
+// Define the exercise categories for each day
+const WORKOUT_CATEGORIES = {
+	[PrimaryLift.Squat]: [
+		ExerciseCategory.MainLift,
+		ExerciseCategory.MainLiftVariation,
+		ExerciseCategory.CompoundLeg,
+		ExerciseCategory.QuadAccessory,
+		ExerciseCategory.HamstringGluteAccessory,
+		ExerciseCategory.CalfAccessory,
+	],
+	[PrimaryLift.Bench]: [
+		ExerciseCategory.MainLift,
+		ExerciseCategory.MainLiftVariation,
+		ExerciseCategory.ChestAccessory,
+		ExerciseCategory.ChestAccessory,
+		ExerciseCategory.TricepAccessory,
+		ExerciseCategory.TricepAccessory,
+	],
+	[PrimaryLift.Deadlift]: [
+		ExerciseCategory.MainLift,
+		ExerciseCategory.MainLiftVariation,
+		ExerciseCategory.VerticalPullAccessory,
+		ExerciseCategory.LateralPullAccessory,
+		ExerciseCategory.BicepAccessory,
+		ExerciseCategory.BicepAccessory,
+	],
+	[PrimaryLift.Overhead]: [
+		ExerciseCategory.MainLift,
+		ExerciseCategory.MainLiftVariation,
+		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.DeltAccessory,
+	],
+} as const;
 
 export async function createWorkouts(
 	userId: string,
@@ -50,20 +87,36 @@ export async function createWorkouts(
 	// For each workout, create its exercises and sets
 	const exercisePromises = createdWorkouts.map(
 		async (workout, workoutIndex) => {
+			// Get the categories for this workout day
+			const categories = WORKOUT_CATEGORIES[workout.primaryLift];
+
 			// Get all exercise definitions for this primary lift day
 			const dayExerciseDefinitions = await db
 				.select()
 				.from(exerciseDefinitions)
 				.where(eq(exerciseDefinitions.primaryLiftDay, workout.primaryLift));
 
-			// Create exercises for each definition
-			const exerciseValues = dayExerciseDefinitions.map((def, order) => ({
-				userId,
-				workoutId: workout.id,
-				exerciseDefinitionId: def.id,
-				order: order + 1,
-				status: Status.Pending,
-			}));
+			// Create exercises for each category
+			const exerciseValues = categories.map((category, order) => {
+				// Find an exercise definition that matches this category
+				const definition = dayExerciseDefinitions.find(
+					(def) => def.category === category,
+				);
+
+				if (!definition) {
+					throw new Error(
+						`No exercise definition found for category ${category} on ${workout.primaryLift} day`,
+					);
+				}
+
+				return {
+					userId,
+					workoutId: workout.id,
+					exerciseDefinitionId: definition.id,
+					order: order + 1,
+					status: Status.Pending,
+				};
+			});
 
 			const createdExercises = await db
 				.insert(exercises)

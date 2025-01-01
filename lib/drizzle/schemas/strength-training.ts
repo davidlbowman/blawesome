@@ -24,6 +24,30 @@ export const ExerciseType = {
 	Isolation: "isolation",
 } as const;
 
+export const ExerciseCategory = {
+	// Primary Categories
+	MainLift: "main_lift",
+	MainLiftVariation: "main_lift_variation",
+
+	// Leg Day Categories
+	CompoundLeg: "compound_leg",
+	QuadAccessory: "quad_accessory",
+	HamstringGluteAccessory: "hamstring_glute_accessory",
+	CalfAccessory: "calf_accessory",
+
+	// Push Day Categories
+	ChestAccessory: "chest_accessory",
+	TricepAccessory: "tricep_accessory",
+
+	// Pull Day Categories
+	VerticalPullAccessory: "vertical_pull_accessory",
+	LateralPullAccessory: "lateral_pull_accessory",
+	BicepAccessory: "bicep_accessory",
+
+	// Shoulder Day Categories
+	DeltAccessory: "delt_accessory",
+} as const;
+
 export const Status = {
 	Pending: "pending",
 	InProgress: "in_progress",
@@ -37,6 +61,9 @@ export const exerciseDefinitions = pgTable(
 		name: text("name").notNull(),
 		type: text("type")
 			.$type<(typeof ExerciseType)[keyof typeof ExerciseType]>()
+			.notNull(),
+		category: text("category")
+			.$type<(typeof ExerciseCategory)[keyof typeof ExerciseCategory]>()
 			.notNull(),
 		primaryLiftDay: text("primary_lift_day")
 			.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
