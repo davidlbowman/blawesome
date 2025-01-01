@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 import {
 	type ExerciseDefinitionsSelect,
-	ExerciseType,
 	Status,
 	type WorkoutsSelect,
 } from "@/lib/drizzle/schemas/strength-training";
@@ -32,18 +31,24 @@ interface WorkoutCardProps extends WorkoutsSelect {
 	}>;
 }
 
-function getExerciseTypeLabel(type: string): string {
-	switch (type) {
-		case ExerciseType.Primary:
-			return "Primary";
-		case ExerciseType.Variation:
-			return "Variation";
-		case ExerciseType.Accessory:
-			return "Accessory";
+function getStatusColor(status: string) {
+	switch (status) {
+		case Status.Completed:
+			return "bg-green-500 text-white";
+		case Status.InProgress:
+			return "bg-blue-500 text-white";
 		default:
-			return type;
+			return "bg-secondary text-secondary-foreground";
 	}
 }
+
+const formatDate = (date: Date) => {
+	return new Intl.DateTimeFormat("en-US", {
+		month: "long",
+		day: "numeric",
+		year: "numeric",
+	}).format(new Date(date));
+};
 
 export function WorkoutCard({
 	id,
@@ -52,26 +57,6 @@ export function WorkoutCard({
 	status,
 	exercises,
 }: WorkoutCardProps) {
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case Status.Completed:
-				return "bg-green-500 text-white";
-			case Status.InProgress:
-				return "bg-blue-500 text-white";
-			default:
-				return "bg-secondary text-secondary-foreground";
-		}
-	};
-
-	const formatDate = (date: Date) => {
-		return new Intl.DateTimeFormat("en-US", {
-			month: "long",
-			day: "numeric",
-			year: "numeric",
-		}).format(new Date(date));
-	};
-
-	// Sort exercises by order
 	const sortedExercises = [...exercises].sort((a, b) => a.order - b.order);
 
 	const mainExercise = sortedExercises.find(
@@ -112,7 +97,7 @@ export function WorkoutCard({
 								{mainExercise.definition.name}
 							</h4>
 							<p className="text-sm text-muted-foreground mb-3">
-								Type: {getExerciseTypeLabel(mainExercise.definition.type)}
+								{`Type: ${mainExercise.definition.type.charAt(0).toUpperCase()}${mainExercise.definition.type.slice(1)}`}
 							</p>
 							<Table>
 								<TableHeader>
@@ -152,7 +137,7 @@ export function WorkoutCard({
 										{exercise.definition.name}
 									</h4>
 									<p className="text-sm text-muted-foreground mb-2">
-										Type: {getExerciseTypeLabel(exercise.definition.type)}
+										{`Type: ${exercise.definition.type.charAt(0).toUpperCase()}${exercise.definition.type.slice(1)}`}
 									</p>
 									<div className="grid grid-cols-3 gap-2 text-sm">
 										<div>
