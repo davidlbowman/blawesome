@@ -12,11 +12,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Status } from "@/lib/drizzle/schemas/strength-training";
+import { completeSet } from "@/lib/drizzle/sets/completeSet";
 import type { WorkoutDetails } from "@/lib/drizzle/workouts/getWorkoutDetails";
+import { startWorkout } from "@/lib/drizzle/workouts/startWorkout";
 import { Dumbbell } from "lucide-react";
 import { useState } from "react";
-import { startWorkout } from "@/lib/drizzle/workouts/startWorkout";
-import { completeSet } from "@/lib/drizzle/sets/completeSet";
 
 function getStatusColor(status: string) {
 	switch (status) {
