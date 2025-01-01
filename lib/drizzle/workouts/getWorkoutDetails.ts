@@ -31,7 +31,8 @@ export async function getWorkoutDetails(workoutId: string) {
 		.innerJoin(
 			exerciseDefinitions,
 			eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
-		);
+		)
+		.orderBy(exercises.order);
 
 	// Get sets for each exercise
 	const exerciseSets = await Promise.all(
@@ -49,8 +50,9 @@ export async function getWorkoutDetails(workoutId: string) {
 	// Format the data for the WorkoutCard component
 	return {
 		...workout,
-		exercises: workoutExercises.map(({ definition }, index) => ({
+		exercises: workoutExercises.map(({ exercise, definition }, index) => ({
 			definition,
+			order: exercise.order,
 			sets: exerciseSets[index],
 		})),
 	};

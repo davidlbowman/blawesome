@@ -19,6 +19,7 @@ import { Dumbbell } from "lucide-react";
 interface WorkoutCardProps extends WorkoutsSelect {
 	exercises: Array<{
 		definition: ExerciseDefinitionsSelect;
+		order: number;
 		sets: Array<{
 			weight: number;
 			reps: number;
@@ -56,12 +57,15 @@ export function WorkoutCard({
 		}).format(new Date(date));
 	};
 
-	const mainExercise = exercises.find(
-		(e) => e.definition.primaryLiftDay === primaryLift,
+	// Sort exercises by order
+	const sortedExercises = [...exercises].sort((a, b) => a.order - b.order);
+
+	const mainExercise = sortedExercises.find(
+		(e) => e.definition.type === "primary",
 	);
 
-	const accessoryExercises = exercises.filter(
-		(e) => e.definition.primaryLiftDay !== primaryLift,
+	const accessoryExercises = sortedExercises.filter(
+		(e) => e.definition.type !== "primary",
 	);
 
 	return (
