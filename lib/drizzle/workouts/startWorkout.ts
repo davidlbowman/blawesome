@@ -7,7 +7,6 @@ import {
 	workouts,
 } from "@/lib/drizzle/schemas/strength-training";
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 export async function startWorkout(workoutId: string) {
 	await db.transaction(async (tx) => {
@@ -53,6 +52,4 @@ export async function startWorkout(workoutId: string) {
 			}
 		}
 	});
-
-	revalidatePath("/modules/strength-training/[cycleId]", "page");
 }

@@ -105,6 +105,17 @@ export async function completeSet(
 			}
 		}
 	});
+	// Only revalidate when the workout is completed
+	if (await isWorkoutCompleted(workoutId)) {
+		revalidatePath("/modules/strength-training/[cycleId]", "page");
+	}
+}
 
-	revalidatePath("/modules/strength-training/[cycleId]", "page");
+// Helper function to check if workout is completed
+async function isWorkoutCompleted(workoutId: string) {
+	const [workout] = await db
+		.select()
+		.from(workouts)
+		.where(eq(workouts.id, workoutId));
+	return workout.status === "completed";
 }

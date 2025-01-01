@@ -159,6 +159,7 @@ export const workouts = pgTable("workouts", {
 		.$type<(typeof Status)[keyof typeof Status]>()
 		.notNull()
 		.default("pending"),
+	sequence: integer("sequence").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 	completedAt: timestamp("completed_at"),

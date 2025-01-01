@@ -18,7 +18,7 @@ export async function getActiveWorkouts(
 		.select()
 		.from(workouts)
 		.where(eq(workouts.cycleId, cycleId))
-		.orderBy(workouts.date);
+		.orderBy(workouts.sequence);
 
 	const totalWorkouts = activeWorkouts.length;
 	const completedWorkouts = activeWorkouts.filter(

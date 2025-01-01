@@ -76,6 +76,7 @@ export async function createWorkouts(
 			date: workoutDate,
 			primaryLift: WORKOUT_SEQUENCE[index % WORKOUT_SEQUENCE.length],
 			status: Status.Pending,
+			sequence: index + 1,
 		};
 	});
 
