@@ -15,6 +15,8 @@ import { Status } from "@/lib/drizzle/schemas/strength-training";
 import type { WorkoutDetails } from "@/lib/drizzle/workouts/getWorkoutDetails";
 import { Dumbbell } from "lucide-react";
 import { useState } from "react";
+import { startWorkout } from "@/lib/drizzle/workouts/startWorkout";
+import { completeSet } from "@/lib/drizzle/sets/completeSet";
 
 function getStatusColor(status: string) {
 	switch (status) {
@@ -62,23 +64,24 @@ export function WorkoutCard({
 		? [mainExercise, ...accessoryExercises]
 		: accessoryExercises;
 
-	const handleButtonClick = () => {
+	const handleButtonClick = async () => {
 		if (status === Status.Pending) {
-			console.log("Starting workout");
+			await startWorkout(id);
 			setStatus(Status.InProgress);
-		} else if (
-			currentSetIndex <
-			allExercises[currentExerciseIndex].sets.length - 1
-		) {
-			console.log("Moving to next set");
-			setCurrentSetIndex(currentSetIndex + 1);
-		} else if (currentExerciseIndex < allExercises.length - 1) {
-			console.log("Moving to next exercise");
-			setCurrentExerciseIndex(currentExerciseIndex + 1);
-			setCurrentSetIndex(0);
-		} else {
-			console.log("Finishing workout");
-			setStatus(Status.Completed);
+		} else if (status === Status.InProgress) {
+			const currentExercise = allExercises[currentExerciseIndex];
+			const currentSet = currentExercise.sets[currentSetIndex];
+
+			await completeSet(currentSet.id, currentExercise.exercise.id, id);
+
+			if (currentSetIndex < currentExercise.sets.length - 1) {
+				setCurrentSetIndex(currentSetIndex + 1);
+			} else if (currentExerciseIndex < allExercises.length - 1) {
+				setCurrentExerciseIndex(currentExerciseIndex + 1);
+				setCurrentSetIndex(0);
+			} else {
+				setStatus(Status.Completed);
+			}
 		}
 	};
 
@@ -136,7 +139,7 @@ export function WorkoutCard({
 								<TableBody>
 									{mainExercise.sets.map((set, setIndex) => (
 										<TableRow
-											key={`${mainExercise.definition.id}-${set.setNumber}`}
+											key={`${mainExercise.exercise.id}-${set.id}`}
 											className={
 												status === Status.InProgress &&
 												currentExerciseIndex === 0 &&
@@ -163,7 +166,7 @@ export function WorkoutCard({
 				<div className="grid gap-4 md:grid-cols-2">
 					{accessoryExercises.map((exercise, index) => (
 						<div
-							key={exercise.definition.id}
+							key={`${exercise.exercise.id}-${exercise.definition.id}`}
 							className={`bg-muted p-4 rounded-lg ${
 								status === Status.InProgress &&
 								currentExerciseIndex === index + 1
