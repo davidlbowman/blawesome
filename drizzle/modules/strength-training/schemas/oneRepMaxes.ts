@@ -1,6 +1,6 @@
-import { randomUUID } from "node:crypto";
 import { users } from "@/drizzle/core/schemas/users";
 import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { generateId } from "@/drizzle/utils/uuid";
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -10,7 +10,7 @@ export const oneRepMaxes = sqliteTable(
 	"one_rep_maxes",
 	{
 		id: text("id")
-			.$defaultFn(() => randomUUID())
+			.$defaultFn(() => generateId())
 			.primaryKey(),
 		userId: text("user_id")
 			.references(() => users.id)

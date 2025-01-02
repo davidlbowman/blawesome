@@ -1,9 +1,9 @@
-import { randomUUID } from "node:crypto";
 import {
 	ExerciseCategory,
 	ExerciseType,
 	PrimaryLift,
 } from "@/drizzle/modules/strength-training/schemas/types";
+import { generateId } from "@/drizzle/utils/uuid";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
@@ -12,7 +12,7 @@ export const exerciseDefinitions = sqliteTable(
 	"exercise_definitions",
 	{
 		id: text("id")
-			.$defaultFn(() => randomUUID())
+			.$defaultFn(() => generateId())
 			.primaryKey(),
 		name: text("name").notNull(),
 		type: text("type")

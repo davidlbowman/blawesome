@@ -1,13 +1,13 @@
-import { randomUUID } from "node:crypto";
 import { users } from "@/drizzle/core/schemas/users";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { generateId } from "@/drizzle/utils/uuid";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 
 export const cycles = sqliteTable("cycles", {
 	id: text("id")
-		.$defaultFn(() => randomUUID())
+		.$defaultFn(() => generateId())
 		.primaryKey(),
 	userId: text("user_id")
 		.references(() => users.id)
