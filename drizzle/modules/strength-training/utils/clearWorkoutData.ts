@@ -12,10 +12,21 @@ export async function clearWorkoutData() {
 			console.log("Starting data cleanup...");
 
 			// Delete in proper order for referential integrity
-			// We can batch deletes that don't depend on each other
+			// 1. First delete all sets as they reference exercises
 			await tx.delete(sets);
-			await Promise.all([tx.delete(exercises), tx.delete(workouts)]);
+			console.log("✓ Cleared sets");
+
+			// 2. Then delete exercises as they reference workouts
+			await tx.delete(exercises);
+			console.log("✓ Cleared exercises");
+
+			// 3. Then delete workouts as they reference cycles
+			await tx.delete(workouts);
+			console.log("✓ Cleared workouts");
+
+			// 4. Finally delete cycles
 			await tx.delete(cycles);
+			console.log("✓ Cleared cycles");
 
 			console.log(
 				"Successfully cleared all workout data while preserving users, exercise definitions, and 1RMs",

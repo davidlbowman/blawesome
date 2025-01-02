@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import type { WorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
-import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import { Status } from "@/drizzle/modules/strength-training/schemas";
 import { CalendarDays, Dumbbell, Save } from "lucide-react";
 import { useCallback, useState, useTransition } from "react";
@@ -68,19 +67,14 @@ export function WorkoutCard({
 		if (completedSets.length === 0) return;
 
 		startTransition(async () => {
-			if (initialStatus === Status.Pending) {
-				await startWorkout(id);
-			}
-
-			for (const setId of completedSets) {
-				const exercise = sorted.find((e) => e.sets.some((s) => s.id === setId));
-				if (exercise) {
-					await completeSet(setId, exercise.exercise.id, id);
-				}
-			}
+			await completeSet(
+				completedSets[completedSets.length - 1],
+				sorted[currentExerciseIndex].exercise.id,
+				id,
+			);
 			setCompletedSets([]);
 		});
-	}, [completedSets, id, sorted, initialStatus]);
+	}, [completedSets, id, sorted, currentExerciseIndex]);
 
 	const handleSaveWorkout = useCallback(async () => {
 		if (status === Status.InProgress) {
@@ -103,14 +97,14 @@ export function WorkoutCard({
 			setCurrentSetIndex(0);
 		} else {
 			startTransition(async () => {
-				await saveProgress();
+				await completeSet(currentSet.id, currentExercise.exercise.id, id);
 				setStatus(Status.Completed);
 				queueMicrotask(() => {
 					window.location.reload();
 				});
 			});
 		}
-	}, [status, currentExerciseIndex, currentSetIndex, sorted, saveProgress]);
+	}, [status, currentExerciseIndex, currentSetIndex, sorted, id]);
 
 	return (
 		<Card className="w-full max-w-4xl space-y-3">
