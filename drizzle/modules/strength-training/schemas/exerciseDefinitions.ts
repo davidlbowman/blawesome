@@ -4,7 +4,6 @@ import {
 	ExerciseType,
 	PrimaryLift,
 } from "@/drizzle/modules/strength-training/schemas/types";
-import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
@@ -27,11 +26,11 @@ export const exerciseDefinitions = sqliteTable(
 			.notNull(),
 		rpeMax: integer("rpe_max"),
 		repMax: integer("rep_max"),
-		createdAt: integer("created_at", { mode: "timestamp" }).default(
-			sql`CURRENT_TIMESTAMP`,
+		createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+			() => new Date(),
 		),
-		updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-			sql`CURRENT_TIMESTAMP`,
+		updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+			() => new Date(),
 		),
 	},
 	(table) => ({

@@ -5,43 +5,22 @@
 		{
 			"idx": 0,
 			"version": "6",
-			"when": 1735852330865,
-			"tag": "0000_worried_namorita",
+			"when": 1735853506062,
+			"tag": "0000_tough_princess_powerful",
 			"breakpoints": true
 		},
 		{
 			"idx": 1,
 			"version": "6",
-			"when": 1735852489574,
-			"tag": "0001_bent_sentry",
+			"when": 1735853672494,
+			"tag": "0001_striped_beast",
 			"breakpoints": true
 		},
 		{
 			"idx": 2,
 			"version": "6",
-			"when": 1735852547522,
-			"tag": "0002_large_starjammers",
-			"breakpoints": true
-		},
-		{
-			"idx": 3,
-			"version": "6",
-			"when": 1735852576224,
-			"tag": "0003_needy_demogoblin",
-			"breakpoints": true
-		},
-		{
-			"idx": 4,
-			"version": "6",
-			"when": 1735853030075,
-			"tag": "0004_futuristic_vengeance",
-			"breakpoints": true
-		},
-		{
-			"idx": 5,
-			"version": "6",
-			"when": 1735853168755,
-			"tag": "0005_married_warbound",
+			"when": 1735853693923,
+			"tag": "0002_flimsy_pet_avengers",
 			"breakpoints": true
 		}
 	]

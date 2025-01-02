@@ -1,8 +1,8 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "0df512e7-5e3f-4205-8db6-5a7a35d0b847",
-	"prevId": "109f52c5-d585-4be4-9ff3-92bc5e663b23",
+	"id": "916ccaff-436a-4933-aa15-cfbe16b6c037",
+	"prevId": "534d4b5c-2058-419f-9b4d-3dcf7a100116",
 	"tables": {
 		"users": {
 			"name": "users",
@@ -33,16 +33,14 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"updated_at": {
 					"name": "updated_at",
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -101,16 +99,14 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"updated_at": {
 					"name": "updated_at",
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"completed_at": {
 					"name": "completed_at",
@@ -201,8 +197,7 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -275,16 +270,14 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"updated_at": {
 					"name": "updated_at",
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"completed_at": {
 					"name": "completed_at",
@@ -479,16 +472,14 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"updated_at": {
 					"name": "updated_at",
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"completed_at": {
 					"name": "completed_at",
@@ -581,16 +572,14 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"updated_at": {
 					"name": "updated_at",
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false,
-					"autoincrement": false,
-					"default": "CURRENT_TIMESTAMP"
+					"autoincrement": false
 				},
 				"completed_at": {
 					"name": "completed_at",

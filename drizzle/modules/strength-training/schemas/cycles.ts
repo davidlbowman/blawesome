@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { users } from "@/drizzle/core/schemas/users";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
-import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
@@ -19,11 +18,11 @@ export const cycles = sqliteTable("cycles", {
 		.$type<(typeof Status)[keyof typeof Status]>()
 		.notNull()
 		.default("pending"),
-	createdAt: integer("created_at", { mode: "timestamp" }).default(
-		sql`CURRENT_TIMESTAMP`,
+	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+		() => new Date(),
 	),
-	updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-		sql`CURRENT_TIMESTAMP`,
+	updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+		() => new Date(),
 	),
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
