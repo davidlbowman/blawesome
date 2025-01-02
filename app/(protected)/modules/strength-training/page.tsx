@@ -1,39 +1,101 @@
 import { OneRMForm } from "@/components/1RMForm";
 import { WorkoutCycleCard } from "@/components/CycleCard";
 import { getUserId } from "@/drizzle/core/functions/users/getUserId";
+import { db } from "@/drizzle/db";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
-import { getCycles } from "@/drizzle/modules/strength-training/functions/cycles/getCycles";
-import { hasAllMain1RepMaxes } from "@/drizzle/modules/strength-training/functions/oneRepMaxes/hasAllMain1RepMaxes";
-import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import {
 	type PrimaryLift,
 	Status,
+	cycles,
+	exerciseDefinitions,
+	oneRepMaxes,
+	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
+import { desc, eq } from "drizzle-orm";
+
+async function getTrainingData(userId: string) {
+	// Use a single read-only transaction for all queries
+	return await db.transaction(
+		async (tx) => {
+			// Get all required data in parallel
+			const [primaryExercises, userOneRepMaxes, userCycles] = await Promise.all(
+				[
+					tx
+						.select()
+						.from(exerciseDefinitions)
+						.where(eq(exerciseDefinitions.type, "primary")),
+					tx.select().from(oneRepMaxes).where(eq(oneRepMaxes.userId, userId)),
+					tx
+						.select()
+						.from(cycles)
+						.where(eq(cycles.userId, userId))
+						.orderBy(desc(cycles.createdAt)),
+				],
+			);
+
+			const hasAllMaxes = primaryExercises.every((def) =>
+				userOneRepMaxes.some((max) => max.exerciseDefinitionId === def.id),
+			);
+
+			// If we have cycles, get the active cycle's workouts
+			let workoutData: (typeof workouts.$inferSelect)[] = [];
+			if (userCycles.length > 0) {
+				const activeCycle = userCycles.find(
+					(cycle) =>
+						cycle.status === Status.Pending ||
+						cycle.status === Status.InProgress,
+				);
+				if (activeCycle) {
+					workoutData = await tx
+						.select()
+						.from(workouts)
+						.where(eq(workouts.cycleId, activeCycle.id))
+						.orderBy(workouts.sequence);
+				}
+			}
+
+			return {
+				hasAllMaxes,
+				cycles: userCycles,
+				workoutData,
+			};
+		},
+		{
+			accessMode: "read only",
+			isolationLevel: "repeatable read",
+		},
+	);
+}
 
 export default async function StrengthTrainingPage() {
 	const userId = await getUserId();
 
+	// Get training data
+	const {
+		hasAllMaxes,
+		cycles: initialCycles,
+		workoutData: initialWorkoutData,
+	} = await getTrainingData(userId);
+
 	// Check if user has recorded all main lifts
-	if (!(await hasAllMain1RepMaxes(userId))) {
+	if (!hasAllMaxes) {
 		return <OneRMForm />;
 	}
 
-	// Get or create cycles
-	let cycles = await getCycles(userId);
+	// Handle cycle creation if needed
+	let cycles = initialCycles;
 	if (cycles.length === 0) {
-		cycles = [await createCycle(userId)];
+		const newCycle = await createCycle(userId);
+		cycles = [newCycle];
 	}
 
-	// Find active cycle
-	const activeCycle = cycles.find(
-		(cycle) =>
-			cycle.status === Status.Pending || cycle.status === Status.InProgress,
+	const totalWorkouts = initialWorkoutData.length;
+	const completedWorkouts = initialWorkoutData.filter(
+		(w) => w.status === Status.Completed,
+	).length;
+	const nextWorkout = initialWorkoutData.find(
+		(w) => w.status === Status.Pending,
 	);
-
-	// Get active workouts if there's an active cycle
-	const { totalWorkouts, completedWorkouts, nextWorkout } = activeCycle
-		? await getActiveWorkouts(activeCycle.id)
-		: { totalWorkouts: 0, completedWorkouts: 0, nextWorkout: undefined };
 
 	return (
 		<div className="container mx-auto p-6 space-y-6">
