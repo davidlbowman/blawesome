@@ -146,7 +146,7 @@ export async function createCycle(userId: string) {
 					acc.exerciseValues.push(exercise);
 
 					// Prepare set values at the same time
-					const set = {
+					const sets = Array.from({ length: 6 }).map((_, setIndex) => ({
 						userId,
 						weight: 100,
 						reps:
@@ -158,11 +158,11 @@ export async function createCycle(userId: string) {
 								? 7
 								: (definition.rpeMax ?? 7),
 						percentageOfMax: 70,
-						setNumber: 1,
+						setNumber: setIndex + 1,
 						status: Status.Pending,
-					};
+					}));
 
-					acc.setValues.push({ exercise, set });
+					acc.setValues.push(...sets.map((set) => ({ exercise, set })));
 				});
 
 				return acc;
