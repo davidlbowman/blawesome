@@ -63,6 +63,11 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 	);
 }
 
+// Helper function to round down to nearest 5
+function roundDownToNearest5(num: number): number {
+	return Math.floor(num / 5) * 5;
+}
+
 function getWeekPattern(workoutNumber: number) {
 	const weekNumber = Math.floor((workoutNumber - 1) / 4) + 1;
 	switch (weekNumber) {
@@ -211,7 +216,9 @@ export async function createCycle(userId: string) {
 			return weekPattern.map((pattern, setIndex) => ({
 				userId,
 				exerciseId: exercise.id,
-				weight: Math.round((pattern.percentageOfMax / 100) * oneRepMax),
+				weight: roundDownToNearest5(
+					Math.round((pattern.percentageOfMax / 100) * oneRepMax),
+				),
 				reps: pattern.reps,
 				rpe:
 					definition.type === ExerciseType.Primary
