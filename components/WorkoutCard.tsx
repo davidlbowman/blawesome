@@ -14,11 +14,8 @@ import {
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import type { WorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
-import {
-	type SetsSelect,
-	Status,
-} from "@/drizzle/modules/strength-training/schemas";
-import { Dumbbell } from "lucide-react";
+import { Status } from "@/drizzle/modules/strength-training/schemas";
+import { CalendarDays, Dumbbell, Save } from "lucide-react";
 import { useCallback, useState, useTransition } from "react";
 
 const getStatusColor = (status: string) => {
@@ -59,18 +56,19 @@ export function WorkoutCard({
 	const accessoryExercises = sorted.filter(
 		(e) => e.definition.type !== "primary",
 	);
-	const allExercises = mainExercise
-		? [mainExercise, ...accessoryExercises]
-		: accessoryExercises;
 
-	const handleButtonClick = useCallback(async () => {
+	const handleStartWorkout = useCallback(async () => {
 		if (status === Status.Pending) {
 			startTransition(async () => {
 				await startWorkout(id);
 				setStatus(Status.InProgress);
 			});
-		} else if (status === Status.InProgress) {
-			const currentExercise = allExercises[currentExerciseIndex];
+		}
+	}, [status, id]);
+
+	const handleSaveWorkout = useCallback(async () => {
+		if (status === Status.InProgress) {
+			const currentExercise = sorted[currentExerciseIndex];
 			const currentSet = currentExercise.sets[currentSetIndex];
 
 			startTransition(async () => {
@@ -78,7 +76,7 @@ export function WorkoutCard({
 
 				if (currentSetIndex < currentExercise.sets.length - 1) {
 					setCurrentSetIndex((prev) => prev + 1);
-				} else if (currentExerciseIndex < allExercises.length - 1) {
+				} else if (currentExerciseIndex < sorted.length - 1) {
 					setCurrentExerciseIndex((prev) => prev + 1);
 					setCurrentSetIndex(0);
 				} else {
@@ -89,89 +87,79 @@ export function WorkoutCard({
 				}
 			});
 		}
-	}, [status, id, currentExerciseIndex, currentSetIndex, allExercises]);
-
-	const buttonText =
-		status === Status.Pending
-			? "Start Workout"
-			: status === Status.Completed
-				? "Workout Completed"
-				: currentSetIndex < allExercises[currentExerciseIndex].sets.length - 1
-					? "Next Set"
-					: currentExerciseIndex < allExercises.length - 1
-						? "Next Exercise"
-						: "Finish Workout";
+	}, [status, id, currentExerciseIndex, currentSetIndex, sorted]);
 
 	return (
 		<Card className="w-full max-w-4xl">
-			<CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-2">
-				<div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-					<CardTitle className="text-lg font-medium">
-						Workout {id.slice(0, 8)}
-					</CardTitle>
-					<Badge className={getStatusColor(status)}>
-						{status.charAt(0).toUpperCase() + status.slice(1)}
-					</Badge>
-				</div>
-				<div className="flex items-center space-x-2">
-					<Dumbbell className="h-4 w-4 text-muted-foreground" />
-					<span className="text-sm text-muted-foreground">
-						{formatDate(date)}
-					</span>
+			<CardHeader className="pb-2">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-4">
+						<Dumbbell className="h-6 w-6 text-primary" />
+						<div className="flex flex-col">
+							<CardTitle className="text-2xl font-bold capitalize">
+								{primaryLift} Day
+							</CardTitle>
+							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+								<CalendarDays className="h-4 w-4" />
+								<span>{formatDate(date)}</span>
+							</div>
+						</div>
+					</div>
+					<div className="flex items-center gap-3">
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={handleSaveWorkout}
+							className="text-muted-foreground hover:text-primary"
+							disabled={status !== Status.InProgress || isPending}
+						>
+							<Save className="h-5 w-5" />
+						</Button>
+						<Badge className={getStatusColor(status)}>
+							{status.charAt(0).toUpperCase() + status.slice(1)}
+						</Badge>
+					</div>
 				</div>
 			</CardHeader>
-			<CardContent>
-				<h3 className="text-xl font-semibold mb-4">
-					{primaryLift.charAt(0).toUpperCase() + primaryLift.slice(1)} Day
-				</h3>
 
+			<CardContent className="space-y-6">
 				{mainExercise && (
-					<div className="space-y-6 mb-6">
-						<div className="bg-muted p-4 rounded-lg">
-							<h4 className="text-lg font-medium mb-1">
-								{mainExercise.definition.name}
-							</h4>
-							<p className="text-sm text-muted-foreground mb-3">
-								{`Type: ${mainExercise.definition.type.charAt(0).toUpperCase()}${mainExercise.definition.type.slice(1)}`}
-							</p>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Set</TableHead>
-										<TableHead>Weight (lbs)</TableHead>
-										<TableHead>Reps</TableHead>
-										<TableHead>% of Max</TableHead>
-										<TableHead>Status</TableHead>
+					<div className="rounded-lg bg-muted p-6">
+						<h4 className="text-lg font-semibold mb-1">
+							{mainExercise.definition.name}
+						</h4>
+						<p className="text-sm text-muted-foreground mb-4">
+							{`Type: ${mainExercise.definition.type.charAt(0).toUpperCase()}${mainExercise.definition.type.slice(1)}`}
+						</p>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Set</TableHead>
+									<TableHead>Weight (lbs)</TableHead>
+									<TableHead>Reps</TableHead>
+									<TableHead>% of Max</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{mainExercise.sets.map((set) => (
+									<TableRow
+										key={set.id}
+										className={
+											status === Status.InProgress &&
+											currentExerciseIndex === 0 &&
+											set.setNumber - 1 === currentSetIndex
+												? "bg-primary/20"
+												: ""
+										}
+									>
+										<TableCell>{set.setNumber}</TableCell>
+										<TableCell>{set.weight}</TableCell>
+										<TableCell>{set.reps}</TableCell>
+										<TableCell>{`${set.percentageOfMax}%`}</TableCell>
 									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{mainExercise.sets.map(
-										(set: SetsSelect, setIndex: number) => (
-											<TableRow
-												key={`${mainExercise.exercise.id}-${set.id}`}
-												className={
-													status === Status.InProgress &&
-													currentExerciseIndex === 0 &&
-													setIndex === currentSetIndex
-														? "bg-primary/20"
-														: ""
-												}
-											>
-												<TableCell>{set.setNumber}</TableCell>
-												<TableCell>{set.weight}</TableCell>
-												<TableCell>{set.reps}</TableCell>
-												<TableCell>
-													{set.percentageOfMax
-														? `${set.percentageOfMax}%`
-														: "-"}
-												</TableCell>
-												<TableCell>{set.status}</TableCell>
-											</TableRow>
-										),
-									)}
-								</TableBody>
-							</Table>
-						</div>
+								))}
+							</TableBody>
+						</Table>
 					</div>
 				)}
 
@@ -179,34 +167,40 @@ export function WorkoutCard({
 					{accessoryExercises.map((exercise, index) => (
 						<div
 							key={`${exercise.exercise.id}-${exercise.definition.id}`}
-							className={`bg-muted p-4 rounded-lg ${
+							className={`rounded-lg bg-muted p-6 ${
 								status === Status.InProgress &&
 								currentExerciseIndex === index + 1
 									? "ring-2 ring-primary"
 									: ""
 							}`}
 						>
-							<h4 className="text-base font-medium mb-1">
+							<h4 className="text-base font-semibold mb-1">
 								{exercise.definition.name}
 							</h4>
-							<p className="text-sm text-muted-foreground mb-2">
+							<p className="text-sm text-muted-foreground mb-3">
 								{`Type: ${exercise.definition.type.charAt(0).toUpperCase()}${exercise.definition.type.slice(1)}`}
 							</p>
-							<div className="grid grid-cols-3 gap-2 text-sm">
-								<div>
-									<span className="font-medium">RPE:</span>{" "}
-									{exercise.definition.rpeMax ?? 7}
+							<div className="grid grid-cols-3 gap-4">
+								<div className="flex flex-col">
+									<span className="text-sm font-medium">RPE</span>
+									<span className="text-2xl">
+										{exercise.definition.rpeMax ?? 7}
+									</span>
 								</div>
-								<div>
-									<span className="font-medium">Reps:</span>{" "}
-									{exercise.definition.repMax ?? 8}
+								<div className="flex flex-col">
+									<span className="text-sm font-medium">Reps</span>
+									<span className="text-2xl">
+										{exercise.definition.repMax ?? 8}
+									</span>
 								</div>
-								<div>
-									<span className="font-medium">Sets:</span>{" "}
-									{status === Status.InProgress &&
-									currentExerciseIndex === index + 1
-										? `${currentSetIndex + 1}/${exercise.sets.length}`
-										: exercise.sets.length}
+								<div className="flex flex-col">
+									<span className="text-sm font-medium">Sets</span>
+									<span className="text-2xl">
+										{status === Status.InProgress &&
+										currentExerciseIndex === index + 1
+											? `${currentSetIndex + 1}/${exercise.sets.length}`
+											: exercise.sets.length}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -215,11 +209,22 @@ export function WorkoutCard({
 
 				{status !== Status.Completed && (
 					<Button
-						className="w-full mt-6"
-						onClick={handleButtonClick}
+						className="w-full"
+						size="lg"
+						onClick={
+							status === Status.Pending ? handleStartWorkout : handleSaveWorkout
+						}
 						disabled={status === Status.Completed || isPending}
 					>
-						{isPending ? "Processing..." : buttonText}
+						{isPending
+							? "Processing..."
+							: status === Status.Pending
+								? "Start Workout"
+								: currentSetIndex < sorted[currentExerciseIndex].sets.length - 1
+									? "Next Set"
+									: currentExerciseIndex < sorted.length - 1
+										? "Next Exercise"
+										: "Finish Workout"}
 					</Button>
 				)}
 			</CardContent>
