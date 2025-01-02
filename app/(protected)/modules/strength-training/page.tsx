@@ -1,11 +1,17 @@
 import { OneRMForm } from "@/components/1RMForm";
 import { CycleCard } from "@/components/CycleCard";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { getUserId } from "@/drizzle/core/functions/users/getUserId";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
-import {
-	getTrainingData,
-	preloadTrainingData,
-} from "@/drizzle/modules/strength-training/functions/cycles/getTrainingData";
+import { getTrainingData } from "@/drizzle/modules/strength-training/functions/cycles/getTrainingData";
 import { getWorkoutStats } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutStats";
 import type {
 	CyclesSelect,
@@ -13,11 +19,8 @@ import type {
 	WorkoutsSelect,
 } from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas";
+import { Download, LineChart, Plus } from "lucide-react";
 import { revalidatePath } from "next/cache";
-import { Suspense } from "react";
-
-// Revalidate every 30 seconds
-export const revalidate = 30;
 
 type WorkoutStats = {
 	totalWorkouts: number;
@@ -46,8 +49,9 @@ function getNextWorkout(
 	};
 }
 
-async function createNewCycle(userId: string) {
+async function startNewCycle() {
 	"use server";
+	const userId = await getUserId();
 	await createCycle(userId);
 	revalidatePath("/modules/strength-training");
 }
@@ -61,8 +65,18 @@ function CycleList({
 }) {
 	const stats = getWorkoutStats(workoutData);
 
+	// Calculate overall stats
+	const totalCycles = cycles.length;
+	const workoutsDone = workoutData.filter(
+		(w) => w.status === Status.Completed,
+	).length;
+	const consistency =
+		Math.round((workoutsDone / workoutData.length) * 100) || 0;
+
 	// Separate current and completed cycles
-	const currentCycle = cycles.find((cycle) => cycle.status === Status.Pending);
+	const currentCycle = cycles.find(
+		(cycle) => cycle.status !== Status.Completed,
+	);
 	const completedCycles = cycles
 		.filter((cycle) => cycle.status === Status.Completed)
 		.sort(
@@ -73,64 +87,102 @@ function CycleList({
 
 	return (
 		<div className="space-y-8">
-			{currentCycle && (
-				<div>
-					<h2 className="text-xl font-semibold mb-4">Current Cycle</h2>
-					<CycleCard
-						key={currentCycle.id}
-						{...currentCycle}
-						completedWorkouts={getCompletedWorkouts(currentCycle, stats)}
-						totalWorkouts={stats.totalWorkouts}
-						nextWorkout={getNextWorkout(currentCycle, stats.nextWorkout)}
-					/>
-				</div>
-			)}
-
-			{completedCycles.length > 0 && (
-				<div>
-					<h2 className="text-xl font-semibold mb-4">Previous Cycles</h2>
-					<div className="grid gap-6 md:grid-cols-2">
-						{completedCycles.map((cycle) => (
-							<CycleCard
-								key={cycle.id}
-								{...cycle}
-								completedWorkouts={getCompletedWorkouts(cycle, stats)}
-								totalWorkouts={stats.totalWorkouts}
-								nextWorkout={getNextWorkout(cycle, stats.nextWorkout)}
-							/>
-						))}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-2xl">Your Progress</CardTitle>
+					<CardDescription>
+						Remember, consistency is key. Every workout counts!
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">{totalCycles}</span>
+						<span className="text-sm text-muted-foreground">Total Cycles</span>
 					</div>
-				</div>
-			)}
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">{workoutsDone}</span>
+						<span className="text-sm text-muted-foreground">Workouts Done</span>
+					</div>
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">{workoutData.length}</span>
+						<span className="text-sm text-muted-foreground">
+							Total Workouts
+						</span>
+					</div>
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">{consistency}%</span>
+						<span className="text-sm text-muted-foreground">Consistency</span>
+					</div>
+				</CardContent>
+				<CardFooter>
+					<Button variant="outline" className="w-full">
+						<LineChart className="mr-2 h-4 w-4" /> View Detailed Stats
+					</Button>
+				</CardFooter>
+			</Card>
+
+			<Card>
+				<CardHeader>
+					<div className="flex justify-between items-center">
+						<CardTitle className="text-2xl">Workout Cycles</CardTitle>
+						<form className="flex space-x-4">
+							<Button type="submit" formAction={startNewCycle}>
+								<Plus className="mr-2 h-4 w-4" /> Start New Cycle
+							</Button>
+							<Button variant="outline" type="button">
+								<Download className="mr-2 h-4 w-4" /> Export Data
+							</Button>
+						</form>
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					{currentCycle && (
+						<div>
+							<h3 className="text-lg font-semibold mb-4">Current Cycle</h3>
+							<CycleCard
+								key={currentCycle.id}
+								{...currentCycle}
+								completedWorkouts={getCompletedWorkouts(currentCycle, stats)}
+								totalWorkouts={stats.totalWorkouts}
+								nextWorkout={getNextWorkout(currentCycle, stats.nextWorkout)}
+							/>
+						</div>
+					)}
+
+					{completedCycles.length > 0 && (
+						<div>
+							<h3 className="text-lg font-semibold mb-4">Previous Cycles</h3>
+							<div className="grid gap-6 md:grid-cols-2">
+								{completedCycles.map((cycle) => (
+									<CycleCard
+										key={cycle.id}
+										{...cycle}
+										completedWorkouts={getCompletedWorkouts(cycle, stats)}
+										totalWorkouts={stats.totalWorkouts}
+										nextWorkout={getNextWorkout(cycle, stats.nextWorkout)}
+									/>
+								))}
+							</div>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
 
 export default async function StrengthTrainingPage() {
 	const userId = await getUserId();
-
-	// Start loading data early
-	preloadTrainingData(userId);
-
-	// Check if user has recorded all main lifts
 	const { hasAllMaxes, cycles, workoutData } = await getTrainingData(userId);
 
 	if (!hasAllMaxes) {
 		return <OneRMForm />;
 	}
 
-	// If there are no cycles, create one
-	if (cycles.length === 0) {
-		await createNewCycle(userId);
-		return <div>Creating new cycle...</div>;
-	}
-
 	return (
 		<div className="container mx-auto p-6 space-y-6">
-			<h1 className="text-2xl font-bold mb-6">Your Training Cycles</h1>
-			<Suspense fallback={<div>Loading cycles...</div>}>
-				<CycleList cycles={cycles} workoutData={workoutData} />
-			</Suspense>
+			<h1 className="text-4xl font-bold mb-6">Cycle Dashboard</h1>
+			<CycleList cycles={cycles} workoutData={workoutData} />
 		</div>
 	);
 }
