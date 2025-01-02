@@ -33,34 +33,32 @@ export async function preloadTrainingData(userId: string) {
 	void getTrainingData(userId);
 }
 
-const REVALIDATE_TIME = 60;
+const REVALIDATE_TIME = 60 * 60 * 4; // 4 hours
 
 // Cached database queries
 const getExerciseData = unstable_cache(
 	async (userId: string) => {
-		return await db.transaction(async (tx) => {
-			const data = await tx
-				.select({
-					exercise: {
-						id: exerciseDefinitions.id,
-						type: exerciseDefinitions.type,
-					},
-					oneRepMax: {
-						weight: oneRepMaxes.weight,
-					},
-				})
-				.from(exerciseDefinitions)
-				.leftJoin(
-					oneRepMaxes,
-					and(
-						eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
-						eq(oneRepMaxes.userId, userId),
-					),
-				)
-				.where(eq(exerciseDefinitions.type, "primary"));
+		const data = await db
+			.select({
+				exercise: {
+					id: exerciseDefinitions.id,
+					type: exerciseDefinitions.type,
+				},
+				oneRepMax: {
+					weight: oneRepMaxes.weight,
+				},
+			})
+			.from(exerciseDefinitions)
+			.leftJoin(
+				oneRepMaxes,
+				and(
+					eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
+					eq(oneRepMaxes.userId, userId),
+				),
+			)
+			.where(eq(exerciseDefinitions.type, "primary"));
 
-			return data as ExerciseData[];
-		});
+		return data as ExerciseData[];
 	},
 	["exercise-data"],
 	{
@@ -71,61 +69,40 @@ const getExerciseData = unstable_cache(
 
 const getCycleData = unstable_cache(
 	async (userId: string) => {
-		return await db.transaction(async (tx) => {
-			// First get the current cycle (most recent non-completed cycle)
-			const currentCycleData = await tx
-				.select({
-					cycle: {
-						id: cycles.id,
-						userId: cycles.userId,
-						status: cycles.status,
-						startDate: cycles.startDate,
-						endDate: cycles.endDate,
-						createdAt: cycles.createdAt,
-						updatedAt: cycles.updatedAt,
-						completedAt: cycles.completedAt,
-					},
-					workout: {
-						id: workouts.id,
-						primaryLift: workouts.primaryLift,
-						status: workouts.status,
-						sequence: workouts.sequence,
-					},
-				})
-				.from(cycles)
-				.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
-				.where(and(eq(cycles.userId, userId), eq(cycles.status, "pending")))
-				.orderBy(desc(cycles.createdAt), workouts.sequence);
+		// Get all cycles in a single query
+		const data = await db
+			.select({
+				cycle: {
+					id: cycles.id,
+					status: cycles.status,
+					startDate: cycles.startDate,
+					endDate: cycles.endDate,
+					completedAt: cycles.completedAt,
+				},
+				workout: {
+					id: workouts.id,
+					primaryLift: workouts.primaryLift,
+					status: workouts.status,
+					sequence: workouts.sequence,
+				},
+			})
+			.from(cycles)
+			.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
+			.where(eq(cycles.userId, userId))
+			.orderBy(desc(cycles.createdAt), cycles.status, workouts.sequence);
 
-			// Then get the last 3 completed cycles
-			const completedCyclesData = await tx
-				.select({
-					cycle: {
-						id: cycles.id,
-						userId: cycles.userId,
-						status: cycles.status,
-						startDate: cycles.startDate,
-						endDate: cycles.endDate,
-						createdAt: cycles.createdAt,
-						updatedAt: cycles.updatedAt,
-						completedAt: cycles.completedAt,
-					},
-					workout: {
-						id: workouts.id,
-						primaryLift: workouts.primaryLift,
-						status: workouts.status,
-						sequence: workouts.sequence,
-					},
-				})
-				.from(cycles)
-				.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
-				.where(and(eq(cycles.userId, userId), eq(cycles.status, "completed")))
-				.orderBy(desc(cycles.completedAt), workouts.sequence)
-				.limit(3);
+		// Filter and process the results in memory
+		const currentCycle = data.filter((row) => row.cycle.status === "pending");
+		const completedCycles = data
+			.filter((row) => row.cycle.status === "completed")
+			.sort(
+				(a, b) =>
+					(b.cycle.completedAt?.getTime() ?? 0) -
+					(a.cycle.completedAt?.getTime() ?? 0),
+			)
+			.slice(0, data.findIndex((row) => row.cycle.status === "completed") + 3);
 
-			// Combine the results
-			return [...currentCycleData, ...completedCyclesData] as CycleData[];
-		});
+		return [...currentCycle, ...completedCycles] as CycleData[];
 	},
 	["cycle-data"],
 	{
