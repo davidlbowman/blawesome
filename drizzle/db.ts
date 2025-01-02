@@ -100,6 +100,5 @@ class CustomLogger implements Logger {
 }
 
 export const db = drizzle(sql, {
-	logger:
-		process.env.NODE_ENV === "production" ? undefined : new CustomLogger(),
+	logger: new CustomLogger(),
 });

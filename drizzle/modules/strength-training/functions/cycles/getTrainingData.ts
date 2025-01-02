@@ -1,20 +1,45 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import "server-only";
 import { db } from "@/drizzle/db";
+import type {
+	CyclesSelect,
+	ExerciseDefinitionsSelect,
+	OneRepMaxesSelect,
+	WorkoutsSelect,
+} from "@/drizzle/modules/strength-training/schemas";
 import {
-	type WorkoutsSelect,
 	cycles,
 	exerciseDefinitions,
 	oneRepMaxes,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
-export async function getTrainingData(userId: string) {
-	return await db.transaction(
-		async (tx) => {
-			// Get primary exercises and their one rep maxes in a single query
-			const exerciseData = await tx
+type ExerciseData = {
+	exercise: ExerciseDefinitionsSelect;
+	oneRepMax: OneRepMaxesSelect | null;
+};
+
+type CycleData = {
+	cycle: CyclesSelect;
+	workout: WorkoutsSelect | null;
+};
+
+// Preload function for eager data fetching
+export async function preloadTrainingData(userId: string) {
+	void getTrainingData(userId);
+}
+
+const REVALIDATE_TIME = 60;
+
+// Cached database queries
+const getExerciseData = unstable_cache(
+	async (userId: string) => {
+		return await db.transaction(async (tx) => {
+			const data = await tx
 				.select({
 					exercise: {
 						id: exerciseDefinitions.id,
@@ -27,21 +52,36 @@ export async function getTrainingData(userId: string) {
 				.from(exerciseDefinitions)
 				.leftJoin(
 					oneRepMaxes,
-					eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
+					and(
+						eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
+						eq(oneRepMaxes.userId, userId),
+					),
 				)
 				.where(eq(exerciseDefinitions.type, "primary"));
 
-			const hasAllMaxes = exerciseData.every((data) => data.oneRepMax?.weight);
+			return data as ExerciseData[];
+		});
+	},
+	["exercise-data"],
+	{
+		revalidate: REVALIDATE_TIME,
+		tags: ["exercises"],
+	},
+);
 
-			// Get active cycle and its workouts in a single query
-			const cycleData = await tx
+const getCycleData = unstable_cache(
+	async (userId: string) => {
+		return await db.transaction(async (tx) => {
+			const data = await tx
 				.select({
 					cycle: {
 						id: cycles.id,
+						userId: cycles.userId,
 						status: cycles.status,
 						startDate: cycles.startDate,
 						endDate: cycles.endDate,
 						createdAt: cycles.createdAt,
+						updatedAt: cycles.updatedAt,
 						completedAt: cycles.completedAt,
 					},
 					workout: {
@@ -56,30 +96,44 @@ export async function getTrainingData(userId: string) {
 				.where(eq(cycles.userId, userId))
 				.orderBy(desc(cycles.createdAt), workouts.sequence);
 
-			// Process cycle data
-			const userCycles = cycleData.reduce(
-				(acc, row) => {
-					if (!acc.some((c) => c.id === row.cycle.id)) {
-						acc.push(row.cycle);
-					}
-					return acc;
-				},
-				[] as (typeof cycleData)[number]["cycle"][],
-			);
+			return data as CycleData[];
+		});
+	},
+	["cycle-data"],
+	{
+		revalidate: REVALIDATE_TIME,
+		tags: ["cycles"],
+	},
+);
 
-			const workoutData = cycleData
-				.filter((row) => row.workout?.id)
-				.map((row) => row.workout as WorkoutsSelect);
+// Main function wrapped with React cache
+export const getTrainingData = cache(async (userId: string) => {
+	// Start both queries in parallel
+	const [exerciseData, cycleData] = await Promise.all([
+		getExerciseData(userId),
+		getCycleData(userId),
+	]);
 
-			return {
-				hasAllMaxes,
-				cycles: userCycles,
-				workoutData,
-			};
+	const hasAllMaxes = exerciseData.every((data) => data.oneRepMax?.weight);
+
+	// Process cycle data
+	const userCycles = cycleData.reduce(
+		(acc: CycleData["cycle"][], row: CycleData) => {
+			if (!acc.some((c: CycleData["cycle"]) => c.id === row.cycle.id)) {
+				acc.push(row.cycle);
+			}
+			return acc;
 		},
-		{
-			accessMode: "read only",
-			isolationLevel: "repeatable read",
-		},
+		[],
 	);
-}
+
+	const workoutData = cycleData
+		.filter((row: CycleData) => row.workout?.id)
+		.map((row: CycleData) => row.workout as WorkoutsSelect);
+
+	return {
+		hasAllMaxes,
+		cycles: userCycles,
+		workoutData,
+	};
+});
