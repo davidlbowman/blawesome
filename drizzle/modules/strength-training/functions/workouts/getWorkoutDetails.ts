@@ -22,52 +22,106 @@ export type WorkoutDetails = WorkoutsSelect & {
 };
 
 export async function getWorkoutDetails(
-	workoutId: string,
+	workoutId: string | undefined,
+	cycleId?: string,
 ): Promise<WorkoutDetails | null> {
-	// Get the workout
-	const [workout] = await db
-		.select()
-		.from(workouts)
-		.where(eq(workouts.id, workoutId));
+	return await db.transaction(
+		async (tx) => {
+			// If cycleId is provided, get active workouts first
+			let workout: WorkoutsSelect | null = null;
+			let targetWorkoutId = workoutId;
 
-	if (!workout) {
-		return null;
-	}
+			if (cycleId) {
+				const cycleWorkouts = await tx
+					.select()
+					.from(workouts)
+					.where(eq(workouts.cycleId, cycleId))
+					.orderBy(workouts.sequence);
 
-	// Get exercises with their definitions and sets
-	const workoutExercises = await db
-		.select({
-			exercise: exercises,
-			definition: exerciseDefinitions,
-		})
-		.from(exercises)
-		.where(eq(exercises.workoutId, workoutId))
-		.innerJoin(
-			exerciseDefinitions,
-			eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
-		)
-		.orderBy(exercises.order);
+				// Find the next pending workout if workoutId isn't provided
+				if (!targetWorkoutId) {
+					const nextWorkout = cycleWorkouts.find((w) => w.status === "pending");
+					if (!nextWorkout) return null;
+					workout = nextWorkout;
+					targetWorkoutId = nextWorkout.id;
+				}
+			}
 
-	// Get sets for each exercise
-	const exerciseSets = await Promise.all(
-		workoutExercises.map(async ({ exercise }) => {
-			const exerciseSets = await db
-				.select()
-				.from(sets)
-				.where(eq(sets.exerciseId, exercise.id))
-				.orderBy(sets.setNumber);
+			// If we don't have the workout yet, get it directly
+			if (!workout && targetWorkoutId) {
+				[workout] = await tx
+					.select()
+					.from(workouts)
+					.where(eq(workouts.id, targetWorkoutId));
 
-			return exerciseSets;
-		}),
+				if (!workout) return null;
+			}
+
+			if (!workout || !targetWorkoutId) return null;
+
+			// Get all exercises with their definitions and sets in parallel
+			const [exerciseResults, allSets] = await Promise.all([
+				tx
+					.select({
+						exercise: exercises,
+						definition: exerciseDefinitions,
+					})
+					.from(exercises)
+					.where(eq(exercises.workoutId, targetWorkoutId))
+					.innerJoin(
+						exerciseDefinitions,
+						eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
+					)
+					.orderBy(exercises.order),
+				tx
+					.select({
+						id: sets.id,
+						exerciseId: sets.exerciseId,
+						userId: sets.userId,
+						weight: sets.weight,
+						reps: sets.reps,
+						rpe: sets.rpe,
+						percentageOfMax: sets.percentageOfMax,
+						setNumber: sets.setNumber,
+						status: sets.status,
+						createdAt: sets.createdAt,
+						updatedAt: sets.updatedAt,
+						completedAt: sets.completedAt,
+					})
+					.from(sets)
+					.innerJoin(exercises, eq(sets.exerciseId, exercises.id))
+					.where(eq(exercises.workoutId, targetWorkoutId))
+					.orderBy(sets.setNumber),
+			]);
+
+			// Group sets by exercise ID for efficient lookup
+			const setsByExerciseId = allSets.reduce(
+				(acc, set) => {
+					const exerciseId = set.exerciseId;
+					if (exerciseId) {
+						if (!acc[exerciseId]) {
+							acc[exerciseId] = [];
+						}
+						acc[exerciseId].push(set);
+					}
+					return acc;
+				},
+				{} as Record<string, SetsSelect[]>,
+			);
+
+			// Format the data for the WorkoutCard component
+			return {
+				...workout,
+				exercises: exerciseResults.map(({ exercise, definition }) => ({
+					definition,
+					exercise,
+					sets: exercise.id ? setsByExerciseId[exercise.id] || [] : [],
+				})),
+			};
+		},
+		{
+			accessMode: "read only",
+			isolationLevel: "repeatable read",
+		},
 	);
-
-	// Format the data for the WorkoutCard component
-	return {
-		...workout,
-		exercises: workoutExercises.map(({ exercise, definition }, index) => ({
-			definition,
-			exercise,
-			sets: exerciseSets[index],
-		})),
-	};
 }
