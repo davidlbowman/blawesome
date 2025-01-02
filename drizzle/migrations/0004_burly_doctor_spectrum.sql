@@ -1,1 +1,0 @@
-ALTER TABLE "one_rep_maxes" ADD CONSTRAINT "one_rep_maxes_user_id_exercise_definition_id_unique" UNIQUE("user_id","exercise_definition_id");

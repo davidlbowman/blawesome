@@ -1,1 +1,0 @@
-ALTER TABLE "exercise_definitions" ADD COLUMN "category" text NOT NULL;
