@@ -1,16 +1,24 @@
+import { randomUUID } from "node:crypto";
 import { users } from "@/drizzle/core/schemas/users";
 import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
 import type { PrimaryLift } from "@/drizzle/modules/strength-training/schemas/types";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 
-export const workouts = pgTable("workouts", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id").references(() => users.id),
-	cycleId: uuid("cycle_id").references(() => cycles.id),
-	date: timestamp("date").notNull(),
+export const workouts = sqliteTable("workouts", {
+	id: text("id")
+		.$defaultFn(() => randomUUID())
+		.primaryKey(),
+	userId: text("user_id")
+		.references(() => users.id)
+		.notNull(),
+	cycleId: text("cycle_id")
+		.references(() => cycles.id)
+		.notNull(),
+	date: integer("date", { mode: "timestamp" }).notNull(),
 	primaryLift: text("primary_lift")
 		.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
 		.notNull(),
@@ -19,9 +27,13 @@ export const workouts = pgTable("workouts", {
 		.notNull()
 		.default("pending"),
 	sequence: integer("sequence").notNull(),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-	completedAt: timestamp("completed_at"),
+	createdAt: integer("created_at", { mode: "timestamp" }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
 export const workoutsInsertSchema = createInsertSchema(workouts);

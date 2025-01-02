@@ -33,12 +33,12 @@ export async function createRootUser() {
 	}
 }
 
-// createRootUser()
-// 	.then((user) => {
-// 		console.log("Root user created successfully:", user);
-// 		process.exit(0);
-// 	})
-// 	.catch((error) => {
-// 		console.error("Failed to create root user:", error);
-// 		process.exit(1);
-// 	});
+createRootUser()
+	.then((user) => {
+		console.log("Root user created successfully:", user);
+		process.exit(0);
+	})
+	.catch((error) => {
+		console.error("Failed to create root user:", error);
+		process.exit(1);
+	});

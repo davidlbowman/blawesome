@@ -1,24 +1,20 @@
+import { randomUUID } from "node:crypto";
 import {
 	ExerciseCategory,
 	ExerciseType,
 	PrimaryLift,
 } from "@/drizzle/modules/strength-training/schemas/types";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 
-import {
-	integer,
-	pgTable,
-	text,
-	timestamp,
-	unique,
-	uuid,
-} from "drizzle-orm/pg-core";
-
-export const exerciseDefinitions = pgTable(
+export const exerciseDefinitions = sqliteTable(
 	"exercise_definitions",
 	{
-		id: uuid("id").defaultRandom().primaryKey(),
+		id: text("id")
+			.$defaultFn(() => randomUUID())
+			.primaryKey(),
 		name: text("name").notNull(),
 		type: text("type")
 			.$type<(typeof ExerciseType)[keyof typeof ExerciseType]>()
@@ -31,8 +27,12 @@ export const exerciseDefinitions = pgTable(
 			.notNull(),
 		rpeMax: integer("rpe_max"),
 		repMax: integer("rep_max"),
-		createdAt: timestamp("created_at").defaultNow(),
-		updatedAt: timestamp("updated_at").defaultNow(),
+		createdAt: integer("created_at", { mode: "timestamp" }).default(
+			sql`CURRENT_TIMESTAMP`,
+		),
+		updatedAt: integer("updated_at", { mode: "timestamp" }).default(
+			sql`CURRENT_TIMESTAMP`,
+		),
 	},
 	(table) => ({
 		nameTypeUnique: unique().on(table.name, table.type),

@@ -1,27 +1,39 @@
+import { randomUUID } from "node:crypto";
 import { users } from "@/drizzle/core/schemas/users";
 import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 
-export const exercises = pgTable("exercises", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id").references(() => users.id),
-	workoutId: uuid("workout_id").references(() => workouts.id),
-	exerciseDefinitionId: uuid("exercise_definition_id").references(
-		() => exerciseDefinitions.id,
-	),
+export const exercises = sqliteTable("exercises", {
+	id: text("id")
+		.$defaultFn(() => randomUUID())
+		.primaryKey(),
+	userId: text("user_id")
+		.references(() => users.id)
+		.notNull(),
+	workoutId: text("workout_id")
+		.references(() => workouts.id)
+		.notNull(),
+	exerciseDefinitionId: text("exercise_definition_id")
+		.references(() => exerciseDefinitions.id)
+		.notNull(),
 	oneRepMax: integer("one_rep_max"),
 	order: integer("order").notNull(),
 	status: text("status")
 		.$type<(typeof Status)[keyof typeof Status]>()
 		.notNull()
 		.default("pending"),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-	completedAt: timestamp("completed_at"),
+	createdAt: integer("created_at", { mode: "timestamp" }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
 export const exercisesInsertSchema = createInsertSchema(exercises);

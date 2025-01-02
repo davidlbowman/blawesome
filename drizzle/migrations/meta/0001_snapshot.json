@@ -1,8 +1,8 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "109f52c5-d585-4be4-9ff3-92bc5e663b23",
-	"prevId": "00000000-0000-0000-0000-000000000000",
+	"id": "0df512e7-5e3f-4205-8db6-5a7a35d0b847",
+	"prevId": "109f52c5-d585-4be4-9ff3-92bc5e663b23",
 	"tables": {
 		"users": {
 			"name": "users",
@@ -34,7 +34,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"updated_at": {
 					"name": "updated_at",
@@ -42,7 +42,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				}
 			},
 			"indexes": {
@@ -53,6 +53,85 @@
 				}
 			},
 			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"cycles": {
+			"name": "cycles",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"user_id": {
+					"name": "user_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"start_date": {
+					"name": "start_date",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"end_date": {
+					"name": "end_date",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"status": {
+					"name": "status",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'pending'"
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false,
+					"default": "CURRENT_TIMESTAMP"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false,
+					"default": "CURRENT_TIMESTAMP"
+				},
+				"completed_at": {
+					"name": "completed_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"cycles_user_id_users_id_fk": {
+					"name": "cycles_user_id_users_id_fk",
+					"tableFrom": "cycles",
+					"tableTo": "users",
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -115,7 +194,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"updated_at": {
 					"name": "updated_at",
@@ -123,7 +202,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				}
 			},
 			"indexes": {
@@ -134,187 +213,6 @@
 				}
 			},
 			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"checkConstraints": {}
-		},
-		"cycles": {
-			"name": "cycles",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"user_id": {
-					"name": "user_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"start_date": {
-					"name": "start_date",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"end_date": {
-					"name": "end_date",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false,
-					"default": "'pending'"
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false,
-					"default": "DATETIME('now')"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false,
-					"default": "DATETIME('now')"
-				},
-				"completed_at": {
-					"name": "completed_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {
-				"cycles_user_id_users_id_fk": {
-					"name": "cycles_user_id_users_id_fk",
-					"tableFrom": "cycles",
-					"tableTo": "users",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"checkConstraints": {}
-		},
-		"workouts": {
-			"name": "workouts",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"user_id": {
-					"name": "user_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"cycle_id": {
-					"name": "cycle_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"date": {
-					"name": "date",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"primary_lift": {
-					"name": "primary_lift",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"status": {
-					"name": "status",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false,
-					"default": "'pending'"
-				},
-				"sequence": {
-					"name": "sequence",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false,
-					"default": "DATETIME('now')"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false,
-					"default": "DATETIME('now')"
-				},
-				"completed_at": {
-					"name": "completed_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {
-				"workouts_user_id_users_id_fk": {
-					"name": "workouts_user_id_users_id_fk",
-					"tableFrom": "workouts",
-					"tableTo": "users",
-					"columnsFrom": ["user_id"],
-					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
-				},
-				"workouts_cycle_id_cycles_id_fk": {
-					"name": "workouts_cycle_id_cycles_id_fk",
-					"tableFrom": "workouts",
-					"tableTo": "cycles",
-					"columnsFrom": ["cycle_id"],
-					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
-				}
-			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
@@ -378,7 +276,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"updated_at": {
 					"name": "updated_at",
@@ -386,7 +284,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"completed_at": {
 					"name": "completed_at",
@@ -419,6 +317,85 @@
 				"exercises_exercise_definition_id_exercise_definitions_id_fk": {
 					"name": "exercises_exercise_definition_id_exercise_definitions_id_fk",
 					"tableFrom": "exercises",
+					"tableTo": "exercise_definitions",
+					"columnsFrom": ["exercise_definition_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"one_rep_maxes": {
+			"name": "one_rep_maxes",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"user_id": {
+					"name": "user_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"exercise_definition_id": {
+					"name": "exercise_definition_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"weight": {
+					"name": "weight",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false,
+					"default": "CURRENT_TIMESTAMP"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false,
+					"default": "CURRENT_TIMESTAMP"
+				}
+			},
+			"indexes": {
+				"one_rep_maxes_user_id_exercise_definition_id_unique": {
+					"name": "one_rep_maxes_user_id_exercise_definition_id_unique",
+					"columns": ["user_id", "exercise_definition_id"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {
+				"one_rep_maxes_user_id_users_id_fk": {
+					"name": "one_rep_maxes_user_id_users_id_fk",
+					"tableFrom": "one_rep_maxes",
+					"tableTo": "users",
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"one_rep_maxes_exercise_definition_id_exercise_definitions_id_fk": {
+					"name": "one_rep_maxes_exercise_definition_id_exercise_definitions_id_fk",
+					"tableFrom": "one_rep_maxes",
 					"tableTo": "exercise_definitions",
 					"columnsFrom": ["exercise_definition_id"],
 					"columnsTo": ["id"],
@@ -503,7 +480,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"updated_at": {
 					"name": "updated_at",
@@ -511,7 +488,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"completed_at": {
 					"name": "completed_at",
@@ -546,8 +523,8 @@
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
-		"one_rep_maxes": {
-			"name": "one_rep_maxes",
+		"workouts": {
+			"name": "workouts",
 			"columns": {
 				"id": {
 					"name": "id",
@@ -563,15 +540,37 @@
 					"notNull": true,
 					"autoincrement": false
 				},
-				"exercise_definition_id": {
-					"name": "exercise_definition_id",
+				"cycle_id": {
+					"name": "cycle_id",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
 					"autoincrement": false
 				},
-				"weight": {
-					"name": "weight",
+				"date": {
+					"name": "date",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"primary_lift": {
+					"name": "primary_lift",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"status": {
+					"name": "status",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'pending'"
+				},
+				"sequence": {
+					"name": "sequence",
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": true,
@@ -583,7 +582,7 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
 				},
 				"updated_at": {
 					"name": "updated_at",
@@ -591,31 +590,32 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false,
-					"default": "DATETIME('now')"
+					"default": "CURRENT_TIMESTAMP"
+				},
+				"completed_at": {
+					"name": "completed_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
-			"indexes": {
-				"one_rep_maxes_user_id_exercise_definition_id_unique": {
-					"name": "one_rep_maxes_user_id_exercise_definition_id_unique",
-					"columns": ["user_id", "exercise_definition_id"],
-					"isUnique": true
-				}
-			},
+			"indexes": {},
 			"foreignKeys": {
-				"one_rep_maxes_user_id_users_id_fk": {
-					"name": "one_rep_maxes_user_id_users_id_fk",
-					"tableFrom": "one_rep_maxes",
+				"workouts_user_id_users_id_fk": {
+					"name": "workouts_user_id_users_id_fk",
+					"tableFrom": "workouts",
 					"tableTo": "users",
 					"columnsFrom": ["user_id"],
 					"columnsTo": ["id"],
 					"onDelete": "no action",
 					"onUpdate": "no action"
 				},
-				"one_rep_maxes_exercise_definition_id_exercise_definitions_id_fk": {
-					"name": "one_rep_maxes_exercise_definition_id_exercise_definitions_id_fk",
-					"tableFrom": "one_rep_maxes",
-					"tableTo": "exercise_definitions",
-					"columnsFrom": ["exercise_definition_id"],
+				"workouts_cycle_id_cycles_id_fk": {
+					"name": "workouts_cycle_id_cycles_id_fk",
+					"tableFrom": "workouts",
+					"tableTo": "cycles",
+					"columnsFrom": ["cycle_id"],
 					"columnsTo": ["id"],
 					"onDelete": "no action",
 					"onUpdate": "no action"

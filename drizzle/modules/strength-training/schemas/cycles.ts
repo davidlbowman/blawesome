@@ -1,21 +1,31 @@
+import { randomUUID } from "node:crypto";
 import { users } from "@/drizzle/core/schemas/users";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 
-export const cycles = pgTable("cycles", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id").references(() => users.id),
-	startDate: timestamp("start_date").notNull(),
-	endDate: timestamp("end_date"),
+export const cycles = sqliteTable("cycles", {
+	id: text("id")
+		.$defaultFn(() => randomUUID())
+		.primaryKey(),
+	userId: text("user_id")
+		.references(() => users.id)
+		.notNull(),
+	startDate: integer("start_date", { mode: "timestamp" }).notNull(),
+	endDate: integer("end_date", { mode: "timestamp" }),
 	status: text("status")
 		.$type<(typeof Status)[keyof typeof Status]>()
 		.notNull()
 		.default("pending"),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-	completedAt: timestamp("completed_at"),
+	createdAt: integer("created_at", { mode: "timestamp" }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
 export const cyclesInsertSchema = createInsertSchema(cycles);
