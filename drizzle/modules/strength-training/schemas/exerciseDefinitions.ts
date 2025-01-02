@@ -29,9 +29,7 @@ export const exerciseDefinitions = pgTable(
 		primaryLiftDay: text("primary_lift_day")
 			.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
 			.notNull(),
-		rpeMin: integer("rpe_min"),
 		rpeMax: integer("rpe_max"),
-		repMin: integer("rep_min"),
 		repMax: integer("rep_max"),
 		createdAt: timestamp("created_at").defaultNow(),
 		updatedAt: timestamp("updated_at").defaultNow(),

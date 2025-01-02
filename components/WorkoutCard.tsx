@@ -193,11 +193,11 @@ export function WorkoutCard({
 							<div className="grid grid-cols-3 gap-2 text-sm">
 								<div>
 									<span className="font-medium">RPE:</span>{" "}
-									{exercise.definition.rpeMin}-{exercise.definition.rpeMax}
+									{exercise.definition.rpeMax ?? 7}
 								</div>
 								<div>
 									<span className="font-medium">Reps:</span>{" "}
-									{exercise.definition.repMin}-{exercise.definition.repMax}
+									{exercise.definition.repMax ?? 8}
 								</div>
 								<div>
 									<span className="font-medium">Sets:</span>{" "}

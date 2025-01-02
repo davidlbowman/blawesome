@@ -1,24 +1,21 @@
 "use server";
 
-import { db } from "@/drizzle/db";
 import {
 	type ExerciseDefinitionsSelect,
 	ExerciseType,
 	type SetsInsert,
 	Status,
 	type exercises,
-	sets,
 } from "@/drizzle/modules/strength-training/schemas";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Exercise = InferSelectModel<typeof exercises>;
 
 interface SetScheme {
-	reps?: number;
+	reps: number;
 	weight?: number;
 	percentageOfMax?: number;
-	rpeRange?: { min: number; max: number };
-	repRange?: { min: number; max: number };
+	rpe?: number;
 }
 
 // Week patterns for primary lifts
@@ -82,19 +79,15 @@ function calculateSetScheme(
 			weight: roundToNearest5(
 				Math.round((oneRepMax * (pattern.percentageOfMax || 0)) / 100),
 			),
+			rpe: 7, // Fixed RPE for primary lifts
 		}));
 	}
 
-	// For variations and accessories, use the definition's ranges
+	// For variations and accessories, use the definition's max values
 	const pattern = {
-		rpeRange:
-			definition.rpeMin && definition.rpeMax
-				? { min: definition.rpeMin, max: definition.rpeMax }
-				: undefined,
-		repRange:
-			definition.repMin && definition.repMax
-				? { min: definition.repMin, max: definition.repMax }
-				: undefined,
+		reps: definition.repMax ?? 8,
+		rpe: definition.rpeMax ?? 7,
+		weight: 100, // Default weight, will be adjusted based on 1RM later
 	};
 
 	// Return only NON_PRIMARY_SETS number of sets with the same pattern
@@ -116,23 +109,14 @@ export async function createSets(
 		definition,
 	);
 
-	const setValues: SetsInsert[] = setSchemes.map((scheme, index) => ({
+	return setSchemes.map((scheme, index) => ({
 		userId,
 		exerciseId: exercise.id,
+		weight: scheme.weight ?? 100,
+		reps: scheme.reps,
+		rpe: scheme.rpe ?? 7,
+		percentageOfMax: scheme.percentageOfMax ?? 70,
 		setNumber: index + 1,
-		weight: scheme.weight || 0, // For non-primary lifts, weight will be entered by user
-		reps:
-			scheme.reps ||
-			Math.floor(
-				((scheme.repRange?.min || 0) + (scheme.repRange?.max || 0)) / 2,
-			),
-		rpe: scheme.rpeRange
-			? Math.floor((scheme.rpeRange.min + scheme.rpeRange.max) / 2)
-			: null,
-		percentageOfMax: scheme.percentageOfMax || null,
 		status: Status.Pending,
 	}));
-
-	const createdSets = await db.insert(sets).values(setValues).returning();
-	return createdSets;
 }

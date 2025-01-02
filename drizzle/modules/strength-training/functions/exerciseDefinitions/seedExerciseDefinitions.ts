@@ -31,9 +31,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Primary,
 			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Squat,
-			repMin: null,
 			repMax: null,
-			rpeMin: null,
 			rpeMax: null,
 		},
 		{
@@ -41,9 +39,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Primary,
 			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Bench,
-			repMin: null,
 			repMax: null,
-			rpeMin: null,
 			rpeMax: null,
 		},
 		{
@@ -51,9 +47,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Primary,
 			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			repMin: null,
 			repMax: null,
-			rpeMin: null,
 			rpeMax: null,
 		},
 		{
@@ -61,9 +55,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Primary,
 			category: ExerciseCategory.MainLift,
 			primaryLiftDay: PrimaryLift.Overhead,
-			repMin: null,
 			repMax: null,
-			rpeMin: null,
 			rpeMax: null,
 		},
 
@@ -73,9 +65,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 7,
-			repMin: 6,
 			repMax: 10,
 		},
 		{
@@ -83,9 +73,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -93,9 +81,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -105,9 +91,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -115,9 +99,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -125,9 +107,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -137,9 +117,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -147,9 +125,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -157,9 +133,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -167,9 +141,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -177,9 +149,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Variation,
 			category: ExerciseCategory.MainLiftVariation,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -189,9 +159,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -199,9 +167,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -209,9 +175,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -219,9 +183,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CompoundLeg,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -231,9 +193,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.QuadAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -241,9 +201,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.HamstringGluteAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -251,9 +209,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.HamstringGluteAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -261,9 +217,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CalfAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -271,9 +225,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.CalfAccessory,
 			primaryLiftDay: PrimaryLift.Squat,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -283,9 +235,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -293,9 +243,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -303,9 +251,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -313,9 +259,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.ChestAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -325,9 +269,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -335,9 +277,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -345,9 +285,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.TricepAccessory,
 			primaryLiftDay: PrimaryLift.Bench,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -357,9 +295,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -367,9 +303,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -377,9 +311,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.VerticalPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -387,9 +319,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -397,9 +327,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -407,9 +335,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.LateralPullAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -419,9 +345,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -429,9 +353,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -439,9 +361,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -449,9 +369,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -459,9 +377,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.BicepAccessory,
 			primaryLiftDay: PrimaryLift.Deadlift,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 
@@ -471,9 +387,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -481,9 +395,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -491,9 +403,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -501,9 +411,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 		{
@@ -511,9 +419,7 @@ export async function seedExerciseDefinitions() {
 			type: ExerciseType.Accessory,
 			category: ExerciseCategory.DeltAccessory,
 			primaryLiftDay: PrimaryLift.Overhead,
-			rpeMin: 5,
 			rpeMax: 8,
-			repMin: 8,
 			repMax: 15,
 		},
 	] as const;
