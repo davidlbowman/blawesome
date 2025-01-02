@@ -72,7 +72,8 @@ const getExerciseData = unstable_cache(
 const getCycleData = unstable_cache(
 	async (userId: string) => {
 		return await db.transaction(async (tx) => {
-			const data = await tx
+			// First get the current cycle (most recent non-completed cycle)
+			const currentCycleData = await tx
 				.select({
 					cycle: {
 						id: cycles.id,
@@ -93,10 +94,37 @@ const getCycleData = unstable_cache(
 				})
 				.from(cycles)
 				.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
-				.where(eq(cycles.userId, userId))
+				.where(and(eq(cycles.userId, userId), eq(cycles.status, "pending")))
 				.orderBy(desc(cycles.createdAt), workouts.sequence);
 
-			return data as CycleData[];
+			// Then get the last 3 completed cycles
+			const completedCyclesData = await tx
+				.select({
+					cycle: {
+						id: cycles.id,
+						userId: cycles.userId,
+						status: cycles.status,
+						startDate: cycles.startDate,
+						endDate: cycles.endDate,
+						createdAt: cycles.createdAt,
+						updatedAt: cycles.updatedAt,
+						completedAt: cycles.completedAt,
+					},
+					workout: {
+						id: workouts.id,
+						primaryLift: workouts.primaryLift,
+						status: workouts.status,
+						sequence: workouts.sequence,
+					},
+				})
+				.from(cycles)
+				.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
+				.where(and(eq(cycles.userId, userId), eq(cycles.status, "completed")))
+				.orderBy(desc(cycles.completedAt), workouts.sequence)
+				.limit(3);
+
+			// Combine the results
+			return [...currentCycleData, ...completedCyclesData] as CycleData[];
 		});
 	},
 	["cycle-data"],

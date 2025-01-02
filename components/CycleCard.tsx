@@ -9,7 +9,7 @@ import {
 import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
 import Link from "next/link";
 
-interface WorkoutCycleCardProps
+interface CycleCardProps
 	extends Omit<CyclesSelect, "userId" | "createdAt" | "updatedAt"> {
 	completedWorkouts: number;
 	totalWorkouts: number;
@@ -36,7 +36,7 @@ const getPrimaryLiftDisplayName = (
 	}
 };
 
-export function WorkoutCycleCard({
+export function CycleCard({
 	id,
 	status,
 	startDate,
@@ -44,7 +44,7 @@ export function WorkoutCycleCard({
 	completedWorkouts,
 	totalWorkouts,
 	nextWorkout,
-}: WorkoutCycleCardProps) {
+}: CycleCardProps) {
 	const progressPercentage = (completedWorkouts / totalWorkouts) * 100;
 
 	const getStatusColor = (status: string) => {
