@@ -48,6 +48,7 @@ export function WorkoutCard({
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 	const [currentSetIndex, setCurrentSetIndex] = useState(0);
 	const [isPending, startTransition] = useTransition();
+	const [completedSets, setCompletedSets] = useState<string[]>([]);
 
 	const sorted = [...exercises].sort(
 		(a, b) => a.exercise.order - b.exercise.order,
@@ -59,38 +60,60 @@ export function WorkoutCard({
 
 	const handleStartWorkout = useCallback(async () => {
 		if (status === Status.Pending) {
-			startTransition(async () => {
-				await startWorkout(id);
-				setStatus(Status.InProgress);
-			});
+			setStatus(Status.InProgress);
 		}
-	}, [status, id]);
+	}, [status]);
+
+	const saveProgress = useCallback(async () => {
+		if (completedSets.length === 0) return;
+
+		startTransition(async () => {
+			if (initialStatus === Status.Pending) {
+				await startWorkout(id);
+			}
+
+			for (const setId of completedSets) {
+				const exercise = sorted.find((e) => e.sets.some((s) => s.id === setId));
+				if (exercise) {
+					await completeSet(setId, exercise.exercise.id, id);
+				}
+			}
+			setCompletedSets([]);
+		});
+	}, [completedSets, id, sorted, initialStatus]);
 
 	const handleSaveWorkout = useCallback(async () => {
 		if (status === Status.InProgress) {
-			const currentExercise = sorted[currentExerciseIndex];
-			const currentSet = currentExercise.sets[currentSetIndex];
+			await saveProgress();
+		}
+	}, [status, saveProgress]);
 
+	const handleWorkoutProgress = useCallback(async () => {
+		if (status !== Status.InProgress) return;
+
+		const currentExercise = sorted[currentExerciseIndex];
+		const currentSet = currentExercise.sets[currentSetIndex];
+
+		setCompletedSets((prev) => [...prev, currentSet.id]);
+
+		if (currentSetIndex < currentExercise.sets.length - 1) {
+			setCurrentSetIndex((prev) => prev + 1);
+		} else if (currentExerciseIndex < sorted.length - 1) {
+			setCurrentExerciseIndex((prev) => prev + 1);
+			setCurrentSetIndex(0);
+		} else {
 			startTransition(async () => {
-				await completeSet(currentSet.id, currentExercise.exercise.id, id);
-
-				if (currentSetIndex < currentExercise.sets.length - 1) {
-					setCurrentSetIndex((prev) => prev + 1);
-				} else if (currentExerciseIndex < sorted.length - 1) {
-					setCurrentExerciseIndex((prev) => prev + 1);
-					setCurrentSetIndex(0);
-				} else {
-					setStatus(Status.Completed);
-					queueMicrotask(() => {
-						window.location.reload();
-					});
-				}
+				await saveProgress();
+				setStatus(Status.Completed);
+				queueMicrotask(() => {
+					window.location.reload();
+				});
 			});
 		}
-	}, [status, id, currentExerciseIndex, currentSetIndex, sorted]);
+	}, [status, currentExerciseIndex, currentSetIndex, sorted, saveProgress]);
 
 	return (
-		<Card className="w-full max-w-4xl">
+		<Card className="w-full max-w-4xl space-y-3">
 			<CardHeader className="pb-2">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-4">
@@ -111,7 +134,11 @@ export function WorkoutCard({
 							size="icon"
 							onClick={handleSaveWorkout}
 							className="text-muted-foreground hover:text-primary"
-							disabled={status !== Status.InProgress || isPending}
+							disabled={
+								status !== Status.InProgress ||
+								isPending ||
+								completedSets.length === 0
+							}
 						>
 							<Save className="h-5 w-5" />
 						</Button>
@@ -145,10 +172,12 @@ export function WorkoutCard({
 									<TableRow
 										key={set.id}
 										className={
-											status === Status.InProgress &&
-											currentExerciseIndex === 0 &&
-											set.setNumber - 1 === currentSetIndex
-												? "bg-primary/20"
+											status === Status.InProgress && currentExerciseIndex === 0
+												? set.setNumber - 1 === currentSetIndex
+													? "bg-primary/20"
+													: set.setNumber - 1 < currentSetIndex
+														? "bg-green-500/10"
+														: ""
 												: ""
 										}
 									>
@@ -212,7 +241,9 @@ export function WorkoutCard({
 						className="w-full"
 						size="lg"
 						onClick={
-							status === Status.Pending ? handleStartWorkout : handleSaveWorkout
+							status === Status.Pending
+								? handleStartWorkout
+								: handleWorkoutProgress
 						}
 						disabled={status === Status.Completed || isPending}
 					>
