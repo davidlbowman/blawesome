@@ -18,18 +18,30 @@ export async function insertOneRepMax({
 	exerciseDefinitionId,
 	weight,
 }: InsertOneRepMaxParams): Promise<void> {
-	await db
-		.insert(oneRepMaxes)
-		.values({
-			userId,
-			exerciseDefinitionId,
-			weight,
-		})
-		.onConflictDoUpdate({
-			target: [oneRepMaxes.userId, oneRepMaxes.exerciseDefinitionId],
-			set: {
+	console.log("Inserting one rep max with params:", {
+		userId,
+		exerciseDefinitionId,
+		weight,
+	});
+
+	try {
+		await db
+			.insert(oneRepMaxes)
+			.values({
+				userId,
+				exerciseDefinitionId,
 				weight,
-				updatedAt: sql`CURRENT_TIMESTAMP`,
-			},
-		});
+			})
+			.onConflictDoUpdate({
+				target: [oneRepMaxes.userId, oneRepMaxes.exerciseDefinitionId],
+				set: {
+					weight,
+					updatedAt: sql`CURRENT_TIMESTAMP`,
+				},
+			});
+		console.log("Successfully inserted/updated one rep max");
+	} catch (error) {
+		console.error("Failed to insert/update one rep max:", error);
+		throw error;
+	}
 }

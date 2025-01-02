@@ -13,7 +13,6 @@ import {
 } from "@/drizzle/modules/strength-training/schemas";
 import { and, desc, eq } from "drizzle-orm";
 
-// Temporarily disable caching to see actual queries
 export async function getTrainingData(userId: string) {
 	console.log("\n📊 Data Fetch Started");
 

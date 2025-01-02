@@ -1,5 +1,8 @@
 "use server";
 
+import { users } from "@/drizzle/core/schemas/users";
+import { db } from "@/drizzle/db";
+import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 
 function base64URLDecode(str: string): string {
@@ -14,5 +17,22 @@ export async function getUserId() {
 
 	const [_, payloadBase64] = token.split(".");
 	const payload = JSON.parse(base64URLDecode(payloadBase64));
-	return payload.id;
+	const userId = payload.id;
+
+	console.log("Got user ID from token:", userId);
+
+	// Verify user exists in database
+	const user = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.id, userId))
+		.get();
+
+	if (!user) {
+		console.error("User not found in database:", userId);
+		throw new Error("User not found");
+	}
+
+	console.log("Verified user exists in database:", userId);
+	return userId;
 }
