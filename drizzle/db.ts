@@ -60,7 +60,13 @@ class CustomLogger implements Logger {
 			!query.toLowerCase().includes("rollback")
 		) {
 			console.log(
-				`Query #${this.queryCount}: ${queryType} | Params: ${params.length} | Duration: ${duration}`,
+				`\nQuery #${this.queryCount}:
+                    SQL: ${query}
+                    Params: ${JSON.stringify(params)}
+                    Type: ${queryType}
+                    Joins: ${joins}
+                    Conditions: ${conditions}
+                    Duration: ${duration}\n`,
 			);
 		}
 
@@ -100,5 +106,6 @@ class CustomLogger implements Logger {
 }
 
 export const db = drizzle(sql, {
-	logger: new CustomLogger(),
+	logger:
+		process.env.NODE_ENV === "production" ? undefined : new CustomLogger(),
 });
