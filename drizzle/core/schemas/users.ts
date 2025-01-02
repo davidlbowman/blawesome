@@ -1,13 +1,20 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { randomUUID } from "node:crypto";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 
-export const users = pgTable("users", {
-	id: uuid("id").defaultRandom().primaryKey(),
+export const users = sqliteTable("users", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	email: text("email").notNull().unique(),
 	password: text("password").notNull(),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
+	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+		() => new Date(),
+	),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+		() => new Date(),
+	),
 });
 
 export const userSelectSchema = createSelectSchema(users);

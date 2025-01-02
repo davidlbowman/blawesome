@@ -1,7 +1,7 @@
 import "@/drizzle/envConfig";
-import { sql } from "@vercel/postgres";
+import { createClient } from "@libsql/client";
 import type { Logger } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/vercel-postgres";
+import { drizzle } from "drizzle-orm/libsql";
 
 export class CustomLogger implements Logger {
 	private queryStartTime: number | null = null;
@@ -20,15 +20,25 @@ export class CustomLogger implements Logger {
 		const conditionCount = (query.match(/where|having|on/gi) || []).length;
 
 		console.log(`\n📊 Query:
-SQL: ${query.split("(")[0].trim()}...
-Type: ${queryType}
-Joins: ${joinCount}
-Conditions: ${conditionCount}
-Duration: ${duration.toFixed(2)}ms`);
+                    SQL: ${query.split("(")[0].trim()}...
+                    Type: ${queryType}
+                    Joins: ${joinCount}
+                    Conditions: ${conditionCount}
+                    Duration: ${duration.toFixed(2)}ms`);
 	}
 }
 
-export const db = drizzle(sql, {
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+	throw new Error("DATABASE_URL is not defined");
+}
+
+const client = createClient({
+	url: dbUrl,
+	authToken: process.env.DATABASE_AUTH_TOKEN,
+});
+
+export const db = drizzle(client, {
 	logger:
 		process.env.NODE_ENV === "production" ? undefined : new CustomLogger(),
 });
