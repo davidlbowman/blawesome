@@ -150,7 +150,7 @@ function CycleList({
 					)}
 
 					{completedCycles.length > 0 && (
-						<div>
+						<div className="mt-8">
 							<h3 className="text-lg font-semibold mb-4">Previous Cycles</h3>
 							<div className="grid gap-6 md:grid-cols-2">
 								{completedCycles.map((cycle) => (

@@ -1,39 +1,49 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-	type CyclesSelect,
-	PrimaryLift,
-	Status,
-} from "@/drizzle/modules/strength-training/schemas";
-import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
+import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 
-interface CycleCardProps
-	extends Omit<CyclesSelect, "userId" | "createdAt" | "updatedAt"> {
+interface CycleCardProps {
+	id: string;
+	status: string;
+	startDate: Date;
+	completedAt?: Date | null;
 	completedWorkouts: number;
 	totalWorkouts: number;
 	nextWorkout?: {
-		primaryLift: (typeof PrimaryLift)[keyof typeof PrimaryLift];
-		status: (typeof Status)[keyof typeof Status];
-	};
+		primaryLift: string;
+		status: string;
+	} | null;
 }
 
-const getPrimaryLiftDisplayName = (
-	lift: (typeof PrimaryLift)[keyof typeof PrimaryLift],
-) => {
-	switch (lift) {
-		case PrimaryLift.Squat:
-			return "Squat";
-		case PrimaryLift.Bench:
-			return "Bench Press";
-		case PrimaryLift.Deadlift:
-			return "Deadlift";
-		case PrimaryLift.Overhead:
-			return "Overhead Press";
+const formatDate = (date: Date) => {
+	return new Intl.DateTimeFormat("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	}).format(date);
+};
+
+const getStatusColor = (status: string) => {
+	switch (status) {
+		case Status.Pending:
+			return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
+		case Status.InProgress:
+			return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
+		case Status.Completed:
+			return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
 		default:
-			return lift;
+			return "";
 	}
+};
+
+const getPrimaryLiftDisplayName = (lift: string) => {
+	return lift
+		.split("_")
+		.map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
 };
 
 export function CycleCard({
@@ -47,34 +57,20 @@ export function CycleCard({
 }: CycleCardProps) {
 	const progressPercentage = (completedWorkouts / totalWorkouts) * 100;
 
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case Status.Completed:
-				return "bg-green-500 text-white";
-			case Status.InProgress:
-				return "bg-blue-500 text-white";
-			default:
-				return "bg-secondary text-secondary-foreground";
-		}
-	};
-
-	const formatDate = (date: Date) => {
-		return new Intl.DateTimeFormat("en-US", {
-			month: "long",
-			day: "numeric",
-			year: "numeric",
-		}).format(new Date(date));
-	};
-
 	return (
 		<Link href={`/modules/strength-training/${id}`} className="block">
-			<Card className="w-full max-w-md transition-colors hover:bg-muted/50">
+			<Card className="w-full transition-colors hover:bg-muted/50">
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">
 						Workout Cycle {id.slice(0, 8)}
 					</CardTitle>
 					<Badge className={getStatusColor(status)}>
-						{status.charAt(0).toUpperCase() + status.slice(1)}
+						{status
+							.split("_")
+							.map(
+								(word: string) => word.charAt(0).toUpperCase() + word.slice(1),
+							)
+							.join(" ")}
 					</Badge>
 				</CardHeader>
 				<CardContent>
