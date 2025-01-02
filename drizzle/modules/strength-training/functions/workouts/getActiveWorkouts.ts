@@ -1,14 +1,17 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { workouts } from "@/drizzle/modules/strength-training/schemas";
+import {
+	type WorkoutsSelect,
+	workouts,
+} from "@/drizzle/modules/strength-training/schemas";
 import { eq } from "drizzle-orm";
 
 export interface ActiveWorkoutsResult {
-	workouts: (typeof workouts.$inferSelect)[];
+	workouts: WorkoutsSelect[];
 	totalWorkouts: number;
 	completedWorkouts: number;
-	nextWorkout: typeof workouts.$inferSelect | undefined;
+	nextWorkout: WorkoutsSelect | undefined;
 }
 
 export async function getActiveWorkouts(

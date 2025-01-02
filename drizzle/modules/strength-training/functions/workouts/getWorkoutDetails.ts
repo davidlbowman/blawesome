@@ -3,6 +3,7 @@
 import { db } from "@/drizzle/db";
 import {
 	type ExerciseDefinitionsSelect,
+	type ExercisesSelect,
 	type SetsSelect,
 	type WorkoutsSelect,
 	exerciseDefinitions,
@@ -13,11 +14,11 @@ import {
 import { eq } from "drizzle-orm";
 
 export type WorkoutDetails = WorkoutsSelect & {
-	exercises: Array<{
+	exercises: {
 		definition: ExerciseDefinitionsSelect;
-		exercise: typeof exercises.$inferSelect;
-		sets: Array<SetsSelect>;
-	}>;
+		exercise: ExercisesSelect;
+		sets: SetsSelect[];
+	}[];
 };
 
 export async function getWorkoutDetails(

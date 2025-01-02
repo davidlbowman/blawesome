@@ -6,6 +6,7 @@ import { createCycle } from "@/drizzle/modules/strength-training/functions/cycle
 import {
 	type PrimaryLift,
 	Status,
+	type WorkoutsSelect,
 	cycles,
 	exerciseDefinitions,
 	oneRepMaxes,
@@ -38,7 +39,7 @@ async function getTrainingData(userId: string) {
 			);
 
 			// If we have cycles, get the active cycle's workouts
-			let workoutData: (typeof workouts.$inferSelect)[] = [];
+			let workoutData: WorkoutsSelect[] = [];
 			if (userCycles.length > 0) {
 				const activeCycle = userCycles.find(
 					(cycle) =>
