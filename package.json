@@ -10,7 +10,9 @@
 		"format": "bunx biome format --write",
 		"db:push": "bunx drizzle-kit push",
 		"db:generate": "bunx drizzle-kit generate",
-		"db:migrate": "bunx drizzle-kit migrate"
+		"db:migrate": "bunx drizzle-kit migrate",
+		"db:studio": "bunx drizzle-kit studio",
+		"db:setup": "bun run drizzle/tests/integration/setup.ts"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^3.9.1",
