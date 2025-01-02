@@ -16,7 +16,6 @@ import { and, desc, eq } from "drizzle-orm";
 // Temporarily disable caching to see actual queries
 export async function getTrainingData(userId: string) {
 	console.log("\n📊 Data Fetch Started");
-	const startTime = performance.now();
 
 	// Start both queries in parallel
 	const [exerciseData, cycleData] = await Promise.all([
@@ -61,10 +60,7 @@ export async function getTrainingData(userId: string) {
 			.where(eq(cycles.userId, userId))
 			.orderBy(desc(cycles.createdAt)),
 	]);
-	const queryEndTime = performance.now();
-	const queryDuration = queryEndTime - startTime;
 
-	const processStart = performance.now();
 	const hasAllMaxes = exerciseData.every((data) => data.oneRepMax?.weight);
 
 	// Process cycle data
@@ -79,22 +75,6 @@ export async function getTrainingData(userId: string) {
 		.filter((row) => row.workout)
 		.map((row) => row.workout as WorkoutsSelect)
 		.sort((a, b) => a.sequence - b.sequence);
-	const processDuration = performance.now() - processStart;
-
-	const totalDuration = performance.now() - startTime;
-
-	console.log(`
-📈 Performance Summary:
-- Query Duration: ${queryDuration.toFixed(3)}ms
-- Processing Duration: ${processDuration.toFixed(3)}ms
-- Total Duration: ${totalDuration.toFixed(3)}ms
-
-📊 Data Stats:
-- Exercise Data: ${exerciseData.length} records
-- Cycles: ${userCycles.length} records
-- Workouts: ${workoutData.length} records
-- Has All Maxes: ${hasAllMaxes ? "✅" : "❌"}
-`);
 
 	return {
 		hasAllMaxes,
