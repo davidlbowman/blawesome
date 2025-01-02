@@ -21,8 +21,7 @@ const WORKOUT_SEQUENCE = [
 	PrimaryLift.Overhead,
 ] as const;
 
-// Define the exercise categories for each day
-const WORKOUT_CATEGORIES = {
+const EXERCISE_CATEGORIES = {
 	[PrimaryLift.Squat]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
@@ -89,7 +88,7 @@ export async function createWorkouts(
 	const exercisePromises = createdWorkouts.map(
 		async (workout, workoutIndex) => {
 			// Get the categories for this workout day
-			const categories = WORKOUT_CATEGORIES[workout.primaryLift];
+			const categories = EXERCISE_CATEGORIES[workout.primaryLift];
 
 			// Get all exercise definitions for this primary lift day
 			const dayExerciseDefinitions = await db

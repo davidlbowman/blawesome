@@ -20,26 +20,38 @@ const WORKOUT_SEQUENCE = [
 	PrimaryLift.Overhead,
 ] as const;
 
-const WORKOUT_CATEGORIES = {
+const EXERCISE_CATEGORIES = {
 	[PrimaryLift.Squat]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.CompoundLeg,
+		ExerciseCategory.QuadAccessory,
+		ExerciseCategory.HamstringGluteAccessory,
+		ExerciseCategory.CalfAccessory,
 	],
 	[PrimaryLift.Bench]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.ChestAccessory,
+		ExerciseCategory.ChestAccessory,
+		ExerciseCategory.TricepAccessory,
+		ExerciseCategory.TricepAccessory,
 	],
 	[PrimaryLift.Deadlift]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.VerticalPullAccessory,
+		ExerciseCategory.LateralPullAccessory,
+		ExerciseCategory.BicepAccessory,
+		ExerciseCategory.BicepAccessory,
 	],
 	[PrimaryLift.Overhead]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.DeltAccessory,
 		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.TricepAccessory,
+		ExerciseCategory.BicepAccessory,
 	],
 } as const;
 
@@ -119,7 +131,7 @@ export async function createCycle(userId: string) {
 			setValues: { exercise: ExerciseValue; set: SetValue }[];
 		}>(
 			(acc, workout) => {
-				const categories = WORKOUT_CATEGORIES[workout.primaryLift];
+				const categories = EXERCISE_CATEGORIES[workout.primaryLift];
 
 				categories.forEach((category, index) => {
 					const matchingDefinitions = allExerciseDefinitions.filter(
@@ -145,7 +157,7 @@ export async function createCycle(userId: string) {
 
 					acc.exerciseValues.push(exercise);
 
-					// Prepare set values at the same time
+					// Create 6 sets for this exercise
 					const sets = Array.from({ length: 6 }).map((_, setIndex) => ({
 						userId,
 						weight: 100,
@@ -177,13 +189,27 @@ export async function createCycle(userId: string) {
 			.returning({
 				id: exercises.id,
 				exerciseDefinitionId: exercises.exerciseDefinitionId,
+				workoutId: exercises.workoutId,
 			});
 
 		// 5. Create all sets (now we can map exercise IDs)
-		const finalSetValues = createdExercises.map((exercise, index) => ({
-			...setValues[index].set,
-			exerciseId: exercise.id,
-		}));
+		const finalSetValues = setValues.map(({ exercise: exerciseValue, set }) => {
+			// Find the created exercise that matches this exercise value
+			const createdExercise = createdExercises.find(
+				(e) =>
+					e.exerciseDefinitionId === exerciseValue.exerciseDefinitionId &&
+					e.workoutId === exerciseValue.workoutId,
+			);
+
+			if (!createdExercise) {
+				throw new Error("Could not find matching exercise for set");
+			}
+
+			return {
+				...set,
+				exerciseId: createdExercise.id,
+			};
+		});
 
 		const createdSets = await tx
 			.insert(sets)

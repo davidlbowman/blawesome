@@ -87,7 +87,8 @@ function calculateSetScheme(
 	const pattern = {
 		reps: definition.repMax ?? 8,
 		rpe: definition.rpeMax ?? 7,
-		weight: 100, // Default weight, will be adjusted based on 1RM later
+		weight: 100, // Default weight for non-primary exercises
+		percentageOfMax: null, // Non-primary exercises don't use percentage of max
 	};
 
 	// Return only NON_PRIMARY_SETS number of sets with the same pattern
@@ -115,7 +116,7 @@ export async function createSets(
 		weight: scheme.weight ?? 100,
 		reps: scheme.reps,
 		rpe: scheme.rpe ?? 7,
-		percentageOfMax: scheme.percentageOfMax ?? 70,
+		percentageOfMax: scheme.percentageOfMax ?? null,
 		setNumber: index + 1,
 		status: Status.Pending,
 	}));
