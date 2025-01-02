@@ -8,29 +8,21 @@ class CustomLogger implements Logger {
 	private queryStartTime: number | null = null;
 	private transactionStartTime: number | null = null;
 	private lastQueryEndTime: number | null = null;
-
-	private getTimestamp() {
-		return new Date().toISOString();
-	}
+	private queryCount = 0;
+	private totalParams = 0;
+	private totalJoins = 0;
+	private totalConditions = 0;
+	private queryTypes: Record<string, number> = {};
 
 	private formatDuration(startTime: number) {
 		const duration = performance.now() - startTime;
 		return `${duration.toFixed(2)}ms`;
 	}
 
-	private formatGap(start: number, end: number) {
-		const gap = end - start;
-		return gap > 1 ? `+${gap.toFixed(2)}ms gap` : undefined;
-	}
-
 	logQuery(query: string, params: unknown[]) {
 		const currentTime = performance.now();
-
-		// Calculate gap from last query if within transaction
-		const gap =
-			this.lastQueryEndTime && this.transactionDepth > 0
-				? this.formatGap(this.lastQueryEndTime, currentTime)
-				: undefined;
+		this.queryCount++;
+		this.totalParams += params.length;
 
 		// Start timing this query
 		this.queryStartTime = currentTime;
@@ -39,46 +31,38 @@ class CustomLogger implements Logger {
 		if (query.toLowerCase().includes("begin")) {
 			this.transactionDepth++;
 			this.transactionStartTime = currentTime;
-			console.log(
-				"\n\x1b[34m%s\x1b[0m",
-				`🔄 Transaction #${this.transactionDepth} Started`,
-			);
-			console.log("\x1b[34m%s\x1b[0m", `┌${"─".repeat(48)}`);
-		}
-
-		// Add indentation for transaction queries
-		const indent = this.transactionDepth > 0 ? "│ " : "";
-
-		// Log the timestamp and query
-		console.log(
-			"\x1b[36m%s\x1b[0m",
-			`${indent}[${this.getTimestamp()}] 🔍 Query:${gap ? ` (${gap})` : ""}`,
-		);
-		console.log("\x1b[33m%s\x1b[0m", `${indent}${query}`);
-
-		if (params.length) {
-			console.log("\x1b[35m%s\x1b[0m", `${indent}Parameters:`);
-			console.log(indent, params);
+			this.queryCount = 0;
+			this.totalParams = 0;
+			this.totalJoins = 0;
+			this.totalConditions = 0;
+			this.queryTypes = {};
+			console.log(`\n🔄 Transaction #${this.transactionDepth} Started`);
+			return;
 		}
 
 		// Calculate query complexity
 		const joins = (query.match(/join/gi) || []).length;
 		const conditions = (query.match(/where|and|or/gi) || []).length;
-		const orderBy = (query.match(/order\s+by/gi) || []).length;
-		const isSelect = query.toLowerCase().includes("select");
+		this.totalJoins += joins;
+		this.totalConditions += conditions;
 
-		// Log analysis with timing
+		// Track query types
+		const queryType = query.split(" ")[0].toUpperCase();
+		this.queryTypes[queryType] = (this.queryTypes[queryType] || 0) + 1;
+
 		const duration = this.queryStartTime
 			? this.formatDuration(this.queryStartTime)
 			: "N/A";
-		console.log("\x1b[32m%s\x1b[0m", `${indent}Query Analysis:`, {
-			type: isSelect ? "SELECT" : query.split(" ")[0].toUpperCase(),
-			joins,
-			conditions,
-			orderBy,
-			paramCount: params.length,
-			duration,
-		});
+
+		// Only log stats for non-transaction-control queries
+		if (
+			!query.toLowerCase().includes("commit") &&
+			!query.toLowerCase().includes("rollback")
+		) {
+			console.log(
+				`Query #${this.queryCount}: ${queryType} | Params: ${params.length} | Duration: ${duration}`,
+			);
+		}
 
 		// Check if this is the end of a transaction
 		if (
@@ -88,17 +72,25 @@ class CustomLogger implements Logger {
 			const totalDuration = this.transactionStartTime
 				? this.formatDuration(this.transactionStartTime)
 				: "N/A";
-
-			console.log("\x1b[34m%s\x1b[0m", `└${"─".repeat(48)}`);
+			console.log("\n✅ Transaction Summary:");
+			console.log(`- Total Queries: ${this.queryCount}`);
+			console.log(`- Total Parameters: ${this.totalParams}`);
 			console.log(
-				"\x1b[34m%s\x1b[0m",
-				`✅ Transaction #${this.transactionDepth} Completed (Total: ${totalDuration})\n`,
+				`- Query Types: ${Object.entries(this.queryTypes)
+					.map(([type, count]) => `${type}(${count})`)
+					.join(", ")}`,
 			);
+			console.log(`- Total Joins: ${this.totalJoins}`);
+			console.log(`- Total Conditions: ${this.totalConditions}`);
+			console.log(`- Total Duration: ${totalDuration}\n`);
 			this.transactionDepth--;
 			this.transactionStartTime = null;
 			this.lastQueryEndTime = null;
-		} else {
-			console.log(`${indent}${"─".repeat(48)}`);
+			this.queryCount = 0;
+			this.totalParams = 0;
+			this.totalJoins = 0;
+			this.totalConditions = 0;
+			this.queryTypes = {};
 		}
 
 		// Update last query time

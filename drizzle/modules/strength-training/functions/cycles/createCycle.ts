@@ -55,23 +55,12 @@ const EXERCISE_CATEGORIES = {
 	],
 } as const;
 
-type ExerciseValue = {
-	userId: string;
-	workoutId: string;
-	exerciseDefinitionId: string;
-	order: number;
-	status: string;
-};
-
-type SetValue = {
-	userId: string;
-	weight: number;
-	reps: number;
-	rpe: number;
-	percentageOfMax: number;
-	setNumber: number;
-	status: string;
-};
+// Helper function to chunk array into smaller pieces
+function chunkArray<T>(array: T[], size: number): T[][] {
+	return Array.from({ length: Math.ceil(array.length / size) }, (_, index) =>
+		array.slice(index * size, (index + 1) * size),
+	);
+}
 
 export async function createCycle(userId: string) {
 	// Get exercise definitions outside transaction since they're static
@@ -125,62 +114,32 @@ export async function createCycle(userId: string) {
 				primaryLift: workouts.primaryLift,
 			});
 
-		// 3. Prepare exercise and set values together
-		const { exerciseValues, setValues } = createdWorkouts.reduce<{
-			exerciseValues: ExerciseValue[];
-			setValues: { exercise: ExerciseValue; set: SetValue }[];
-		}>(
-			(acc, workout) => {
-				const categories = EXERCISE_CATEGORIES[workout.primaryLift];
+		// 3. Prepare exercise values
+		const exerciseValues = createdWorkouts.flatMap((workout) => {
+			const categories = EXERCISE_CATEGORIES[workout.primaryLift];
+			return categories.map((category, index) => {
+				const matchingDefinitions = allExerciseDefinitions.filter(
+					(def) =>
+						def.category === category &&
+						(category === ExerciseCategory.MainLift
+							? def.primaryLiftDay === workout.primaryLift
+							: true),
+				);
 
-				categories.forEach((category, index) => {
-					const matchingDefinitions = allExerciseDefinitions.filter(
-						(def) =>
-							def.category === category &&
-							(category === ExerciseCategory.MainLift
-								? def.primaryLiftDay === workout.primaryLift
-								: true),
-					);
+				const definition =
+					matchingDefinitions[
+						Math.floor(Math.random() * matchingDefinitions.length)
+					];
 
-					const definition =
-						matchingDefinitions[
-							Math.floor(Math.random() * matchingDefinitions.length)
-						];
-
-					const exercise = {
-						userId,
-						workoutId: workout.id,
-						exerciseDefinitionId: definition.id,
-						order: index + 1,
-						status: Status.Pending,
-					};
-
-					acc.exerciseValues.push(exercise);
-
-					// Create 6 sets for this exercise
-					const sets = Array.from({ length: 6 }).map((_, setIndex) => ({
-						userId,
-						weight: 100,
-						reps:
-							definition.type === ExerciseType.Primary
-								? 5
-								: (definition.repMax ?? 8),
-						rpe:
-							definition.type === ExerciseType.Primary
-								? 7
-								: (definition.rpeMax ?? 7),
-						percentageOfMax: 70,
-						setNumber: setIndex + 1,
-						status: Status.Pending,
-					}));
-
-					acc.setValues.push(...sets.map((set) => ({ exercise, set })));
-				});
-
-				return acc;
-			},
-			{ exerciseValues: [], setValues: [] },
-		);
+				return {
+					userId,
+					workoutId: workout.id,
+					exerciseDefinitionId: definition.id,
+					order: index + 1,
+					status: Status.Pending,
+				};
+			});
+		});
 
 		// 4. Create all exercises
 		const createdExercises = await tx
@@ -192,35 +151,42 @@ export async function createCycle(userId: string) {
 				workoutId: exercises.workoutId,
 			});
 
-		// 5. Create all sets (now we can map exercise IDs)
-		const finalSetValues = setValues.map(({ exercise: exerciseValue, set }) => {
-			// Find the created exercise that matches this exercise value
-			const createdExercise = createdExercises.find(
-				(e) =>
-					e.exerciseDefinitionId === exerciseValue.exerciseDefinitionId &&
-					e.workoutId === exerciseValue.workoutId,
+		// 5. Create sets in batches
+		const setValues = createdExercises.flatMap((exercise) => {
+			const definition = allExerciseDefinitions.find(
+				(def) => def.id === exercise.exerciseDefinitionId,
 			);
 
-			if (!createdExercise) {
-				throw new Error("Could not find matching exercise for set");
+			if (!definition) {
+				throw new Error(
+					`Could not find exercise definition for exercise ${exercise.id}`,
+				);
 			}
 
-			return {
-				...set,
-				exerciseId: createdExercise.id,
-			};
+			return Array.from({ length: 6 }).map((_, setIndex) => ({
+				userId,
+				exerciseId: exercise.id,
+				weight: 100,
+				reps:
+					definition.type === ExerciseType.Primary
+						? 5
+						: (definition.repMax ?? 8),
+				rpe:
+					definition.type === ExerciseType.Primary
+						? 7
+						: (definition.rpeMax ?? 7),
+				percentageOfMax: definition.type === ExerciseType.Primary ? 70 : null,
+				setNumber: setIndex + 1,
+				status: Status.Pending,
+			}));
 		});
 
-		const createdSets = await tx
-			.insert(sets)
-			.values(finalSetValues)
-			.returning();
+		// Split sets into chunks of 100 for more efficient insertion
+		const setChunks = chunkArray(setValues, 100);
+		for (const chunk of setChunks) {
+			await tx.insert(sets).values(chunk);
+		}
 
-		return {
-			...cycle,
-			workouts: createdWorkouts,
-			exercises: createdExercises,
-			sets: createdSets,
-		};
+		return cycle;
 	});
 }
