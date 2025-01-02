@@ -73,10 +73,10 @@ async function seedOneRepMaxes(userId: string) {
 
 	// Default weights for main lifts (in lbs)
 	const defaultMaxes = {
-		[PrimaryLift.Squat]: 225,
-		[PrimaryLift.Bench]: 185,
-		[PrimaryLift.Deadlift]: 275,
-		[PrimaryLift.Overhead]: 135,
+		[PrimaryLift.Squat]: 475,
+		[PrimaryLift.Bench]: 205,
+		[PrimaryLift.Deadlift]: 505,
+		[PrimaryLift.Overhead]: 190,
 	};
 
 	// Insert one rep maxes for each main lift
