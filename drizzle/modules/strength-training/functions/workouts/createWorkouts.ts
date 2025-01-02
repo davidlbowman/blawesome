@@ -27,33 +27,33 @@ const WORKOUT_CATEGORIES = {
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.CompoundLeg,
-		// ExerciseCategory.QuadAccessory,
-		// ExerciseCategory.HamstringGluteAccessory,
-		// ExerciseCategory.CalfAccessory,
+		ExerciseCategory.QuadAccessory,
+		ExerciseCategory.HamstringGluteAccessory,
+		ExerciseCategory.CalfAccessory,
 	],
 	[PrimaryLift.Bench]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.ChestAccessory,
-		// ExerciseCategory.ChestAccessory,
-		// ExerciseCategory.TricepAccessory,
-		// ExerciseCategory.TricepAccessory,
+		ExerciseCategory.ChestAccessory,
+		ExerciseCategory.TricepAccessory,
+		ExerciseCategory.TricepAccessory,
 	],
 	[PrimaryLift.Deadlift]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.MainLiftVariation,
 		ExerciseCategory.VerticalPullAccessory,
-		// ExerciseCategory.LateralPullAccessory,
-		// ExerciseCategory.BicepAccessory,
-		// ExerciseCategory.BicepAccessory,
+		ExerciseCategory.LateralPullAccessory,
+		ExerciseCategory.BicepAccessory,
+		ExerciseCategory.BicepAccessory,
 	],
 	[PrimaryLift.Overhead]: [
 		ExerciseCategory.MainLift,
 		ExerciseCategory.DeltAccessory,
 		ExerciseCategory.DeltAccessory,
-		// ExerciseCategory.DeltAccessory,
-		// ExerciseCategory.TricepAccessory,
-		// ExerciseCategory.BicepAccessory,
+		ExerciseCategory.DeltAccessory,
+		ExerciseCategory.TricepAccessory,
+		ExerciseCategory.BicepAccessory,
 	],
 } as const;
 
@@ -90,35 +90,17 @@ export async function createWorkouts(
 		async (workout, workoutIndex) => {
 			// Get the categories for this workout day
 			const categories = WORKOUT_CATEGORIES[workout.primaryLift];
-			console.log(
-				`Creating exercises for ${workout.primaryLift} day with categories:`,
-				categories,
-			);
 
 			// Get all exercise definitions for this primary lift day
 			const dayExerciseDefinitions = await db
 				.select()
 				.from(exerciseDefinitions)
 				.where(eq(exerciseDefinitions.primaryLiftDay, workout.primaryLift));
-
-			console.log(
-				`Found ${dayExerciseDefinitions.length} exercise definitions for ${workout.primaryLift} day:`,
-				dayExerciseDefinitions.map((d) => ({
-					name: d.name,
-					category: d.category,
-				})),
-			);
-
 			// Create exercises for each category
 			const exerciseValues = categories.map((category, order) => {
 				// Find an exercise definition that matches this category
 				const definition = dayExerciseDefinitions.find(
 					(def) => def.category === category,
-				);
-
-				console.log(
-					`Looking for exercise in category ${category}:`,
-					definition ? definition.name : "Not found",
 				);
 
 				if (!definition) {
