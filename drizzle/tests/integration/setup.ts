@@ -39,14 +39,14 @@ async function seedExerciseDefinitions() {
 	console.log("✅ Exercise definitions seeded");
 }
 
-async function getRootUserId() {
+async function getRootUser() {
 	const rootEmail = process.env.ROOT_USER;
 	if (!rootEmail) {
 		throw new Error("ROOT_USER environment variable is not set");
 	}
 
 	const rootUser = await db
-		.select({ id: users.id })
+		.select()
 		.from(users)
 		.where(eq(users.email, rootEmail))
 		.get();
@@ -55,7 +55,7 @@ async function getRootUserId() {
 		throw new Error("Root user not found");
 	}
 
-	return rootUser.id;
+	return rootUser;
 }
 
 async function seedOneRepMaxes(userId: string) {
@@ -97,6 +97,7 @@ async function main() {
 
 		console.log("👤 Creating root user...");
 		const rootUserResult = await createRootUser();
+
 		if (!rootUserResult.success) {
 			throw new Error(`Failed to create root user: ${rootUserResult.error}`);
 		}
@@ -104,14 +105,14 @@ async function main() {
 
 		await seedExerciseDefinitions();
 
-		const rootUserId = await getRootUserId();
-		await seedOneRepMaxes(rootUserId);
+		const rootUser = await getRootUser();
+		await seedOneRepMaxes(rootUser.id);
 
 		console.log("🏋️ Creating initial training cycle...");
-		const cycle = await createCycle(rootUserId);
+		const cycle = await createCycle(rootUser.id);
 		console.log("✅ Training cycle created:", cycle.id);
 
-		console.log("🎉 Setup completed successfully!");
+		console.log("\n🎉 Setup completed successfully!");
 		process.exit(0);
 	} catch (error) {
 		console.error("❌ Setup failed:", error);
