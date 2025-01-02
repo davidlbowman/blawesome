@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
+import Link from "next/link";
 
 interface CycleCardProps {
 	id: string;

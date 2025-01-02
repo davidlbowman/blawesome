@@ -70,8 +70,8 @@ function CycleList({
 	const workoutsDone = workoutData.filter(
 		(w) => w.status === Status.Completed,
 	).length;
-	const consistency =
-		Math.round((workoutsDone / workoutData.length) * 100) || 0;
+	const totalVolume = 123456; // Eventually this will be calculated
+	const consistency = 85; // Eventually this will be calculated
 
 	// Separate current and completed cycles
 	const currentCycle = cycles.find(
@@ -103,19 +103,19 @@ function CycleList({
 						<span className="text-2xl font-semibold">{workoutsDone}</span>
 						<span className="text-sm text-muted-foreground">Workouts Done</span>
 					</div>
-					<div className="flex flex-col space-y-1.5">
-						<span className="text-2xl font-semibold">{workoutData.length}</span>
-						<span className="text-sm text-muted-foreground">
-							Total Workouts
+					<div className="flex flex-col space-y-1.5 line-through">
+						<span className="text-2xl font-semibold">
+							{totalVolume.toLocaleString()}lb
 						</span>
+						<span className="text-sm text-muted-foreground">Total Volume</span>
 					</div>
-					<div className="flex flex-col space-y-1.5">
+					<div className="flex flex-col space-y-1.5 line-through">
 						<span className="text-2xl font-semibold">{consistency}%</span>
 						<span className="text-sm text-muted-foreground">Consistency</span>
 					</div>
 				</CardContent>
 				<CardFooter>
-					<Button variant="outline" className="w-full">
+					<Button variant="outline" className="w-full" disabled>
 						<LineChart className="mr-2 h-4 w-4" /> View Detailed Stats
 					</Button>
 				</CardFooter>
@@ -123,17 +123,7 @@ function CycleList({
 
 			<Card>
 				<CardHeader>
-					<div className="flex justify-between items-center">
-						<CardTitle className="text-2xl">Workout Cycles</CardTitle>
-						<form className="flex space-x-4">
-							<Button type="submit" formAction={startNewCycle}>
-								<Plus className="mr-2 h-4 w-4" /> Start New Cycle
-							</Button>
-							<Button variant="outline" type="button">
-								<Download className="mr-2 h-4 w-4" /> Export Data
-							</Button>
-						</form>
-					</div>
+					<CardTitle className="text-2xl">Workout Cycles</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					{currentCycle && (
@@ -180,8 +170,18 @@ export default async function StrengthTrainingPage() {
 	}
 
 	return (
-		<div className="container mx-auto p-6 space-y-6">
-			<h1 className="text-4xl font-bold mb-6">Cycle Dashboard</h1>
+		<div className="container mx-auto p-6 space-y-8">
+			<div className="flex justify-between items-center">
+				<h1 className="text-4xl font-bold">Cycle Dashboard</h1>
+				<form className="flex space-x-4">
+					<Button type="submit" formAction={startNewCycle}>
+						<Plus className="mr-2 h-4 w-4" /> Start New Cycle
+					</Button>
+					<Button variant="outline" type="button" disabled>
+						<Download className="mr-2 h-4 w-4" /> Export Data
+					</Button>
+				</form>
+			</div>
 			<CycleList cycles={cycles} workoutData={workoutData} />
 		</div>
 	);
