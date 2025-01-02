@@ -170,7 +170,7 @@ export function WorkoutCard({
 												? set.setNumber - 1 === currentSetIndex
 													? "bg-primary/20"
 													: set.setNumber - 1 < currentSetIndex
-														? "bg-green-500/10"
+														? "bg-muted-foreground/10"
 														: ""
 												: ""
 										}
