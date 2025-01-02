@@ -19,9 +19,9 @@ import {
 	Status,
 } from "@/drizzle/modules/strength-training/schemas";
 import { Dumbbell } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 
-function getStatusColor(status: string) {
+const getStatusColor = (status: string) => {
 	switch (status) {
 		case Status.Completed:
 			return "bg-green-500 text-white";
@@ -30,7 +30,7 @@ function getStatusColor(status: string) {
 		default:
 			return "bg-secondary text-secondary-foreground";
 	}
-}
+};
 
 const formatDate = (date: Date) => {
 	return new Intl.DateTimeFormat("en-US", {
@@ -50,55 +50,57 @@ export function WorkoutCard({
 	const [status, setStatus] = useState(initialStatus);
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 	const [currentSetIndex, setCurrentSetIndex] = useState(0);
+	const [isPending, startTransition] = useTransition();
 
-	const sortedExercises = [...exercises].sort(
+	const sorted = [...exercises].sort(
 		(a, b) => a.exercise.order - b.exercise.order,
 	);
-
-	const mainExercise = sortedExercises.find(
-		(e) => e.definition.type === "primary",
-	);
-
-	const accessoryExercises = sortedExercises.filter(
+	const mainExercise = sorted.find((e) => e.definition.type === "primary");
+	const accessoryExercises = sorted.filter(
 		(e) => e.definition.type !== "primary",
 	);
-
 	const allExercises = mainExercise
 		? [mainExercise, ...accessoryExercises]
 		: accessoryExercises;
 
-	const handleButtonClick = async () => {
+	const handleButtonClick = useCallback(async () => {
 		if (status === Status.Pending) {
-			await startWorkout(id);
-			setStatus(Status.InProgress);
+			startTransition(async () => {
+				await startWorkout(id);
+				setStatus(Status.InProgress);
+			});
 		} else if (status === Status.InProgress) {
 			const currentExercise = allExercises[currentExerciseIndex];
 			const currentSet = currentExercise.sets[currentSetIndex];
 
-			await completeSet(currentSet.id, currentExercise.exercise.id, id);
+			startTransition(async () => {
+				await completeSet(currentSet.id, currentExercise.exercise.id, id);
 
-			if (currentSetIndex < currentExercise.sets.length - 1) {
-				setCurrentSetIndex(currentSetIndex + 1);
-			} else if (currentExerciseIndex < allExercises.length - 1) {
-				setCurrentExerciseIndex(currentExerciseIndex + 1);
-				setCurrentSetIndex(0);
-			} else {
-				setStatus(Status.Completed);
-				setTimeout(() => {
-					window.location.reload();
-				}, 1000);
-			}
+				if (currentSetIndex < currentExercise.sets.length - 1) {
+					setCurrentSetIndex((prev) => prev + 1);
+				} else if (currentExerciseIndex < allExercises.length - 1) {
+					setCurrentExerciseIndex((prev) => prev + 1);
+					setCurrentSetIndex(0);
+				} else {
+					setStatus(Status.Completed);
+					queueMicrotask(() => {
+						window.location.reload();
+					});
+				}
+			});
 		}
-	};
+	}, [status, id, currentExerciseIndex, currentSetIndex, allExercises]);
 
-	const getButtonText = () => {
-		if (status === Status.Pending) return "Start Workout";
-		if (status === Status.Completed) return "Workout Completed";
-		if (currentSetIndex < allExercises[currentExerciseIndex].sets.length - 1)
-			return "Next Set";
-		if (currentExerciseIndex < allExercises.length - 1) return "Next Exercise";
-		return "Finish Workout";
-	};
+	const buttonText =
+		status === Status.Pending
+			? "Start Workout"
+			: status === Status.Completed
+				? "Workout Completed"
+				: currentSetIndex < allExercises[currentExerciseIndex].sets.length - 1
+					? "Next Set"
+					: currentExerciseIndex < allExercises.length - 1
+						? "Next Exercise"
+						: "Finish Workout";
 
 	return (
 		<Card className="w-full max-w-4xl">
@@ -215,9 +217,9 @@ export function WorkoutCard({
 					<Button
 						className="w-full mt-6"
 						onClick={handleButtonClick}
-						disabled={status === Status.Completed}
+						disabled={status === Status.Completed || isPending}
 					>
-						{getButtonText()}
+						{isPending ? "Processing..." : buttonText}
 					</Button>
 				)}
 			</CardContent>
