@@ -152,6 +152,14 @@ export async function seedCompleteCycle(userId: string) {
 				completedAt: workouts.completedAt,
 			});
 
+		console.log(
+			`Created ${createdWorkouts.length} workouts for cycle ${cycle.id}`,
+		);
+		console.log(
+			"Workout sequences:",
+			createdWorkouts.map((w) => w.sequence).join(", "),
+		);
+
 		// 3. Create completed exercises
 		const exerciseValues = createdWorkouts.flatMap((workout) => {
 			const categories = EXERCISE_CATEGORIES[workout.primaryLift];

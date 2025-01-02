@@ -63,8 +63,6 @@ function CycleList({
 	cycles: CyclesSelect[];
 	workoutData: WorkoutsSelect[];
 }) {
-	const stats = getWorkoutStats(workoutData);
-
 	// Calculate overall stats
 	const totalCycles = cycles.length;
 	const workoutsDone = workoutData.filter(
@@ -132,9 +130,15 @@ function CycleList({
 							<CycleCard
 								key={currentCycle.id}
 								{...currentCycle}
-								completedWorkouts={getCompletedWorkouts(currentCycle, stats)}
-								totalWorkouts={stats.totalWorkouts}
-								nextWorkout={getNextWorkout(currentCycle, stats.nextWorkout)}
+								completedWorkouts={getCompletedWorkouts(
+									currentCycle,
+									getWorkoutStats(workoutData, currentCycle.id),
+								)}
+								totalWorkouts={16} // Each cycle has exactly 16 workouts
+								nextWorkout={getNextWorkout(
+									currentCycle,
+									getWorkoutStats(workoutData, currentCycle.id).nextWorkout,
+								)}
 							/>
 						</div>
 					)}
@@ -147,9 +151,15 @@ function CycleList({
 									<CycleCard
 										key={cycle.id}
 										{...cycle}
-										completedWorkouts={getCompletedWorkouts(cycle, stats)}
-										totalWorkouts={stats.totalWorkouts}
-										nextWorkout={getNextWorkout(cycle, stats.nextWorkout)}
+										completedWorkouts={getCompletedWorkouts(
+											cycle,
+											getWorkoutStats(workoutData, cycle.id),
+										)}
+										totalWorkouts={16} // Each cycle has exactly 16 workouts
+										nextWorkout={getNextWorkout(
+											cycle,
+											getWorkoutStats(workoutData, cycle.id).nextWorkout,
+										)}
 									/>
 								))}
 							</div>
