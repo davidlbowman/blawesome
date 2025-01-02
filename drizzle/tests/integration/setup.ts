@@ -2,6 +2,7 @@ import { createRootUser } from "@/drizzle/core/functions/users/createRootUser";
 import { users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
+import { insertOneRepMax } from "@/drizzle/modules/strength-training/functions/oneRepMaxes/insertOneRepMax";
 import {
 	cycles,
 	exerciseDefinitions,
@@ -11,6 +12,10 @@ import {
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
 import { defaultExerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import {
+	ExerciseType,
+	PrimaryLift,
+} from "@/drizzle/modules/strength-training/schemas/types";
 import { eq } from "drizzle-orm";
 
 async function truncateAllTables() {
@@ -53,6 +58,39 @@ async function getRootUserId() {
 	return rootUser.id;
 }
 
+async function seedOneRepMaxes(userId: string) {
+	console.log("🏋️ Setting up one rep maxes for main lifts...");
+
+	// Get all main lift exercise definitions
+	const mainLifts = await db
+		.select({
+			id: exerciseDefinitions.id,
+			name: exerciseDefinitions.name,
+			primaryLiftDay: exerciseDefinitions.primaryLiftDay,
+		})
+		.from(exerciseDefinitions)
+		.where(eq(exerciseDefinitions.type, ExerciseType.Primary));
+
+	// Default weights for main lifts (in lbs)
+	const defaultMaxes = {
+		[PrimaryLift.Squat]: 225,
+		[PrimaryLift.Bench]: 185,
+		[PrimaryLift.Deadlift]: 275,
+		[PrimaryLift.Overhead]: 135,
+	};
+
+	// Insert one rep maxes for each main lift
+	for (const lift of mainLifts) {
+		const weight = defaultMaxes[lift.primaryLiftDay];
+		await insertOneRepMax({
+			userId,
+			exerciseDefinitionId: lift.id,
+			weight,
+		});
+		console.log(`✅ Set ${lift.name} 1RM to ${weight}lbs`);
+	}
+}
+
 async function main() {
 	try {
 		await truncateAllTables();
@@ -66,8 +104,10 @@ async function main() {
 
 		await seedExerciseDefinitions();
 
-		console.log("🏋️ Creating initial training cycle...");
 		const rootUserId = await getRootUserId();
+		await seedOneRepMaxes(rootUserId);
+
+		console.log("🏋️ Creating initial training cycle...");
 		const cycle = await createCycle(rootUserId);
 		console.log("✅ Training cycle created:", cycle.id);
 
