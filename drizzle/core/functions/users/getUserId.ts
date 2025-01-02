@@ -19,9 +19,6 @@ export async function getUserId() {
 	const payload = JSON.parse(base64URLDecode(payloadBase64));
 	const userId = payload.id;
 
-	console.log("Got user ID from token:", userId);
-
-	// Verify user exists in database
 	const user = await db
 		.select({ id: users.id })
 		.from(users)
@@ -33,6 +30,5 @@ export async function getUserId() {
 		throw new Error("User not found");
 	}
 
-	console.log("Verified user exists in database:", userId);
 	return userId;
 }

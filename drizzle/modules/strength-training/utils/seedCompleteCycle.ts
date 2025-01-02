@@ -1,5 +1,6 @@
 "use server";
 
+import { users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import {
 	ExerciseCategory,
@@ -65,6 +66,12 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 }
 
 export async function seedCompleteCycle(userId: string) {
+	// First verify the user exists
+	const user = await db.select().from(users).where(eq(users.id, userId)).get();
+	if (!user) {
+		throw new Error(`User ${userId} not found`);
+	}
+
 	// Get exercise definitions outside transaction since they're static
 	const allExerciseDefinitions = await db
 		.select({
@@ -77,11 +84,24 @@ export async function seedCompleteCycle(userId: string) {
 		})
 		.from(exerciseDefinitions);
 
+	if (allExerciseDefinitions.length === 0) {
+		throw new Error("No exercise definitions found");
+	}
+
 	// Get one rep maxes for the user
 	const userOneRepMaxes = await db
 		.select()
 		.from(oneRepMaxes)
 		.where(eq(oneRepMaxes.userId, userId));
+
+	if (userOneRepMaxes.length === 0) {
+		throw new Error(`No one rep maxes found for user ${userId}`);
+	}
+
+	// Create a map of exercise definition IDs to their one rep maxes for faster lookup
+	const oneRepMaxMap = new Map(
+		userOneRepMaxes.map((orm) => [orm.exerciseDefinitionId, orm.weight]),
+	);
 
 	return await db.transaction(async (tx) => {
 		// Create dates for a completed cycle
@@ -184,13 +204,8 @@ export async function seedCompleteCycle(userId: string) {
 				);
 			}
 
-			// Find one rep max for primary lifts
-			const oneRepMax =
-				definition.type === ExerciseType.Primary
-					? userOneRepMaxes.find(
-							(orm) => orm.exerciseDefinitionId === definition.id,
-						)?.weight
-					: null;
+			// Find one rep max for primary lifts using the map
+			const oneRepMax = oneRepMaxMap.get(definition.id);
 
 			return Array.from({ length: 6 }).map((_, setIndex) => ({
 				userId,
@@ -240,12 +255,25 @@ export async function seedCompleteCycle(userId: string) {
 }
 
 async function main() {
-	const DEFAULT_USER_ID = "325b426b-ee34-4acb-aae9-1dbaa4826d86";
-
 	try {
-		const userId = process.argv[2] || DEFAULT_USER_ID;
-		console.log("Creating completed cycle for user:", userId);
-		const result = await seedCompleteCycle(userId);
+		const rootUserEmail = process.env.ROOT_USER;
+		if (!rootUserEmail) {
+			throw new Error("ROOT_USER environment variable not set");
+		}
+
+		// Get the root user ID from the database instead of hardcoding it
+		const rootUser = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, rootUserEmail))
+			.get();
+
+		if (!rootUser) {
+			throw new Error("Root user not found");
+		}
+
+		console.log("Creating completed cycle for root user:", rootUser.id);
+		const result = await seedCompleteCycle(rootUser.id);
 		console.log("Successfully seeded completed cycle:", {
 			cycleId: result.cycle.id,
 			workouts: result.workouts.length,

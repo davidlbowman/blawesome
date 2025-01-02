@@ -1,8 +1,6 @@
 import { createRootUser } from "@/drizzle/core/functions/users/createRootUser";
 import { users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
-import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
-import { insertOneRepMax } from "@/drizzle/modules/strength-training/functions/oneRepMaxes/insertOneRepMax";
 import {
 	cycles,
 	exerciseDefinitions,
@@ -12,11 +10,6 @@ import {
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
 import { defaultExerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
-import {
-	ExerciseType,
-	PrimaryLift,
-} from "@/drizzle/modules/strength-training/schemas/types";
-import { eq } from "drizzle-orm";
 
 async function truncateAllTables() {
 	console.log("🗑️  Truncating all tables...");
@@ -39,80 +32,22 @@ async function seedExerciseDefinitions() {
 	console.log("✅ Exercise definitions seeded");
 }
 
-async function getRootUser() {
-	const rootEmail = process.env.ROOT_USER;
-	if (!rootEmail) {
-		throw new Error("ROOT_USER environment variable is not set");
-	}
-
-	const rootUser = await db
-		.select()
-		.from(users)
-		.where(eq(users.email, rootEmail))
-		.get();
-
-	if (!rootUser) {
-		throw new Error("Root user not found");
-	}
-
-	return rootUser;
-}
-
-async function seedOneRepMaxes(userId: string) {
-	console.log("🏋️ Setting up one rep maxes for main lifts...");
-
-	// Get all main lift exercise definitions
-	const mainLifts = await db
-		.select({
-			id: exerciseDefinitions.id,
-			name: exerciseDefinitions.name,
-			primaryLiftDay: exerciseDefinitions.primaryLiftDay,
-		})
-		.from(exerciseDefinitions)
-		.where(eq(exerciseDefinitions.type, ExerciseType.Primary));
-
-	// Default weights for main lifts (in lbs)
-	const defaultMaxes = {
-		[PrimaryLift.Squat]: 475,
-		[PrimaryLift.Bench]: 205,
-		[PrimaryLift.Deadlift]: 505,
-		[PrimaryLift.Overhead]: 190,
-	};
-
-	// Insert one rep maxes for each main lift
-	for (const lift of mainLifts) {
-		const weight = defaultMaxes[lift.primaryLiftDay];
-		await insertOneRepMax({
-			userId,
-			exerciseDefinitionId: lift.id,
-			weight,
-		});
-		console.log(`✅ Set ${lift.name} 1RM to ${weight}lbs`);
-	}
-}
-
 async function main() {
 	try {
 		await truncateAllTables();
+		console.log("✅ Truncated all tables");
 
 		console.log("👤 Creating root user...");
 		const rootUserResult = await createRootUser();
 
 		if (!rootUserResult.success) {
-			throw new Error(`Failed to create root user: ${rootUserResult.error}`);
+			throw new Error(`❌ Failed to create root user: ${rootUserResult.error}`);
 		}
 		console.log("✅ Root user created");
 
 		await seedExerciseDefinitions();
+		console.log("✅ Exercise definitions seeded");
 
-		const rootUser = await getRootUser();
-		await seedOneRepMaxes(rootUser.id);
-
-		console.log("🏋️ Creating initial training cycle...");
-		const cycle = await createCycle(rootUser.id);
-		console.log("✅ Training cycle created:", cycle.id);
-
-		console.log("\n🎉 Setup completed successfully!");
 		process.exit(0);
 	} catch (error) {
 		console.error("❌ Setup failed:", error);

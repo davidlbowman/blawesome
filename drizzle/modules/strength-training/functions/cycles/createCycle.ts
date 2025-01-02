@@ -249,17 +249,3 @@ export async function createCycle(userId: string) {
 
 	return cycle;
 }
-
-// Run the function directly when this file is executed
-if (require.main === module) {
-	console.time("Total Execution Time");
-	createCycle("325b426b-ee34-4acb-aae9-1dbaa4826d86")
-		.then((cycle) => {
-			console.log("Successfully created cycle:", cycle);
-			console.timeEnd("Total Execution Time");
-		})
-		.catch((error) => {
-			console.error("Error creating cycle:", error);
-			process.exit(1);
-		});
-}
