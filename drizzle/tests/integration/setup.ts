@@ -1,6 +1,7 @@
 import { createRootUser } from "@/drizzle/core/functions/users/createRootUser";
 import { users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
+import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
 import {
 	cycles,
 	exerciseDefinitions,
@@ -10,6 +11,7 @@ import {
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
 import { defaultExerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { eq } from "drizzle-orm";
 
 async function truncateAllTables() {
 	console.log("🗑️  Truncating all tables...");
@@ -32,6 +34,25 @@ async function seedExerciseDefinitions() {
 	console.log("✅ Exercise definitions seeded");
 }
 
+async function getRootUserId() {
+	const rootEmail = process.env.ROOT_USER;
+	if (!rootEmail) {
+		throw new Error("ROOT_USER environment variable is not set");
+	}
+
+	const rootUser = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.email, rootEmail))
+		.get();
+
+	if (!rootUser) {
+		throw new Error("Root user not found");
+	}
+
+	return rootUser.id;
+}
+
 async function main() {
 	try {
 		await truncateAllTables();
@@ -44,6 +65,11 @@ async function main() {
 		console.log("✅ Root user created");
 
 		await seedExerciseDefinitions();
+
+		console.log("🏋️ Creating initial training cycle...");
+		const rootUserId = await getRootUserId();
+		const cycle = await createCycle(rootUserId);
+		console.log("✅ Training cycle created:", cycle.id);
 
 		console.log("🎉 Setup completed successfully!");
 		process.exit(0);

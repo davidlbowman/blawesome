@@ -1,5 +1,3 @@
-"use server";
-
 import { db } from "@/drizzle/db";
 import {
 	ExerciseCategory,
@@ -63,6 +61,8 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 }
 
 export async function createCycle(userId: string) {
+	const startDate = new Date();
+
 	// First parallel operation: Get exercise definitions and create cycle
 	const [allExerciseDefinitions, [cycle]] = await Promise.all([
 		db
@@ -79,7 +79,7 @@ export async function createCycle(userId: string) {
 			.insert(cycles)
 			.values({
 				userId,
-				startDate: new Date(),
+				startDate,
 				status: Status.Pending,
 			})
 			.returning(),
@@ -87,8 +87,8 @@ export async function createCycle(userId: string) {
 
 	// Prepare workout values
 	const workoutValues = Array.from({ length: 16 }).map((_, index) => {
-		const workoutDate = new Date(cycle.startDate);
-		workoutDate.setDate(cycle.startDate.getDate() + index * 2);
+		const workoutDate = new Date(startDate);
+		workoutDate.setDate(startDate.getDate() + index * 2);
 
 		return {
 			userId,
