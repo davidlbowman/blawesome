@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
-		"start": "next start",
+		"start": "next start --port 3001",
 		"check": "bunx biome check --write",
 		"format": "bunx biome format --write",
 		"db:push": "bunx drizzle-kit push",
