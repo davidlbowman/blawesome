@@ -21,5 +21,5 @@ FROM base AS runner
 WORKDIR /app
 COPY --from=builder /app ./
 COPY .env .env
-EXPOSE 3000
+EXPOSE 3001
 CMD ["bun", "run", "start"]
