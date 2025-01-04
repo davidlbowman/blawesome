@@ -53,14 +53,7 @@ export function OneRMForm() {
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		try {
 			const userId = await getUserId();
-			console.log("Got userId:", userId);
-
 			const exerciseDefinitions = await getPrimaryExerciseDefinitions();
-			console.log(
-				"Got exercise definitions:",
-				JSON.stringify(exerciseDefinitions, null, 2),
-			);
-
 			const exercises = [
 				{
 					id: exerciseDefinitions.find((e) => e.name === "Squat")?.id,
@@ -79,10 +72,6 @@ export function OneRMForm() {
 					weight: values.overheadPress,
 				},
 			];
-
-			console.log("Form values:", values);
-			console.log("Mapped exercises:", JSON.stringify(exercises, null, 2));
-
 			const validExercises = exercises
 				.filter(
 					(exercise): exercise is { id: string; weight: number } =>
@@ -95,17 +84,10 @@ export function OneRMForm() {
 					weight: exercise.weight,
 				}));
 
-			console.log(
-				"Valid exercises to insert:",
-				JSON.stringify(validExercises, null, 2),
-			);
-
 			// Insert one at a time to better identify which one fails
 			for (const exercise of validExercises) {
 				try {
-					console.log("Inserting exercise:", JSON.stringify(exercise, null, 2));
 					await insertOneRepMax(exercise);
-					console.log("Successfully inserted exercise");
 				} catch (error) {
 					console.error("Failed to insert exercise:", exercise, error);
 					throw error;

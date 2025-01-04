@@ -152,14 +152,6 @@ export async function seedCompleteCycle(userId: string) {
 				completedAt: workouts.completedAt,
 			});
 
-		console.log(
-			`Created ${createdWorkouts.length} workouts for cycle ${cycle.id}`,
-		);
-		console.log(
-			"Workout sequences:",
-			createdWorkouts.map((w) => w.sequence).join(", "),
-		);
-
 		// 3. Create completed exercises
 		const exerciseValues = createdWorkouts.flatMap((workout) => {
 			const categories = EXERCISE_CATEGORIES[workout.primaryLift];
@@ -280,14 +272,7 @@ async function main() {
 			throw new Error("Root user not found");
 		}
 
-		console.log("Creating completed cycle for root user:", rootUser.id);
-		const result = await seedCompleteCycle(rootUser.id);
-		console.log("Successfully seeded completed cycle:", {
-			cycleId: result.cycle.id,
-			workouts: result.workouts.length,
-			exercises: result.exercises.length,
-			sets: result.sets.length,
-		});
+		await seedCompleteCycle(rootUser.id);
 	} catch (error) {
 		console.error("Error seeding completed cycle:", error);
 		process.exit(1);

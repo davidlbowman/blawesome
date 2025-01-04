@@ -20,9 +20,6 @@ export async function seedExerciseDefinitions() {
 		];
 
 		const result = await db.transaction(async (tx) => {
-			// Delete in proper order for referential integrity
-			console.log("Clearing existing data...");
-
 			// First level: delete sets
 			await tx.delete(sets);
 
@@ -37,7 +34,6 @@ export async function seedExerciseDefinitions() {
 			]);
 
 			// Insert new exercise definitions
-			console.log("Seeding exercise definitions...");
 			const inserted = await tx
 				.insert(exerciseDefinitions)
 				.values(insertValues)
@@ -60,7 +56,6 @@ export async function seedExerciseDefinitions() {
 			};
 		});
 
-		console.log(`Successfully seeded ${result.inserted} exercise definitions`);
 		return result;
 	} catch (error) {
 		console.error("Failed to seed exercise definitions:", error);
@@ -73,14 +68,14 @@ export async function seedExerciseDefinitions() {
 }
 
 // Only run this if you need to seed the database
-if (require.main === module) {
-	seedExerciseDefinitions()
-		.then((result) => {
-			console.log("Exercise definitions seeded:", result);
-			process.exit(result.success ? 0 : 1);
-		})
-		.catch((error) => {
-			console.error("Error:", error);
-			process.exit(1);
-		});
-}
+// if (require.main === module) {
+// 	seedExerciseDefinitions()
+// 		.then((result) => {
+// 			console.log("Exercise definitions seeded:", result);
+// 			process.exit(result.success ? 0 : 1);
+// 		})
+// 		.catch((error) => {
+// 			console.error("Error:", error);
+// 			process.exit(1);
+// 		});
+// }

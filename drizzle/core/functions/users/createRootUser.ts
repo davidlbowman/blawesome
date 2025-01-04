@@ -34,14 +34,14 @@ export async function createRootUser() {
 }
 
 // Only run this if you need to create the root user directly
-if (require.main === module) {
-	createRootUser()
-		.then((result) => {
-			console.log("Root user created successfully:", result);
-			process.exit(0);
-		})
-		.catch((error) => {
-			console.error("Failed to create root user:", error);
-			process.exit(1);
-		});
-}
+// if (require.main === module) {
+// 	createRootUser()
+// 		.then((result) => {
+// 			console.log("Root user created successfully:", result);
+// 			process.exit(0);
+// 		})
+// 		.catch((error) => {
+// 			console.error("Failed to create root user:", error);
+// 			process.exit(1);
+// 		});
+// }
