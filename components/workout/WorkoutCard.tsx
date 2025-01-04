@@ -60,6 +60,13 @@ interface WorkoutCardProps {
 	mainExercise: ExerciseWithDefinition;
 	accessoryExercises: ExerciseWithDefinition[];
 	cycleId: string;
+	onSetStatusChange: (
+		exerciseId: string,
+		setId: string,
+		newStatus: string,
+		performance?: { weight: number; reps?: number; rpe?: number },
+	) => void;
+	onWorkoutStatusChange: (newStatus: string) => void;
 }
 
 const formatDate = (date: Date) => {
@@ -86,6 +93,8 @@ export function WorkoutCard({
 	mainExercise,
 	accessoryExercises,
 	cycleId,
+	onSetStatusChange,
+	onWorkoutStatusChange,
 }: WorkoutCardProps) {
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
@@ -163,11 +172,12 @@ export function WorkoutCard({
 	const handleStartWorkout = async () => {
 		await startWorkout(workoutState.id);
 
-		// Update local state to reflect the changes
+		// Update local and parent state
 		setLocalWorkoutState({
 			...workoutState,
 			status: Status.InProgress,
 		});
+		onWorkoutStatusChange(Status.InProgress);
 
 		setCurrentExerciseIndex(0);
 		setCurrentSetIndex(0);
@@ -209,6 +219,15 @@ export function WorkoutCard({
 			workoutState.id,
 			performance,
 		);
+
+		// Update parent state
+		onSetStatusChange(
+			currentExercise.exercise.id,
+			currentSet.id,
+			Status.Completed,
+			performance,
+		);
+
 		setIsCollectingData(false);
 		restTimer.start();
 
@@ -217,10 +236,12 @@ export function WorkoutCard({
 			if (currentExerciseIndex === accessoryExercises.length) {
 				// Workout complete
 				setPerformance({ weight: 0 });
+				const newStatus = Status.Completed;
 				setLocalWorkoutState({
 					...localWorkoutState,
-					status: Status.Completed,
+					status: newStatus,
 				});
+				onWorkoutStatusChange(newStatus);
 			} else {
 				setCurrentExerciseIndex((prev) => prev + 1);
 				setCurrentSetIndex(0);
@@ -254,15 +275,24 @@ export function WorkoutCard({
 		// Mark the set as skipped in the database
 		await skipSet(currentSet.id);
 
+		// Update parent state
+		onSetStatusChange(
+			currentExercise.exercise.id,
+			currentSet.id,
+			Status.Skipped,
+		);
+
 		// Move to next set or exercise
 		if (currentSetIndex === currentExercise.sets.length - 1) {
 			if (currentExerciseIndex === accessoryExercises.length) {
 				// Workout complete
 				setPerformance({ weight: 0 });
+				const newStatus = Status.Completed;
 				setLocalWorkoutState({
 					...localWorkoutState,
-					status: Status.Completed,
+					status: newStatus,
 				});
+				onWorkoutStatusChange(newStatus);
 			} else {
 				setCurrentExerciseIndex((prev) => prev + 1);
 				setCurrentSetIndex(0);
