@@ -67,16 +67,14 @@ export function MainExercise({
 								currentExerciseIndex === 0
 									? set.setNumber - 1 === currentSetIndex
 										? "bg-primary/20"
-										: set.status === Status.Completed
+										: set.status === Status.Completed ||
+												set.status === Status.Skipped
 											? "bg-muted-foreground/10"
-											: set.status === Status.Skipped
-												? "bg-muted-foreground/5"
-												: ""
-									: set.status === Status.Completed
-										? "bg-muted-foreground/10"
-										: set.status === Status.Skipped
-											? "bg-muted-foreground/5"
 											: ""
+									: set.status === Status.Completed ||
+											set.status === Status.Skipped
+										? "bg-muted-foreground/10"
+										: ""
 							}
 						>
 							<TableCell className="flex items-center gap-2">
