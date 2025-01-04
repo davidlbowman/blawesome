@@ -35,9 +35,10 @@ interface WorkoutViewProps {
 		status: WorkoutsSelect["status"];
 		exercises: ExerciseWithDefinition[];
 	};
+	cycleId: string;
 }
 
-export function WorkoutView({ workout }: WorkoutViewProps) {
+export function WorkoutView({ workout, cycleId }: WorkoutViewProps) {
 	const mainExercise = workout.exercises.find(
 		(e) => e.definition.type === "primary",
 	);
@@ -105,6 +106,7 @@ export function WorkoutView({ workout }: WorkoutViewProps) {
 				}}
 				mainExercise={mainExercise}
 				accessoryExercises={accessoryExercises}
+				cycleId={cycleId}
 			/>
 		</div>
 	);

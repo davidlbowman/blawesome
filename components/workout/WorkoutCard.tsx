@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Dialog,
@@ -21,6 +21,7 @@ import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { CalendarDays, Dumbbell } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { AccessoryExercises } from "./AccessoryExercises";
 import { MainExercise } from "./MainExercise";
@@ -58,6 +59,7 @@ interface WorkoutCardProps {
 	};
 	mainExercise: ExerciseWithDefinition;
 	accessoryExercises: ExerciseWithDefinition[];
+	cycleId: string;
 }
 
 const formatDate = (date: Date) => {
@@ -83,6 +85,7 @@ export function WorkoutCard({
 	workoutState,
 	mainExercise,
 	accessoryExercises,
+	cycleId,
 }: WorkoutCardProps) {
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
@@ -155,33 +158,45 @@ export function WorkoutCard({
 		rpe: currentExercise?.definition.type !== "primary" ? 7 : undefined,
 	}));
 
+	const [localWorkoutState, setLocalWorkoutState] = useState(workoutState);
+
 	const handleStartWorkout = async () => {
 		await startWorkout(workoutState.id);
+
+		// Update local state to reflect the changes
+		setLocalWorkoutState({
+			...workoutState,
+			status: Status.InProgress,
+		});
+
 		setCurrentExerciseIndex(0);
 		setCurrentSetIndex(0);
 
-		// Initialize performance for first set and open dialog
+		// Initialize performance for first set but don't open dialog
 		const firstSet = mainExercise.sets[0];
 		setPerformance({
 			weight: firstSet.weight,
 			reps: firstSet.reps,
 			rpe: mainExercise.definition.type !== "primary" ? 7 : undefined,
 		});
-		setIsCollectingData(true);
 	};
 
 	const handleStartSet = () => {
-		if (workoutState.status === Status.Pending) {
+		if (localWorkoutState.status === Status.Pending) {
 			handleStartWorkout();
 			return;
 		}
 
-		if (currentSet) {
+		// Only open dialog if not on the last set
+		if (currentSet && !isLastSetOfLastExercise) {
 			setIsCollectingData(true);
 			setPerformance({
 				weight: currentSet.weight,
 				reps: currentSet.reps,
 			});
+		} else if (isLastSetOfLastExercise) {
+			// If it's the last set, complete the workout
+			handleCompleteSet();
 		}
 	};
 
@@ -202,6 +217,10 @@ export function WorkoutCard({
 			if (currentExerciseIndex === accessoryExercises.length) {
 				// Workout complete
 				setPerformance({ weight: 0 });
+				setLocalWorkoutState({
+					...localWorkoutState,
+					status: Status.Completed,
+				});
 			} else {
 				setCurrentExerciseIndex((prev) => prev + 1);
 				setCurrentSetIndex(0);
@@ -288,7 +307,7 @@ export function WorkoutCard({
 		currentSetIndex === currentExercise?.sets.length - 1;
 
 	const renderActionButtons = () => {
-		if (workoutState.status === Status.Pending) {
+		if (localWorkoutState.status === Status.Pending) {
 			return (
 				<Button
 					className="w-full"
@@ -300,14 +319,33 @@ export function WorkoutCard({
 			);
 		}
 
-		if (workoutState.status === Status.Completed) {
-			return null;
+		if (localWorkoutState.status === Status.Completed) {
+			return (
+				<Link
+					href={`/modules/strength-training/${cycleId}`}
+					className={buttonVariants({ className: "w-full" })}
+				>
+					Return to Cycle
+				</Link>
+			);
+		}
+
+		if (isLastSetOfLastExercise) {
+			return (
+				<Button
+					className="w-full"
+					onClick={handleStartSet}
+					disabled={isCollectingData}
+				>
+					Complete Workout
+				</Button>
+			);
 		}
 
 		return (
 			<div className="grid grid-cols-2 gap-2">
 				<Button onClick={handleStartSet} disabled={isCollectingData}>
-					{isLastSetOfLastExercise ? "Complete Workout" : "Rest"}
+					Rest
 				</Button>
 				{!isCollectingData && (
 					<Button variant="outline" onClick={handleSkipSet}>
@@ -336,9 +374,9 @@ export function WorkoutCard({
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
-							<Badge className={getStatusColor(workoutState.status)}>
-								{workoutState.status.charAt(0).toUpperCase() +
-									workoutState.status.slice(1)}
+							<Badge className={getStatusColor(localWorkoutState.status)}>
+								{localWorkoutState.status.charAt(0).toUpperCase() +
+									localWorkoutState.status.slice(1)}
 							</Badge>
 						</div>
 					</div>
@@ -350,7 +388,7 @@ export function WorkoutCard({
 							exercise={mainExercise}
 							currentExerciseIndex={currentExerciseIndex}
 							currentSetIndex={currentSetIndex}
-							workoutStatus={workoutState.status}
+							workoutStatus={localWorkoutState.status}
 						/>
 					)}
 
@@ -358,7 +396,7 @@ export function WorkoutCard({
 						exercises={accessoryExercises}
 						currentExerciseIndex={currentExerciseIndex}
 						currentSetIndex={currentSetIndex}
-						workoutStatus={workoutState.status}
+						workoutStatus={localWorkoutState.status}
 					/>
 
 					{renderActionButtons()}
