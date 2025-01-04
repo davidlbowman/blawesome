@@ -123,6 +123,7 @@ const DataCollectionInterface = ({
 	setPerformance,
 	onComplete,
 	onSkip,
+	restTimer,
 }: {
 	exercise: ExerciseWithDefinition;
 	currentSet: ExerciseWithDefinition["sets"][0];
@@ -130,15 +131,22 @@ const DataCollectionInterface = ({
 	setPerformance: (perf: SetPerformance) => void;
 	onComplete: () => void;
 	onSkip: () => void;
+	restTimer: ReturnType<typeof useRestTimer>;
 }) => {
 	const isPrimary = exercise.definition.type === "primary";
+	const isLastSet = currentSet.setNumber === exercise.sets.length;
 
 	return (
 		<div className="space-y-6 p-4">
-			<div className="space-y-2">
-				<h3 className="text-lg font-semibold">{exercise.definition.name}</h3>
+			{/* Rest Timer */}
+			<div className="text-center space-y-3">
+				<div className="text-6xl font-mono font-bold tracking-tight">
+					{restTimer.formatTime(restTimer.time)}
+				</div>
 				<p className="text-sm text-muted-foreground">
-					Set {currentSet.setNumber}
+					{isPrimary
+						? "Enter your actual performance for this set. If you completed the set as prescribed, you can leave the values unchanged."
+						: "Enter the weight used and select your RPE (Rate of Perceived Exertion) for this set."}
 				</p>
 			</div>
 
@@ -147,110 +155,32 @@ const DataCollectionInterface = ({
 					<div className="space-y-4">
 						<div>
 							<Label htmlFor="weight">Weight (lbs)</Label>
-							<div className="flex items-center space-x-2">
-								<Input
-									id="weight"
-									type="number"
-									value={performance.weight}
-									onChange={(e) =>
-										setPerformance({
-											...performance,
-											weight: Number(e.target.value),
-										})
-									}
-								/>
-								<div className="flex space-x-1">
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() =>
-											setPerformance({
-												...performance,
-												weight: (performance.weight || 0) - 5,
-											})
-										}
-									>
-										-5
-									</Button>
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() =>
-											setPerformance({
-												...performance,
-												weight: (performance.weight || 0) - 2.5,
-											})
-										}
-									>
-										-2.5
-									</Button>
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() =>
-											setPerformance({
-												...performance,
-												weight: (performance.weight || 0) + 2.5,
-											})
-										}
-									>
-										+2.5
-									</Button>
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() =>
-											setPerformance({
-												...performance,
-												weight: (performance.weight || 0) + 5,
-											})
-										}
-									>
-										+5
-									</Button>
-								</div>
-							</div>
+							<Input
+								id="weight"
+								type="number"
+								value={performance.weight}
+								onChange={(e) =>
+									setPerformance({
+										...performance,
+										weight: Number(e.target.value),
+									})
+								}
+							/>
 						</div>
 
 						<div>
 							<Label htmlFor="reps">Reps</Label>
-							<div className="flex items-center space-x-2">
-								<Input
-									id="reps"
-									type="number"
-									value={performance.reps}
-									onChange={(e) =>
-										setPerformance({
-											...performance,
-											reps: Number(e.target.value),
-										})
-									}
-								/>
-								<Button
-									size="sm"
-									variant="outline"
-									onClick={() =>
-										setPerformance({
-											...performance,
-											reps: (performance.reps || 0) - 1,
-										})
-									}
-								>
-									-1
-								</Button>
-								<Button
-									size="sm"
-									variant="outline"
-									onClick={() =>
-										setPerformance({
-											...performance,
-											reps: (performance.reps || 0) + 1,
-										})
-									}
-								>
-									+1
-								</Button>
-							</div>
+							<Input
+								id="reps"
+								type="number"
+								value={performance.reps}
+								onChange={(e) =>
+									setPerformance({
+										...performance,
+										reps: Number(e.target.value),
+									})
+								}
+							/>
 						</div>
 					</div>
 				</>
@@ -273,8 +203,8 @@ const DataCollectionInterface = ({
 
 					<div>
 						<Label>RPE</Label>
-						<div className="flex space-x-2">
-							{[6, 7, 8, 9].map((rpe) => (
+						<div className="grid grid-cols-6 gap-2">
+							{[5, 6, 7, 8, 9, 10].map((rpe) => (
 								<Button
 									key={rpe}
 									variant={performance.rpe === rpe ? "default" : "outline"}
@@ -288,11 +218,23 @@ const DataCollectionInterface = ({
 				</>
 			)}
 
-			<div className="flex justify-between pt-4">
-				<Button variant="outline" onClick={onSkip}>
-					Skip Set
+			<div className="flex flex-col gap-2 pt-4">
+				<Button onClick={onComplete}>
+					{isLastSet ? "Start Next Exercise" : "Start Next Set"}
 				</Button>
-				<Button onClick={onComplete}>Complete & Continue</Button>
+				<Button variant="outline" onClick={onSkip}>
+					Skip Next Set
+				</Button>
+				<Button
+					variant="ghost"
+					className="text-destructive hover:text-destructive"
+					onClick={() => {
+						// TODO: Implement skip remaining sets
+						onSkip();
+					}}
+				>
+					Skip Remaining Sets
+				</Button>
 			</div>
 		</div>
 	);
@@ -361,6 +303,7 @@ export function WorkoutCard({
 			reps: currentSet.reps,
 			rpe: currentExercise.definition.type !== "primary" ? 7 : undefined,
 		});
+		restTimer.start();
 	}, [status, currentExerciseIndex, currentSetIndex, sorted, restTimer]);
 
 	const handleCompleteSet = useCallback(async () => {
@@ -561,39 +504,52 @@ export function WorkoutCard({
 					</Button>
 				</div>
 
-				{isDesktop ? (
-					<Dialog open={isCollectingData} onOpenChange={setIsCollectingData}>
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>Complete Set</DialogTitle>
-							</DialogHeader>
-							<DataCollectionInterface
-								exercise={sorted[currentExerciseIndex]}
-								currentSet={sorted[currentExerciseIndex].sets[currentSetIndex]}
-								performance={setPerformance}
-								setPerformance={setSetPerformance}
-								onComplete={handleCompleteSet}
-								onSkip={handleSkipSet}
-							/>
-						</DialogContent>
-					</Dialog>
-				) : (
-					<Drawer open={isCollectingData} onOpenChange={setIsCollectingData}>
-						<DrawerContent>
-							<DrawerHeader>
-								<DrawerTitle>Complete Set</DrawerTitle>
-							</DrawerHeader>
-							<DataCollectionInterface
-								exercise={sorted[currentExerciseIndex]}
-								currentSet={sorted[currentExerciseIndex].sets[currentSetIndex]}
-								performance={setPerformance}
-								setPerformance={setSetPerformance}
-								onComplete={handleCompleteSet}
-								onSkip={handleSkipSet}
-							/>
-						</DrawerContent>
-					</Drawer>
-				)}
+				{(() => {
+					const currentExercise = sorted[currentExerciseIndex];
+					const currentSet = currentExercise.sets[currentSetIndex];
+
+					return isDesktop ? (
+						<Dialog open={isCollectingData} onOpenChange={setIsCollectingData}>
+							<DialogContent>
+								<DialogHeader>
+									<DialogTitle>
+										{currentExercise.definition.name} - Set{" "}
+										{currentSet.setNumber}/{currentExercise.sets.length}
+									</DialogTitle>
+								</DialogHeader>
+								<DataCollectionInterface
+									exercise={currentExercise}
+									currentSet={currentSet}
+									performance={setPerformance}
+									setPerformance={setSetPerformance}
+									onComplete={handleCompleteSet}
+									onSkip={handleSkipSet}
+									restTimer={restTimer}
+								/>
+							</DialogContent>
+						</Dialog>
+					) : (
+						<Drawer open={isCollectingData} onOpenChange={setIsCollectingData}>
+							<DrawerContent>
+								<DrawerHeader>
+									<DrawerTitle>
+										{currentExercise.definition.name} - Set{" "}
+										{currentSet.setNumber}/{currentExercise.sets.length}
+									</DrawerTitle>
+								</DrawerHeader>
+								<DataCollectionInterface
+									exercise={currentExercise}
+									currentSet={currentSet}
+									performance={setPerformance}
+									setPerformance={setSetPerformance}
+									onComplete={handleCompleteSet}
+									onSkip={handleSkipSet}
+									restTimer={restTimer}
+								/>
+							</DrawerContent>
+						</Drawer>
+					);
+				})()}
 			</CardContent>
 		</Card>
 	);
