@@ -112,7 +112,7 @@ export function WorkoutCard({
 
 			// If this exercise isn't started yet but previous is complete, this is next
 			const isComplete = exercise.sets.every(
-				(s) => s.status === Status.Completed,
+				(s) => s.status === Status.Completed || s.status === Status.Skipped,
 			);
 			if (!isComplete) {
 				const firstPendingSet = exercise.sets.findIndex(
@@ -259,6 +259,10 @@ export function WorkoutCard({
 			if (currentExerciseIndex === accessoryExercises.length) {
 				// Workout complete
 				setPerformance({ weight: 0 });
+				setLocalWorkoutState({
+					...localWorkoutState,
+					status: Status.Completed,
+				});
 			} else {
 				setCurrentExerciseIndex((prev) => prev + 1);
 				setCurrentSetIndex(0);
