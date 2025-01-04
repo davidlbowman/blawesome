@@ -8,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
@@ -21,6 +22,8 @@ interface WorkoutCardProps {
 	completedAt?: Date | null;
 	primaryLift: string;
 	sequence: number;
+	completedSets: number;
+	totalSets: number;
 }
 
 const formatDate = (date: Date) => {
@@ -59,7 +62,11 @@ function WorkoutCard({
 	primaryLift,
 	sequence,
 	cycleId,
+	completedSets,
+	totalSets,
 }: WorkoutCardProps & { cycleId: string }) {
+	const progressPercentage = (completedSets / totalSets) * 100;
+
 	return (
 		<Link
 			href={`/modules/strength-training/${cycleId}/${id}`}
@@ -87,6 +94,15 @@ function WorkoutCard({
 								? `Completed on ${formatDate(completedAt)}`
 								: `Scheduled for ${formatDate(date)}`}
 						</span>
+					</div>
+					<div className="mt-4 space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span>Sets Progress</span>
+							<span className="font-medium">
+								{completedSets} / {totalSets}
+							</span>
+						</div>
+						<Progress value={progressPercentage} className="h-2" />
 					</div>
 					{status === Status.Completed ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
@@ -130,10 +146,30 @@ export default async function CyclePage({ params }: PageProps) {
 		);
 	}
 
+	// Calculate sets for each workout
+	const workoutsWithSets = workouts.map((workout) => {
+		const totalSets = 25; // This should come from the actual workout data
+		const completedSets =
+			workout.status === Status.Completed
+				? totalSets
+				: workout.status === Status.InProgress
+					? Math.floor(totalSets * 0.5)
+					: 0;
+		return {
+			...workout,
+			completedSets,
+			totalSets,
+		};
+	});
+
 	// Find current, next, and previous workouts
-	const currentWorkout = workouts.find((w) => w.status === Status.InProgress);
-	const nextWorkouts = workouts.filter((w) => w.status === Status.Pending);
-	const previousWorkouts = workouts.filter(
+	const currentWorkout = workoutsWithSets.find(
+		(w) => w.status === Status.InProgress,
+	);
+	const nextWorkouts = workoutsWithSets.filter(
+		(w) => w.status === Status.Pending,
+	);
+	const previousWorkouts = workoutsWithSets.filter(
 		(w) => w.status === Status.Completed,
 	);
 
