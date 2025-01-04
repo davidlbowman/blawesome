@@ -2,8 +2,8 @@
 
 import { db } from "@/drizzle/db";
 import {
-	exercises,
 	exerciseDefinitions,
+	exercises,
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";

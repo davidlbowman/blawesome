@@ -1,5 +1,5 @@
-import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
 import { WorkoutView } from "@/components/WorkoutView";
+import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
 
 export default async function WorkoutPage({
 	params,

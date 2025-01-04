@@ -535,7 +535,7 @@ export function WorkoutView({ workout }: WorkoutViewProps) {
 		<div className="container space-y-8 py-8">
 			<WorkoutProgress workout={workoutState} />
 
-			<Card className="w-full max-w-4xl space-y-3">
+			<Card className="w-full space-y-3">
 				<CardHeader className="pb-2">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-4">
