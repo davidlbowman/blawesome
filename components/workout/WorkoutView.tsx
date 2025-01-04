@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {
 	Drawer,
 	DrawerContent,
+	DrawerDescription,
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
@@ -611,6 +613,10 @@ export function WorkoutView({
 						<DialogContent>
 							<DialogHeader>
 								<DialogTitle>{dialogTitle}</DialogTitle>
+								<DialogDescription>
+									Track your performance for this set. Enter your actual reps
+									and RPE, or skip this set if needed.
+								</DialogDescription>
 							</DialogHeader>
 							<SetDataCollection
 								exercise={currentExercise}
@@ -630,6 +636,10 @@ export function WorkoutView({
 						<DrawerContent>
 							<DrawerHeader>
 								<DrawerTitle>{dialogTitle}</DrawerTitle>
+								<DrawerDescription>
+									Track your performance for this set. Enter your actual reps
+									and RPE, or skip this set if needed.
+								</DrawerDescription>
 							</DrawerHeader>
 							<SetDataCollection
 								exercise={currentExercise}

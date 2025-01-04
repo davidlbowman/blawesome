@@ -43,6 +43,23 @@ export function MainExercise({
 	currentSetIndex,
 	workoutStatus,
 }: MainExerciseProps) {
+	const getSetRowClassName = (setNumber: number, status: string) => {
+		if (workoutStatus === Status.InProgress && currentExerciseIndex === 0) {
+			if (setNumber - 1 === currentSetIndex) {
+				return "bg-primary/20";
+			}
+		}
+
+		switch (status) {
+			case Status.Completed:
+				return "bg-muted-foreground/10";
+			case Status.Skipped:
+				return "bg-muted-foreground/10";
+			default:
+				return "";
+		}
+	};
+
 	return (
 		<div className="rounded-lg bg-muted p-6">
 			<h4 className="text-lg font-semibold mb-1">{exercise.definition.name}</h4>
@@ -62,20 +79,7 @@ export function MainExercise({
 					{exercise.sets.map((set) => (
 						<TableRow
 							key={set.id}
-							className={
-								workoutStatus === Status.InProgress &&
-								currentExerciseIndex === 0
-									? set.setNumber - 1 === currentSetIndex
-										? "bg-primary/20"
-										: set.status === Status.Completed ||
-												set.status === Status.Skipped
-											? "bg-muted-foreground/10"
-											: ""
-									: set.status === Status.Completed ||
-											set.status === Status.Skipped
-										? "bg-muted-foreground/10"
-										: ""
-							}
+							className={getSetRowClassName(set.setNumber, set.status)}
 						>
 							<TableCell className="flex items-center gap-2">
 								<span>{set.setNumber}</span>
