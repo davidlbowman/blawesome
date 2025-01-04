@@ -48,69 +48,94 @@ export async function getWorkoutById(
 ): Promise<WorkoutDetails | null> {
 	const result = await db.transaction(async (tx) => {
 		const result = await tx
-			.select()
-			.from(workouts)
-			.where(eq(workouts.id, workoutId));
-
-		const workout = result[0] ?? null;
-		if (!workout) return null;
-
-		// Get all exercises with their definitions
-		const exerciseResults = await tx
 			.select({
-				exercise: exercises,
-				definition: exerciseDefinitions,
+				workout: {
+					id: workouts.id,
+					date: workouts.date,
+					status: workouts.status,
+					primaryLift: workouts.primaryLift,
+				},
+				exercise: {
+					id: exercises.id,
+					order: exercises.order,
+					status: exercises.status,
+				},
+				definition: {
+					id: exerciseDefinitions.id,
+					name: exerciseDefinitions.name,
+					type: exerciseDefinitions.type,
+					rpeMax: exerciseDefinitions.rpeMax,
+					repMax: exerciseDefinitions.repMax,
+				},
+				set: {
+					id: sets.id,
+					setNumber: sets.setNumber,
+					weight: sets.weight,
+					reps: sets.reps,
+					percentageOfMax: sets.percentageOfMax,
+					status: sets.status,
+				},
 			})
-			.from(exercises)
-			.where(eq(exercises.workoutId, workoutId))
-			.innerJoin(
+			.from(workouts)
+			.where(eq(workouts.id, workoutId))
+			.leftJoin(exercises, eq(exercises.workoutId, workouts.id))
+			.leftJoin(
 				exerciseDefinitions,
 				eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
 			)
-			.orderBy(exercises.order);
+			.leftJoin(sets, eq(sets.exerciseId, exercises.id))
+			.orderBy(exercises.order, sets.setNumber);
 
-		// Get sets for each exercise
-		const exercisesWithSets = await Promise.all(
-			exerciseResults.map(async ({ exercise, definition }) => {
-				const exerciseSets = await tx
-					.select()
-					.from(sets)
-					.where(eq(sets.exerciseId, exercise.id))
-					.orderBy(sets.setNumber);
+		if (!result.length) return null;
 
-				return {
+		// Group the results by exercise
+		const workout = result[0].workout;
+		const exercisesMap = new Map<string, ExerciseWithDefinition>();
+
+		for (const row of result) {
+			if (!row.exercise || !row.definition) continue;
+
+			const exerciseId = row.exercise.id;
+			if (!exercisesMap.has(exerciseId)) {
+				exercisesMap.set(exerciseId, {
 					exercise: {
-						id: exercise.id,
-						order: exercise.order,
-						status: exercise.status,
+						id: row.exercise.id,
+						order: row.exercise.order,
+						status: row.exercise.status,
 					},
 					definition: {
-						id: definition.id,
-						name: definition.name,
-						type: definition.type,
-						rpeMax: definition.rpeMax || 0,
-						repMax: definition.repMax || 0,
+						id: row.definition.id,
+						name: row.definition.name,
+						type: row.definition.type,
+						rpeMax: row.definition.rpeMax || 0,
+						repMax: row.definition.repMax || 0,
 					},
-					sets: exerciseSets.map((set) => ({
-						id: set.id,
-						setNumber: set.setNumber,
-						weight: set.weight,
-						reps: set.reps,
-						percentageOfMax: set.percentageOfMax || 0,
-						status: set.status,
-					})),
-				};
-			}),
-		);
+					sets: [],
+				});
+			}
 
-		// Format the data for the WorkoutCard component
+			if (row.set) {
+				const exercise = exercisesMap.get(exerciseId);
+				if (exercise && !exercise.sets.some((s) => s.id === row.set?.id)) {
+					exercise.sets.push({
+						id: row.set.id,
+						setNumber: row.set.setNumber,
+						weight: row.set.weight,
+						reps: row.set.reps,
+						percentageOfMax: row.set.percentageOfMax || 0,
+						status: row.set.status,
+					});
+				}
+			}
+		}
+
 		return {
 			id: workout.id,
 			date: workout.date,
 			status: workout.status,
 			primaryLift: workout.primaryLift,
 			title: `${workout.primaryLift} Day`,
-			exercises: exercisesWithSets,
+			exercises: Array.from(exercisesMap.values()),
 		};
 	});
 

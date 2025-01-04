@@ -4,27 +4,24 @@ import type { Logger } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 
 export class CustomLogger implements Logger {
-	private queryStartTime: number | null = null;
+	logQuery(query: string, params: unknown[]) {
+		const start = performance.now();
 
-	logQuery(query: string, _params: unknown[]) {
-		if (!this.queryStartTime) {
-			this.queryStartTime = performance.now();
-			return;
-		}
+		// Use setTimeout to ensure we measure after the query executes
+		setTimeout(() => {
+			const duration = performance.now() - start;
+			const queryType = query.split(" ")[0].toUpperCase();
+			const joinCount = (query.match(/join/gi) || []).length;
+			const conditionCount = (query.match(/where|having|on/gi) || []).length;
 
-		const duration = performance.now() - this.queryStartTime;
-		this.queryStartTime = null;
-
-		const queryType = query.split(" ")[0].toUpperCase();
-		const joinCount = (query.match(/join/gi) || []).length;
-		const conditionCount = (query.match(/where|having|on/gi) || []).length;
-
-		console.log(`\n📊 Query:
-                    SQL: ${query.split("(")[0].trim()}...
-                    Type: ${queryType}
-                    Joins: ${joinCount}
-                    Conditions: ${conditionCount}
-                    Duration: ${duration.toFixed(2)}ms`);
+			console.log(`\n📊 Query:
+				SQL: ${query}
+				Params: ${JSON.stringify(params)}
+				Type: ${queryType}
+				Joins: ${joinCount}
+				Conditions: ${conditionCount}
+				Duration: ${duration.toFixed(2)}ms`);
+		}, 0);
 	}
 }
 
