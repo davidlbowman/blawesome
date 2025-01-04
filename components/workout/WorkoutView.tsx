@@ -34,6 +34,7 @@ import {
 	Weight,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useOptimistic } from "react";
 import { AccessoryExercises } from "./AccessoryExercises";
@@ -98,83 +99,84 @@ export function WorkoutView({
 	workout: initialWorkout,
 	cycleId,
 }: WorkoutViewProps) {
+	const router = useRouter();
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
 	const [, startTransition] = useTransition();
 
-	// Replace useState with useOptimistic
-	const [optimisticWorkout, addOptimisticWorkout] = useOptimistic(
-		initialWorkout,
-		(
-			currentWorkout,
-			optimisticValue: {
-				type: "start" | "complete" | "skip" | "complete_workout";
-				exerciseId?: string;
-				setId?: string;
+	// Define all possible optimistic update types
+	type OptimisticUpdate =
+		| { type: "start_workout" }
+		| {
+				type: "complete_set";
+				exerciseId: string;
+				setId: string;
 				performance?: SetPerformance;
-			},
-		) => {
-			const newWorkout = { ...currentWorkout };
+		  }
+		| { type: "skip_set"; exerciseId: string; setId: string }
+		| { type: "complete_workout" };
 
-			switch (optimisticValue.type) {
-				case "start": {
-					return {
-						...newWorkout,
-						status: Status.InProgress,
-					};
-				}
+	// Optimistic state update function
+	const updateOptimisticWorkout = (
+		currentWorkout: typeof initialWorkout,
+		update: OptimisticUpdate,
+	) => {
+		const newWorkout = { ...currentWorkout };
 
-				case "complete": {
-					if (!optimisticValue.exerciseId || !optimisticValue.setId)
-						return newWorkout;
-					const completeExercise = newWorkout.exercises.find(
-						(e) => e.exercise.id === optimisticValue.exerciseId,
-					);
-					if (!completeExercise) return newWorkout;
+		switch (update.type) {
+			case "start_workout":
+				return {
+					...newWorkout,
+					status: Status.InProgress,
+				};
 
-					const completeSet = completeExercise.sets.find(
-						(s) => s.id === optimisticValue.setId,
-					);
-					if (!completeSet) return newWorkout;
+			case "complete_set": {
+				const exercise = newWorkout.exercises.find(
+					(e) => e.exercise.id === update.exerciseId,
+				);
+				if (!exercise) return newWorkout;
 
-					completeSet.status = Status.Completed;
-					if (optimisticValue.performance) {
-						completeSet.weight = optimisticValue.performance.weight;
-						if (optimisticValue.performance.reps) {
-							completeSet.reps = optimisticValue.performance.reps;
-						}
+				const set = exercise.sets.find((s) => s.id === update.setId);
+				if (!set) return newWorkout;
+
+				set.status = Status.Completed;
+				if (update.performance) {
+					set.weight = update.performance.weight;
+					if (update.performance.reps) {
+						set.reps = update.performance.reps;
 					}
-					return newWorkout;
 				}
-
-				case "skip": {
-					if (!optimisticValue.exerciseId || !optimisticValue.setId)
-						return newWorkout;
-					const skipExercise = newWorkout.exercises.find(
-						(e) => e.exercise.id === optimisticValue.exerciseId,
-					);
-					if (!skipExercise) return newWorkout;
-
-					const skipSet = skipExercise.sets.find(
-						(s) => s.id === optimisticValue.setId,
-					);
-					if (!skipSet) return newWorkout;
-
-					skipSet.status = Status.Skipped;
-					return newWorkout;
-				}
-
-				case "complete_workout": {
-					return {
-						...newWorkout,
-						status: Status.Completed,
-					};
-				}
-
-				default:
-					return newWorkout;
+				return newWorkout;
 			}
-		},
+
+			case "skip_set": {
+				const exercise = newWorkout.exercises.find(
+					(e) => e.exercise.id === update.exerciseId,
+				);
+				if (!exercise) return newWorkout;
+
+				const set = exercise.sets.find((s) => s.id === update.setId);
+				if (!set) return newWorkout;
+
+				set.status = Status.Skipped;
+				return newWorkout;
+			}
+
+			case "complete_workout":
+				return {
+					...newWorkout,
+					status: Status.Completed,
+				};
+
+			default:
+				return newWorkout;
+		}
+	};
+
+	// Use optimistic state with the new update function
+	const [optimisticWorkout, addOptimisticUpdate] = useOptimistic(
+		initialWorkout,
+		updateOptimisticWorkout,
 	);
 
 	// Use optimisticWorkout instead of workout everywhere
@@ -294,23 +296,21 @@ export function WorkoutView({
 
 	const handleStartWorkout = async () => {
 		startTransition(async () => {
-			// Optimistically update UI
-			addOptimisticWorkout({ type: "start" });
-
-			// Update database in background
+			addOptimisticUpdate({ type: "start_workout" });
 			await startWorkout(optimisticWorkout.id);
+			router.refresh();
 		});
 
 		setCurrentExerciseIndex(0);
 		setCurrentSetIndex(0);
 
 		// Initialize performance for first set
-		const firstSet = mainExercise.sets[0];
-		setPerformance({
-			weight: firstSet.weight,
-			reps: firstSet.reps,
-			rpe: mainExercise.definition.type !== "primary" ? 7 : undefined,
-		});
+		if (mainExercise?.sets[0]) {
+			setPerformance({
+				weight: mainExercise.sets[0].weight,
+				reps: mainExercise.sets[0].reps,
+			});
+		}
 	};
 
 	const handleStartSet = () => {
@@ -333,18 +333,16 @@ export function WorkoutView({
 	};
 
 	const handleCompleteSet = async () => {
-		if (!currentSet) return;
+		if (!currentSet || !currentExercise) return;
 
 		startTransition(async () => {
-			// Optimistically update UI
-			addOptimisticWorkout({
-				type: "complete",
+			addOptimisticUpdate({
+				type: "complete_set",
 				exerciseId: currentExercise.exercise.id,
 				setId: currentSet.id,
 				performance,
 			});
 
-			// Update database in background
 			await completeSet(
 				currentSet.id,
 				currentExercise.exercise.id,
@@ -362,47 +360,26 @@ export function WorkoutView({
 				// Workout complete
 				setPerformance({ weight: 0 });
 				startTransition(() => {
-					addOptimisticWorkout({ type: "complete_workout" });
+					addOptimisticUpdate({ type: "complete_workout" });
 				});
 			} else {
-				setCurrentExerciseIndex((prev) => prev + 1);
-				setCurrentSetIndex(0);
-				// Initialize performance for next exercise's first set
-				const nextExercise = accessoryExercises[currentExerciseIndex];
-				if (nextExercise) {
-					setPerformance({
-						weight: nextExercise.sets[0].weight,
-						reps: nextExercise.sets[0].reps,
-						rpe: nextExercise.definition.type !== "primary" ? 7 : undefined,
-					});
-				}
+				moveToNextExercise();
 			}
 		} else {
-			setCurrentSetIndex((prev) => prev + 1);
-			// Initialize performance for next set
-			const nextSet = currentExercise.sets[currentSetIndex + 1];
-			if (nextSet) {
-				setPerformance({
-					weight: nextSet.weight,
-					reps: nextSet.reps,
-					rpe: currentExercise.definition.type !== "primary" ? 7 : undefined,
-				});
-			}
+			moveToNextSet();
 		}
 	};
 
 	const handleSkipSet = async () => {
-		if (!currentSet) return;
+		if (!currentSet || !currentExercise) return;
 
 		startTransition(async () => {
-			// Optimistically update UI
-			addOptimisticWorkout({
-				type: "skip",
+			addOptimisticUpdate({
+				type: "skip_set",
 				exerciseId: currentExercise.exercise.id,
 				setId: currentSet.id,
 			});
 
-			// Update database in background
 			await skipSet(currentSet.id);
 		});
 
@@ -412,32 +389,13 @@ export function WorkoutView({
 				// Workout complete
 				setPerformance({ weight: 0 });
 				startTransition(() => {
-					addOptimisticWorkout({ type: "complete_workout" });
+					addOptimisticUpdate({ type: "complete_workout" });
 				});
 			} else {
-				setCurrentExerciseIndex((prev) => prev + 1);
-				setCurrentSetIndex(0);
-				// Initialize performance for next exercise's first set
-				const nextExercise = accessoryExercises[currentExerciseIndex];
-				if (nextExercise) {
-					setPerformance({
-						weight: nextExercise.sets[0].weight,
-						reps: nextExercise.sets[0].reps,
-						rpe: nextExercise.definition.type !== "primary" ? 7 : undefined,
-					});
-				}
+				moveToNextExercise();
 			}
 		} else {
-			setCurrentSetIndex((prev) => prev + 1);
-			// Initialize performance for next set
-			const nextSet = currentExercise.sets[currentSetIndex + 1];
-			if (nextSet) {
-				setPerformance({
-					weight: nextSet.weight,
-					reps: nextSet.reps,
-					rpe: currentExercise.definition.type !== "primary" ? 7 : undefined,
-				});
-			}
+			moveToNextSet();
 		}
 	};
 
@@ -509,6 +467,31 @@ export function WorkoutView({
 				)}
 			</div>
 		);
+	};
+
+	// Helper functions for navigation
+	const moveToNextSet = () => {
+		setCurrentSetIndex((prev) => prev + 1);
+		if (currentExercise?.sets[currentSetIndex + 1]) {
+			setPerformance({
+				weight: currentExercise.sets[currentSetIndex + 1].weight,
+				reps: currentExercise.sets[currentSetIndex + 1].reps,
+				rpe: currentExercise.definition.type !== "primary" ? 7 : undefined,
+			});
+		}
+	};
+
+	const moveToNextExercise = () => {
+		setCurrentExerciseIndex((prev) => prev + 1);
+		setCurrentSetIndex(0);
+		const nextExercise = accessoryExercises[currentExerciseIndex];
+		if (nextExercise?.sets[0]) {
+			setPerformance({
+				weight: nextExercise.sets[0].weight,
+				reps: nextExercise.sets[0].reps,
+				rpe: nextExercise.definition.type !== "primary" ? 7 : undefined,
+			});
+		}
 	};
 
 	return (
