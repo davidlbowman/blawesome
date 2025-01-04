@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 
 interface ExerciseWithDefinition {
 	exercise: {
@@ -20,12 +21,6 @@ interface ExerciseWithDefinition {
 		weight: number;
 		reps: number;
 	}>;
-}
-
-interface SetPerformance {
-	weight?: number;
-	reps?: number;
-	rpe?: number;
 }
 
 interface SetDataCollectionProps {

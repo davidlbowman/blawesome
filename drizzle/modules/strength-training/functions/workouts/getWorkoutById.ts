@@ -1,9 +1,5 @@
 import { db } from "@/drizzle/db";
 import {
-	type ExerciseDefinitionsSelect,
-	type ExercisesSelect,
-	type SetsSelect,
-	type WorkoutsSelect,
 	exerciseDefinitions,
 	exercises,
 	sets,
@@ -13,33 +9,31 @@ import { eq } from "drizzle-orm";
 
 interface ExerciseWithDefinition {
 	exercise: {
-		id: ExercisesSelect["id"];
-		order: ExercisesSelect["order"];
-		status: ExercisesSelect["status"];
+		id: string;
+		order: number;
+		status: string;
 	};
 	definition: {
-		id: ExerciseDefinitionsSelect["id"];
-		name: ExerciseDefinitionsSelect["name"];
-		type: ExerciseDefinitionsSelect["type"];
-		rpeMax: NonNullable<ExerciseDefinitionsSelect["rpeMax"]>;
-		repMax: NonNullable<ExerciseDefinitionsSelect["repMax"]>;
+		id: string;
+		name: string;
+		type: string;
+		rpeMax: number;
+		repMax: number;
 	};
 	sets: Array<{
-		id: SetsSelect["id"];
-		setNumber: SetsSelect["setNumber"];
-		weight: SetsSelect["weight"];
-		reps: SetsSelect["reps"];
-		percentageOfMax: NonNullable<SetsSelect["percentageOfMax"]>;
-		status: SetsSelect["status"];
+		id: string;
+		setNumber: number;
+		weight: number;
+		reps: number;
+		percentageOfMax: number;
+		status: string;
 	}>;
 }
 
 interface WorkoutDetails {
-	id: WorkoutsSelect["id"];
-	date: WorkoutsSelect["date"];
-	status: WorkoutsSelect["status"];
-	primaryLift: WorkoutsSelect["primaryLift"];
-	title: string;
+	id: string;
+	date: Date;
+	status: string;
 	exercises: ExerciseWithDefinition[];
 }
 
@@ -52,7 +46,6 @@ export async function getWorkoutById(
 				id: workouts.id,
 				date: workouts.date,
 				status: workouts.status,
-				primaryLift: workouts.primaryLift,
 			},
 			exercise: {
 				id: exercises.id,
@@ -87,7 +80,6 @@ export async function getWorkoutById(
 
 	if (!result.length) return null;
 
-	// Group the results by exercise
 	const workout = result[0].workout;
 	const exercisesMap = new Map<string, ExerciseWithDefinition>();
 
@@ -132,8 +124,6 @@ export async function getWorkoutById(
 		id: workout.id,
 		date: workout.date,
 		status: workout.status,
-		primaryLift: workout.primaryLift,
-		title: `${workout.primaryLift} Day`,
 		exercises: Array.from(exercisesMap.values()),
 	};
 }
