@@ -1,5 +1,6 @@
 "use client";
 
+import { Statistic } from "@/components/Statistic";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,13 @@ import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas
 import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRestTimer } from "@/hooks/useRestTimer";
-import { ArrowDown, ArrowUp, CalendarDays, Dumbbell } from "lucide-react";
+import {
+	CalendarDays,
+	Dumbbell,
+	Target,
+	TrendingUp,
+	Weight,
+} from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useOptimistic } from "react";
@@ -505,59 +512,48 @@ export function WorkoutView({
 	return (
 		<div className="container mx-auto p-6 space-y-6">
 			{/* Stats Card */}
-			<Card className="w-full">
-				<CardHeader>
-					<CardTitle>Workout Stats</CardTitle>
-				</CardHeader>
-				<CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-					<div className="flex flex-col space-y-1">
-						<span className="text-sm text-muted-foreground">Sets</span>
-						<span className="text-2xl font-bold">
-							{completedSets}/{totalSets}
-						</span>
-					</div>
-					<div className="flex flex-col space-y-1">
-						<span className="text-sm text-muted-foreground">Volume</span>
-						<div className="flex items-baseline gap-2">
-							<span className="text-2xl font-bold">{totalVolume}kg</span>
-							<span
-								className={`text-sm ${
-									volumeChange >= 0 ? "text-green-500" : "text-red-500"
-								}`}
-							>
-								{volumeChange >= 0 ? (
-									<ArrowUp className="inline h-4 w-4" />
-								) : (
-									<ArrowDown className="inline h-4 w-4" />
-								)}
-								{Math.abs(volumeChange)}kg
-							</span>
-						</div>
-					</div>
-					<div className="flex flex-col space-y-1">
-						<span className="text-sm text-muted-foreground">Primary Lift</span>
-						<div className="flex items-baseline gap-2">
-							<span className="text-2xl font-bold">{primaryLiftWeight}kg</span>
-							<span
-								className={`text-sm ${
-									primaryLiftChange >= 0 ? "text-green-500" : "text-red-500"
-								}`}
-							>
-								{primaryLiftChange >= 0 ? (
-									<ArrowUp className="inline h-4 w-4" />
-								) : (
-									<ArrowDown className="inline h-4 w-4" />
-								)}
-								{Math.abs(primaryLiftChange)}kg
-							</span>
-						</div>
-					</div>
-					<div className="flex flex-col space-y-1">
-						<span className="text-sm text-muted-foreground">Consistency</span>
-						<span className="text-2xl font-bold">{consistency}%</span>
-					</div>
-				</CardContent>
-			</Card>
+			<div className="grid gap-4 md:grid-cols-4">
+				<Statistic
+					icon={<Target className="h-4 w-4" />}
+					value={`${completedSets}/${totalSets}`}
+					label="Total Sets"
+					description={
+						completedSets === totalSets
+							? "All sets completed"
+							: `${totalSets - completedSets} sets remaining`
+					}
+				/>
+				<Statistic
+					icon={<Weight className="h-4 w-4" />}
+					value={`${totalVolume.toLocaleString()} lbs`}
+					label="Total Volume"
+					description={
+						volumeChange > 0
+							? `+${volumeChange} lbs from last workout`
+							: volumeChange < 0
+								? `${volumeChange} lbs from last workout`
+								: "Same as last workout"
+					}
+				/>
+				<Statistic
+					icon={<Dumbbell className="h-4 w-4" />}
+					value={`${primaryLiftWeight} lbs`}
+					label="Primary Lift"
+					description={
+						primaryLiftChange > 0
+							? `+${primaryLiftChange} lbs from last workout`
+							: primaryLiftChange < 0
+								? `${primaryLiftChange} lbs from last workout`
+								: "Same as last workout"
+					}
+				/>
+				<Statistic
+					icon={<TrendingUp className="h-4 w-4" />}
+					value={`${consistency}%`}
+					label="Consistency"
+					description="Sets completed as prescribed"
+				/>
+			</div>
 
 			{/* Workout Card */}
 			<Card className="w-full space-y-3">
