@@ -38,5 +38,6 @@ export const ExerciseCategory = {
 export const Status = {
 	Pending: "pending",
 	InProgress: "in_progress",
+	Skipped: "skipped",
 	Completed: "completed",
 };

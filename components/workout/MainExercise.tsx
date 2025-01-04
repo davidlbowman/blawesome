@@ -26,6 +26,7 @@ interface ExerciseWithDefinition {
 		weight: number;
 		reps: number;
 		percentageOfMax: number;
+		status: string;
 	}>;
 }
 
@@ -66,13 +67,26 @@ export function MainExercise({
 								currentExerciseIndex === 0
 									? set.setNumber - 1 === currentSetIndex
 										? "bg-primary/20"
-										: set.setNumber - 1 < currentSetIndex
+										: set.status === Status.Completed
 											? "bg-muted-foreground/10"
+											: set.status === Status.Skipped
+												? "bg-muted-foreground/5"
+												: ""
+									: set.status === Status.Completed
+										? "bg-muted-foreground/10"
+										: set.status === Status.Skipped
+											? "bg-muted-foreground/5"
 											: ""
-									: ""
 							}
 						>
-							<TableCell>{set.setNumber}</TableCell>
+							<TableCell className="flex items-center gap-2">
+								<span>{set.setNumber}</span>
+								{set.status === Status.Skipped && (
+									<span className="text-xs text-muted-foreground">
+										(Skipped)
+									</span>
+								)}
+							</TableCell>
 							<TableCell>{set.weight}</TableCell>
 							<TableCell>{set.reps}</TableCell>
 							<TableCell>{`${set.percentageOfMax}%`}</TableCell>

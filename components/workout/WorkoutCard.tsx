@@ -92,16 +92,74 @@ export function WorkoutCard({
 }: WorkoutCardProps) {
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
-	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-	const [currentSetIndex, setCurrentSetIndex] = useState(0);
+
+	// Initialize state based on workout progress
+	const findCurrentProgress = () => {
+		// First check main exercise
+		const mainInProgressSet = mainExercise.sets.findIndex(
+			(s) => s.status === Status.InProgress,
+		);
+		if (mainInProgressSet !== -1) {
+			return { exerciseIndex: 0, setIndex: mainInProgressSet };
+		}
+
+		// If main exercise is complete, check accessory exercises
+		for (let i = 0; i < accessoryExercises.length; i++) {
+			const exercise = accessoryExercises[i];
+			const inProgressSet = exercise.sets.findIndex(
+				(s) => s.status === Status.InProgress,
+			);
+			if (inProgressSet !== -1) {
+				return { exerciseIndex: i + 1, setIndex: inProgressSet };
+			}
+
+			// If this exercise isn't started yet but previous is complete, this is next
+			const isComplete = exercise.sets.every(
+				(s) => s.status === Status.Completed,
+			);
+			if (!isComplete) {
+				const firstPendingSet = exercise.sets.findIndex(
+					(s) => s.status === Status.Pending,
+				);
+				if (firstPendingSet !== -1) {
+					return { exerciseIndex: i + 1, setIndex: firstPendingSet };
+				}
+			}
+		}
+
+		// If no in-progress set found, find the first incomplete set
+		if (mainExercise.sets.some((s) => s.status === Status.Pending)) {
+			const firstPendingSet = mainExercise.sets.findIndex(
+				(s) => s.status === Status.Pending,
+			);
+			return { exerciseIndex: 0, setIndex: firstPendingSet };
+		}
+
+		// Default to first set if nothing is in progress
+		return { exerciseIndex: 0, setIndex: 0 };
+	};
+
+	const initialProgress = findCurrentProgress();
+	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(
+		initialProgress.exerciseIndex,
+	);
+	const [currentSetIndex, setCurrentSetIndex] = useState(
+		initialProgress.setIndex,
+	);
 	const [isCollectingData, setIsCollectingData] = useState(false);
-	const [performance, setPerformance] = useState<SetPerformance>({ weight: 0 });
 
 	const currentExercise =
 		currentExerciseIndex === 0
 			? mainExercise
 			: accessoryExercises[currentExerciseIndex - 1];
 	const currentSet = currentExercise?.sets[currentSetIndex];
+
+	// Initialize performance state based on current set
+	const [performance, setPerformance] = useState<SetPerformance>(() => ({
+		weight: currentSet?.weight || 0,
+		reps: currentSet?.reps,
+		rpe: currentExercise?.definition.type !== "primary" ? 7 : undefined,
+	}));
 
 	const handleStartWorkout = async () => {
 		await onStartWorkout();
@@ -170,8 +228,39 @@ export function WorkoutCard({
 	const handleSkipSet = async () => {
 		if (!currentSet) return;
 
+		// Mark the set as skipped in the database
 		await onSkipSet(currentSet.id);
-		handleCompleteSet();
+
+		// Move to next set or exercise
+		if (currentSetIndex === currentExercise.sets.length - 1) {
+			if (currentExerciseIndex === accessoryExercises.length) {
+				// Workout complete
+				setPerformance({ weight: 0 });
+			} else {
+				setCurrentExerciseIndex((prev) => prev + 1);
+				setCurrentSetIndex(0);
+				// Initialize performance for next exercise's first set
+				const nextExercise = accessoryExercises[currentExerciseIndex];
+				if (nextExercise) {
+					setPerformance({
+						weight: nextExercise.sets[0].weight,
+						reps: nextExercise.sets[0].reps,
+						rpe: nextExercise.definition.type !== "primary" ? 7 : undefined,
+					});
+				}
+			}
+		} else {
+			setCurrentSetIndex((prev) => prev + 1);
+			// Initialize performance for next set
+			const nextSet = currentExercise.sets[currentSetIndex + 1];
+			if (nextSet) {
+				setPerformance({
+					weight: nextSet.weight,
+					reps: nextSet.reps,
+					rpe: currentExercise.definition.type !== "primary" ? 7 : undefined,
+				});
+			}
+		}
 	};
 
 	const handleSkipRemainingInExercise = () => {
