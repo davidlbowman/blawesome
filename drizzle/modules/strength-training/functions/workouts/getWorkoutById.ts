@@ -1,5 +1,9 @@
 import { db } from "@/drizzle/db";
 import {
+	type ExerciseDefinitionsSelect,
+	type ExercisesSelect,
+	type SetsSelect,
+	type WorkoutsSelect,
 	exerciseDefinitions,
 	exercises,
 	sets,
@@ -7,35 +11,37 @@ import {
 } from "@/drizzle/modules/strength-training/schemas";
 import { eq } from "drizzle-orm";
 
-export type WorkoutDetails = {
-	id: string;
-	date: Date;
-	status: string;
-	primaryLift: string;
+interface ExerciseWithDefinition {
+	exercise: {
+		id: ExercisesSelect["id"];
+		order: ExercisesSelect["order"];
+		status: ExercisesSelect["status"];
+	};
+	definition: {
+		id: ExerciseDefinitionsSelect["id"];
+		name: ExerciseDefinitionsSelect["name"];
+		type: ExerciseDefinitionsSelect["type"];
+		rpeMax: NonNullable<ExerciseDefinitionsSelect["rpeMax"]>;
+		repMax: NonNullable<ExerciseDefinitionsSelect["repMax"]>;
+	};
+	sets: Array<{
+		id: SetsSelect["id"];
+		setNumber: SetsSelect["setNumber"];
+		weight: SetsSelect["weight"];
+		reps: SetsSelect["reps"];
+		percentageOfMax: NonNullable<SetsSelect["percentageOfMax"]>;
+		status: SetsSelect["status"];
+	}>;
+}
+
+interface WorkoutDetails {
+	id: WorkoutsSelect["id"];
+	date: WorkoutsSelect["date"];
+	status: WorkoutsSelect["status"];
+	primaryLift: WorkoutsSelect["primaryLift"];
 	title: string;
-	exercises: {
-		exercise: {
-			id: string;
-			order: number;
-			status: string;
-		};
-		definition: {
-			id: string;
-			name: string;
-			type: string;
-			rpeMax: number | null;
-			repMax: number | null;
-		};
-		sets: Array<{
-			id: string;
-			setNumber: number;
-			weight: number;
-			reps: number;
-			percentageOfMax: number;
-			status: string;
-		}>;
-	}[];
-};
+	exercises: ExerciseWithDefinition[];
+}
 
 export async function getWorkoutById(
 	workoutId: string,
@@ -82,8 +88,8 @@ export async function getWorkoutById(
 						id: definition.id,
 						name: definition.name,
 						type: definition.type,
-						rpeMax: definition.rpeMax,
-						repMax: definition.repMax,
+						rpeMax: definition.rpeMax || 0,
+						repMax: definition.repMax || 0,
 					},
 					sets: exerciseSets.map((set) => ({
 						id: set.id,

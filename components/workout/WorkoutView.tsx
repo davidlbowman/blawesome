@@ -12,6 +12,12 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import type {
+	ExerciseDefinitionsSelect,
+	ExercisesSelect,
+	SetsSelect,
+	WorkoutsSelect,
+} from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useState } from "react";
@@ -22,30 +28,30 @@ import { WorkoutStatsCard } from "./WorkoutStatsCard";
 
 interface ExerciseWithDefinition {
 	exercise: {
-		id: string;
-		order: number;
+		id: ExercisesSelect["id"];
+		order: ExercisesSelect["order"];
 	};
 	definition: {
-		id: string;
-		name: string;
-		type: string;
-		rpeMax: number | null;
-		repMax: number | null;
+		id: ExerciseDefinitionsSelect["id"];
+		name: ExerciseDefinitionsSelect["name"];
+		type: ExerciseDefinitionsSelect["type"];
+		rpeMax: NonNullable<ExerciseDefinitionsSelect["rpeMax"]>;
+		repMax: NonNullable<ExerciseDefinitionsSelect["repMax"]>;
 	};
 	sets: Array<{
-		id: string;
-		setNumber: number;
-		weight: number;
-		reps: number;
-		percentageOfMax: number;
+		id: SetsSelect["id"];
+		setNumber: SetsSelect["setNumber"];
+		weight: SetsSelect["weight"];
+		reps: SetsSelect["reps"];
+		percentageOfMax: NonNullable<SetsSelect["percentageOfMax"]>;
 	}>;
 }
 
 interface WorkoutViewProps {
 	workout: {
-		id: string;
-		date: Date;
-		status: string;
+		id: WorkoutsSelect["id"];
+		date: WorkoutsSelect["date"];
+		status: WorkoutsSelect["status"];
 		exercises: ExerciseWithDefinition[];
 	};
 }

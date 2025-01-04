@@ -3,7 +3,10 @@ import { getWorkoutById } from "@/drizzle/modules/strength-training/functions/wo
 import { notFound } from "next/navigation";
 
 interface Props {
-	params: Promise<{ cycleId: string; workoutId: string }>;
+	params: Promise<{
+		cycleId: string;
+		workoutId: string;
+	}>;
 }
 
 export default async function WorkoutPage({ params }: Props) {
