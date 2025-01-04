@@ -2,28 +2,72 @@
 
 import { db } from "@/drizzle/db";
 import {
+	exerciseDefinitions,
 	exercises,
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
+import { ExerciseType } from "@/drizzle/modules/strength-training/schemas";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+
+interface SetPerformance {
+	weight: number;
+	reps?: number;
+	rpe?: number;
+}
 
 export async function completeSet(
 	setId: string,
 	exerciseId: string,
 	workoutId: string,
+	performance: SetPerformance,
 ) {
 	await db.transaction(async (tx) => {
-		// Complete current set
-		await tx
-			.update(sets)
-			.set({
-				status: "completed",
-				completedAt: new Date(),
-				updatedAt: new Date(),
+		// Get the exercise and its definition to determine the type
+		const [exercise] = await tx
+			.select({
+				exercise: exercises,
+				definition: exerciseDefinitions,
 			})
-			.where(eq(sets.id, setId));
+			.from(exercises)
+			.where(eq(exercises.id, exerciseId))
+			.innerJoin(
+				exerciseDefinitions,
+				eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
+			);
+
+		// Get the current set data for logging
+		const [currentSet] = await tx.select().from(sets).where(eq(sets.id, setId));
+
+		console.log("Before:", {
+			setId,
+			exerciseId,
+			workoutId,
+			currentData: currentSet,
+			exerciseType: exercise.definition.type,
+		});
+
+		// Complete current set with performance data
+		const updateData = {
+			status: "completed" as const,
+			completedAt: new Date(),
+			updatedAt: new Date(),
+			weight: performance.weight,
+			...(exercise.definition.type === ExerciseType.Primary
+				? { reps: performance.reps }
+				: { rpe: performance.rpe }),
+		};
+
+		await tx.update(sets).set(updateData).where(eq(sets.id, setId));
+
+		console.log("After:", {
+			setId,
+			exerciseId,
+			workoutId,
+			performance: updateData,
+			exerciseType: exercise.definition.type,
+		});
 
 		// Get all sets for this exercise
 		const exerciseSets = await tx
@@ -105,6 +149,7 @@ export async function completeSet(
 			}
 		}
 	});
+
 	// Only revalidate when the workout is completed
 	if (await isWorkoutCompleted(workoutId)) {
 		revalidatePath("/modules/strength-training/[cycleId]", "page");

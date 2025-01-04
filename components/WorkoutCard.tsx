@@ -296,13 +296,25 @@ export function WorkoutCard({
 
 		const currentExercise = sorted[currentExerciseIndex];
 		const currentSet = currentExercise.sets[currentSetIndex];
+
+		console.log("Before:", {
+			setId: currentSet.id,
+			exerciseId: currentExercise.exercise.id,
+			workoutId: id,
+			currentData: {
+				weight: currentSet.weight,
+				reps: currentSet.reps,
+				exerciseType: currentExercise.definition.type,
+			},
+		});
+
 		setSetPerformance({
 			weight: currentSet.weight,
 			reps: currentSet.reps,
 			rpe: currentExercise.definition.type !== "primary" ? 7 : undefined,
 		});
 		restTimer.start();
-	}, [status, currentExerciseIndex, currentSetIndex, sorted, restTimer]);
+	}, [status, currentExerciseIndex, currentSetIndex, sorted, restTimer, id]);
 
 	const handleCompleteSet = useCallback(async () => {
 		const currentExercise = sorted[currentExerciseIndex];
@@ -313,8 +325,28 @@ export function WorkoutCard({
 			setIsCollectingData(false);
 			restTimer.start();
 
+			const performance = {
+				weight: setPerformance.weight ?? currentSet.weight,
+				...(currentExercise.definition.type === "primary"
+					? { reps: setPerformance.reps ?? currentSet.reps }
+					: { rpe: setPerformance.rpe ?? 7 }),
+			};
+
+			console.log("After:", {
+				setId: currentSet.id,
+				exerciseId: currentExercise.exercise.id,
+				workoutId: id,
+				performance,
+				exerciseType: currentExercise.definition.type,
+			});
+
 			// Save to DB in background
-			await completeSet(currentSet.id, currentExercise.exercise.id, id);
+			await completeSet(
+				currentSet.id,
+				currentExercise.exercise.id,
+				id,
+				performance,
+			);
 
 			// Update local state
 			if (currentSetIndex < currentExercise.sets.length - 1) {
@@ -337,7 +369,15 @@ export function WorkoutCard({
 			setIsCollectingData(true);
 			restTimer.stop();
 		}
-	}, [id, currentExerciseIndex, currentSetIndex, sorted, restTimer, toast]);
+	}, [
+		id,
+		currentExerciseIndex,
+		currentSetIndex,
+		sorted,
+		restTimer,
+		toast,
+		setPerformance,
+	]);
 
 	const handleSkipSet = useCallback(async () => {
 		const currentExercise = sorted[currentExerciseIndex];
@@ -348,8 +388,13 @@ export function WorkoutCard({
 			setIsCollectingData(false);
 			restTimer.start();
 
-			// Save to DB in background
-			await completeSet(currentSet.id, currentExercise.exercise.id, id);
+			// Save to DB in background with default values
+			await completeSet(currentSet.id, currentExercise.exercise.id, id, {
+				weight: currentSet.weight,
+				...(currentExercise.definition.type === "primary"
+					? { reps: currentSet.reps }
+					: { rpe: 7 }),
+			});
 
 			// Update local state
 			if (currentSetIndex < currentExercise.sets.length - 1) {
