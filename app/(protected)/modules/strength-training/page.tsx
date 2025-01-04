@@ -12,7 +12,6 @@ import {
 import { getUserId } from "@/drizzle/core/functions/users/getUserId";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
 import { getTrainingData } from "@/drizzle/modules/strength-training/functions/cycles/getTrainingData";
-import { getWorkoutStats } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutStats";
 import type {
 	CyclesSelect,
 	PrimaryLift,
@@ -27,6 +26,15 @@ type WorkoutStats = {
 	completedWorkouts: number;
 	nextWorkout: WorkoutsSelect | undefined;
 };
+
+function calculateWorkoutStats(workouts: WorkoutsSelect[]): WorkoutStats {
+	return {
+		totalWorkouts: workouts.length,
+		completedWorkouts: workouts.filter((w) => w.status === Status.Completed)
+			.length,
+		nextWorkout: workouts.find((w) => w.status === Status.Pending),
+	};
+}
 
 function getCompletedWorkouts(cycle: CyclesSelect, stats: WorkoutStats) {
 	return cycle.status === Status.Completed
@@ -63,7 +71,7 @@ function CycleList({
 	cycles: CyclesSelect[];
 	workoutData: WorkoutsSelect[];
 }) {
-	const stats = getWorkoutStats(workoutData);
+	const stats = calculateWorkoutStats(workoutData);
 
 	// Calculate overall stats
 	const totalCycles = cycles.length;
