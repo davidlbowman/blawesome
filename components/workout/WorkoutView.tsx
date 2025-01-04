@@ -56,32 +56,44 @@ export function WorkoutView({ workout }: WorkoutViewProps) {
 		);
 	}
 
+	// Calculate stats
+	const totalSets = workout.exercises.reduce(
+		(acc, exercise) => acc + exercise.sets.length,
+		0,
+	);
+
+	const completedSets = workout.exercises.reduce(
+		(acc, exercise) =>
+			acc +
+			exercise.sets.filter(
+				(s) => s.status === Status.Completed || s.status === Status.Skipped,
+			).length,
+		0,
+	);
+
+	const totalVolume = workout.exercises.reduce(
+		(acc, exercise) =>
+			acc +
+			exercise.sets.reduce((setAcc, set) => setAcc + set.weight * set.reps, 0),
+		0,
+	);
+
+	// TODO: Calculate these from actual data
+	const volumeChange = 120;
+	const primaryLiftWeight = mainExercise.sets[0].weight;
+	const primaryLiftChange = 5;
+	const consistency = Math.round((completedSets / totalSets) * 100);
+
 	return (
 		<div className="container mx-auto p-6 space-y-6">
 			<WorkoutStatsCard
-				totalSets={workout.exercises.reduce(
-					(acc, exercise) => acc + exercise.sets.length,
-					0,
-				)}
-				completedSets={workout.exercises.reduce(
-					(acc, exercise) =>
-						acc +
-						exercise.sets.filter((s) => s.status === Status.Completed).length,
-					0,
-				)}
-				totalVolume={workout.exercises.reduce(
-					(acc, exercise) =>
-						acc +
-						exercise.sets.reduce(
-							(setAcc, set) => setAcc + set.weight * set.reps,
-							0,
-						),
-					0,
-				)}
-				volumeChange={120} // TODO: Calculate from actual data
-				primaryLiftWeight={mainExercise.sets[0].weight}
-				primaryLiftChange={5} // TODO: Calculate from actual data
-				consistency={98} // TODO: Calculate from actual data
+				totalSets={totalSets}
+				completedSets={completedSets}
+				totalVolume={totalVolume}
+				volumeChange={volumeChange}
+				primaryLiftWeight={primaryLiftWeight}
+				primaryLiftChange={primaryLiftChange}
+				consistency={consistency}
 			/>
 
 			<WorkoutCard

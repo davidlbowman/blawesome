@@ -27,14 +27,14 @@ export async function clearWorkoutData() {
 }
 
 // Only run this if you need to clear workout data
-// if (require.main === module) {
-// 	clearWorkoutData()
-// 		.then((result) => {
-// 			console.log("Workout data cleared:", result);
-// 			process.exit(result.success ? 0 : 1);
-// 		})
-// 		.catch((error) => {
-// 			console.error("Error:", error);
-// 			process.exit(1);
-// 		});
-// }
+if (require.main === module) {
+	clearWorkoutData()
+		.then((result) => {
+			console.log("Workout data cleared:", result);
+			process.exit(result.success ? 0 : 1);
+		})
+		.catch((error) => {
+			console.error("Error:", error);
+			process.exit(1);
+		});
+}

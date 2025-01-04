@@ -8,7 +8,7 @@ export async function skipSet(setId: string) {
 	await db
 		.update(sets)
 		.set({
-			status: "completed",
+			status: "skipped",
 			completedAt: new Date(),
 			updatedAt: new Date(),
 		})

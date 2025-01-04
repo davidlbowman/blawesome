@@ -219,17 +219,17 @@ export default async function CyclePage({ params }: PageProps) {
 				<div>
 					<h2 className="text-xl font-semibold mb-4">Workouts</h2>
 					<div className="space-y-6">
-						{nextWorkouts.length > 0 && (
-							<div>
-								<h3 className="text-lg font-medium mb-4">Next Workout</h3>
-								<WorkoutCard {...nextWorkouts[0]} cycleId={cycleId} />
-							</div>
-						)}
-
 						{currentWorkout && (
 							<div>
 								<h3 className="text-lg font-medium mb-4">Current Workout</h3>
 								<WorkoutCard {...currentWorkout} cycleId={cycleId} />
+							</div>
+						)}
+
+						{nextWorkouts.length > 0 && (
+							<div>
+								<h3 className="text-lg font-medium mb-4">Next Workout</h3>
+								<WorkoutCard {...nextWorkouts[0]} cycleId={cycleId} />
 							</div>
 						)}
 

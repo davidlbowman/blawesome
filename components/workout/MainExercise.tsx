@@ -81,11 +81,6 @@ export function MainExercise({
 						>
 							<TableCell className="flex items-center gap-2">
 								<span>{set.setNumber}</span>
-								{set.status === Status.Skipped && (
-									<span className="text-xs text-muted-foreground">
-										(Skipped)
-									</span>
-								)}
 							</TableCell>
 							<TableCell>{set.weight}</TableCell>
 							<TableCell>{set.reps}</TableCell>

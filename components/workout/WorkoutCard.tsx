@@ -13,11 +13,11 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
-import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import { skipSet } from "@/drizzle/modules/strength-training/functions/sets/skipSet";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
+import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { CalendarDays, Dumbbell } from "lucide-react";
@@ -159,6 +159,15 @@ export function WorkoutCard({
 		await startWorkout(workoutState.id);
 		setCurrentExerciseIndex(0);
 		setCurrentSetIndex(0);
+
+		// Initialize performance for first set and open dialog
+		const firstSet = mainExercise.sets[0];
+		setPerformance({
+			weight: firstSet.weight,
+			reps: firstSet.reps,
+			rpe: mainExercise.definition.type !== "primary" ? 7 : undefined,
+		});
+		setIsCollectingData(true);
 	};
 
 	const handleStartSet = () => {
@@ -274,9 +283,40 @@ export function WorkoutCard({
 		}
 	};
 
-	const isLastSet =
-		currentExerciseIndex === accessoryExercises.length - 1 &&
-		currentSet?.setNumber === currentExercise?.sets.length;
+	const isLastSetOfLastExercise =
+		currentExerciseIndex === accessoryExercises.length &&
+		currentSetIndex === currentExercise?.sets.length - 1;
+
+	const renderActionButtons = () => {
+		if (workoutState.status === Status.Pending) {
+			return (
+				<Button
+					className="w-full"
+					onClick={handleStartWorkout}
+					disabled={isCollectingData}
+				>
+					Start Workout
+				</Button>
+			);
+		}
+
+		if (workoutState.status === Status.Completed) {
+			return null;
+		}
+
+		return (
+			<div className="grid grid-cols-2 gap-2">
+				<Button onClick={handleStartSet} disabled={isCollectingData}>
+					{isLastSetOfLastExercise ? "Complete Workout" : "Rest"}
+				</Button>
+				{!isCollectingData && (
+					<Button variant="outline" onClick={handleSkipSet}>
+						Skip Set
+					</Button>
+				)}
+			</div>
+		);
+	};
 
 	return (
 		<>
@@ -321,36 +361,7 @@ export function WorkoutCard({
 						workoutStatus={workoutState.status}
 					/>
 
-					{workoutState.status === Status.Pending ? (
-						<Button
-							className="w-full"
-							onClick={handleStartWorkout}
-							disabled={
-								workoutState.status === Status.Completed || isCollectingData
-							}
-						>
-							Start Workout
-						</Button>
-					) : (
-						<div className="grid grid-cols-2 gap-2">
-							<Button
-								onClick={handleStartSet}
-								disabled={
-									workoutState.status === Status.Completed || isCollectingData
-								}
-							>
-								{isLastSet ? "Complete Workout" : "Rest"}
-							</Button>
-							{workoutState.status === Status.InProgress &&
-							!isCollectingData ? (
-								<Button variant="outline" onClick={handleSkipSet}>
-									Skip Set
-								</Button>
-							) : (
-								<div />
-							)}
-						</div>
-					)}
+					{renderActionButtons()}
 				</CardContent>
 			</Card>
 
