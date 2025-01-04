@@ -3,49 +3,47 @@
 import { db } from "@/drizzle/db";
 import { exercises, sets } from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
-import { eq } from "drizzle-orm";
+import { and, eq, notInArray } from "drizzle-orm";
 
 export async function skipSet(setId: string) {
-	await db.transaction(async (tx) => {
-		// Get the set and its exercise
-		const [set] = await tx
-			.select({
-				set: sets,
-				exerciseId: sets.exerciseId,
-			})
-			.from(sets)
-			.where(eq(sets.id, setId));
+	const now = new Date();
 
-		// Mark the set as skipped
-		await tx
-			.update(sets)
+	// Update the set and get its exercise ID
+	const [skippedSet] = await db
+		.update(sets)
+		.set({
+			status: Status.Skipped,
+			completedAt: now,
+			updatedAt: now,
+		})
+		.where(eq(sets.id, setId))
+		.returning({
+			exerciseId: sets.exerciseId,
+		});
+
+	if (!skippedSet) return;
+
+	// Check if any sets are still not completed/skipped
+	const incompleteSets = await db
+		.select()
+		.from(sets)
+		.where(
+			and(
+				eq(sets.exerciseId, skippedSet.exerciseId),
+				notInArray(sets.status, [Status.Completed, Status.Skipped]),
+			),
+		)
+		.limit(1);
+
+	// If all sets are completed/skipped, update the exercise
+	if (incompleteSets.length === 0) {
+		await db
+			.update(exercises)
 			.set({
-				status: Status.Skipped,
-				completedAt: new Date(),
-				updatedAt: new Date(),
+				status: Status.Completed,
+				completedAt: now,
+				updatedAt: now,
 			})
-			.where(eq(sets.id, setId));
-
-		// Check if all sets in the exercise are completed or skipped
-		const exerciseSets = await tx
-			.select()
-			.from(sets)
-			.where(eq(sets.exerciseId, set.exerciseId));
-
-		const allSetsCompleted = exerciseSets.every(
-			(s) => s.status === Status.Completed || s.status === Status.Skipped,
-		);
-
-		if (allSetsCompleted) {
-			// Mark the exercise as completed
-			await tx
-				.update(exercises)
-				.set({
-					status: Status.Completed,
-					completedAt: new Date(),
-					updatedAt: new Date(),
-				})
-				.where(eq(exercises.id, set.exerciseId));
-		}
-	});
+			.where(eq(exercises.id, skippedSet.exerciseId));
+	}
 }

@@ -34,7 +34,6 @@ import {
 	Weight,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useOptimistic } from "react";
 import { AccessoryExercises } from "./AccessoryExercises";
@@ -99,7 +98,6 @@ export function WorkoutView({
 	workout: initialWorkout,
 	cycleId,
 }: WorkoutViewProps) {
-	const router = useRouter();
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
 	const [, startTransition] = useTransition();
@@ -298,7 +296,6 @@ export function WorkoutView({
 		startTransition(async () => {
 			addOptimisticUpdate({ type: "start_workout" });
 			await startWorkout(optimisticWorkout.id);
-			router.refresh();
 		});
 
 		setCurrentExerciseIndex(0);
