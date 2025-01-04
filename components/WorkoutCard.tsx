@@ -119,19 +119,24 @@ const DataCollectionInterface = ({
 	performance,
 	setPerformance,
 	onComplete,
-	onSkip,
 	restTimer,
+	currentExerciseIndex,
+	totalExercises,
+	onSkipRemainingInExercise,
 }: {
 	exercise: ExerciseWithDefinition;
 	currentSet: ExerciseWithDefinition["sets"][0];
 	performance: SetPerformance;
 	setPerformance: (perf: SetPerformance) => void;
 	onComplete: () => void;
-	onSkip: () => void;
 	restTimer: ReturnType<typeof useRestTimer>;
+	currentExerciseIndex: number;
+	totalExercises: number;
+	onSkipRemainingInExercise: () => void;
 }) => {
 	const isPrimary = exercise.definition.type === "primary";
 	const isLastSet = currentSet.setNumber === exercise.sets.length;
+	const isLastExercise = currentExerciseIndex === totalExercises - 1;
 
 	return (
 		<div className="space-y-6 p-4">
@@ -219,18 +224,14 @@ const DataCollectionInterface = ({
 				<Button onClick={onComplete}>
 					{isLastSet ? "Start Next Exercise" : "Start Next Set"}
 				</Button>
-				<Button variant="outline" onClick={onSkip}>
-					Skip Next Set
-				</Button>
 				<Button
 					variant="ghost"
 					className="text-destructive hover:text-destructive"
-					onClick={() => {
-						// TODO: Implement skip remaining sets
-						onSkip();
-					}}
+					onClick={onSkipRemainingInExercise}
 				>
-					Skip Remaining Sets
+					{isLastExercise && isLastSet
+						? "Finish Workout"
+						: "Skip Remaining Sets"}
 				</Button>
 			</div>
 		</div>
@@ -433,7 +434,7 @@ export function WorkoutCard({
 												? set.setNumber - 1 === currentSetIndex
 													? "bg-primary/20"
 													: set.setNumber - 1 < currentSetIndex
-														? "bg-green-500/10"
+														? "bg-muted-foreground/10"
 														: ""
 												: ""
 										}
@@ -493,19 +494,52 @@ export function WorkoutCard({
 					))}
 				</div>
 
-				<div className="flex justify-between items-center">
+				{status === Status.Pending ? (
 					<Button
 						className="w-full"
 						onClick={handleStartSet}
 						disabled={status === Status.Completed || isCollectingData}
 					>
-						{status === Status.Pending ? "Start Workout" : "Rest"}
+						Start Workout
 					</Button>
-				</div>
+				) : (
+					<div className="grid grid-cols-2 gap-2">
+						<Button
+							onClick={handleStartSet}
+							disabled={status === Status.Completed || isCollectingData}
+						>
+							Rest
+						</Button>
+						{status === Status.InProgress && !isCollectingData ? (
+							<Button variant="outline" onClick={handleSkipSet}>
+								Skip Set
+							</Button>
+						) : (
+							<div />
+						)}
+					</div>
+				)}
 
 				{(() => {
 					const currentExercise = sorted[currentExerciseIndex];
 					const currentSet = currentExercise.sets[currentSetIndex];
+
+					const handleSkipRemainingInExercise = () => {
+						const isLastExercise = currentExerciseIndex === sorted.length - 1;
+						const isLastSetOfWorkout =
+							isLastExercise &&
+							currentSet.setNumber === currentExercise.sets.length;
+
+						if (isLastSetOfWorkout) {
+							handleCompleteSet(); // Complete workout
+						} else {
+							// Skip to next exercise
+							setCurrentSetIndex(0);
+							setCurrentExerciseIndex((prev) => prev + 1);
+							setIsCollectingData(false);
+							restTimer.start();
+						}
+					};
 
 					return isDesktop ? (
 						<Dialog open={isCollectingData} onOpenChange={setIsCollectingData}>
@@ -522,8 +556,10 @@ export function WorkoutCard({
 									performance={setPerformance}
 									setPerformance={setSetPerformance}
 									onComplete={handleCompleteSet}
-									onSkip={handleSkipSet}
 									restTimer={restTimer}
+									currentExerciseIndex={currentExerciseIndex}
+									totalExercises={sorted.length}
+									onSkipRemainingInExercise={handleSkipRemainingInExercise}
 								/>
 							</DialogContent>
 						</Dialog>
@@ -542,8 +578,10 @@ export function WorkoutCard({
 									performance={setPerformance}
 									setPerformance={setSetPerformance}
 									onComplete={handleCompleteSet}
-									onSkip={handleSkipSet}
 									restTimer={restTimer}
+									currentExerciseIndex={currentExerciseIndex}
+									totalExercises={sorted.length}
+									onSkipRemainingInExercise={handleSkipRemainingInExercise}
 								/>
 							</DrawerContent>
 						</Drawer>
