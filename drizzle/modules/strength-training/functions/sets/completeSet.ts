@@ -2,8 +2,8 @@
 
 import { db } from "@/drizzle/db";
 import {
-	exerciseDefinitions,
 	exercises,
+	exerciseDefinitions,
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
@@ -37,17 +37,6 @@ export async function completeSet(
 				eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
 			);
 
-		// Get the current set data for logging
-		const [currentSet] = await tx.select().from(sets).where(eq(sets.id, setId));
-
-		console.log("Before:", {
-			setId,
-			exerciseId,
-			workoutId,
-			currentData: currentSet,
-			exerciseType: exercise.definition.type,
-		});
-
 		// Complete current set with performance data
 		const updateData = {
 			status: "completed" as const,
@@ -60,14 +49,6 @@ export async function completeSet(
 		};
 
 		await tx.update(sets).set(updateData).where(eq(sets.id, setId));
-
-		console.log("After:", {
-			setId,
-			exerciseId,
-			workoutId,
-			performance: updateData,
-			exerciseType: exercise.definition.type,
-		});
 
 		// Get all sets for this exercise
 		const exerciseSets = await tx
