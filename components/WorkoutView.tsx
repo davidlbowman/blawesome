@@ -2,7 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -30,14 +36,7 @@ import type { WorkoutDetails } from "@/drizzle/modules/strength-training/functio
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useToast } from "@/hooks/use-toast";
-import {
-	Activity,
-	CalendarDays,
-	Dumbbell,
-	Save,
-	TrendingUp,
-	Weight,
-} from "lucide-react";
+import { CalendarDays, Dumbbell, Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const useRestTimer = (initialValue = 0) => {
@@ -259,97 +258,6 @@ const formatDate = (date: Date) => {
 	}).format(new Date(date));
 };
 
-interface WorkoutProgressProps {
-	workout: WorkoutDetails;
-}
-
-function WorkoutProgress({ workout }: WorkoutProgressProps) {
-	// Calculate progress metrics
-	const totalSets = workout.exercises.reduce(
-		(acc: number, ex) => acc + ex.sets.length,
-		0,
-	);
-	const completedSets = workout.exercises.reduce(
-		(acc: number, ex) =>
-			acc + ex.sets.filter((s) => s.status === "completed").length,
-		0,
-	);
-	const totalVolume = workout.exercises.reduce(
-		(acc: number, ex) =>
-			acc +
-			ex.sets.reduce(
-				(setAcc: number, set) => setAcc + set.weight * (set.reps || 0),
-				0,
-			),
-		0,
-	);
-	const primaryExercise = workout.exercises.find(
-		(ex) => ex.definition.type === "primary",
-	);
-	const primaryLiftMax =
-		primaryExercise?.sets.reduce(
-			(max: number, set) => Math.max(max, set.weight),
-			0,
-		) ?? 0;
-
-	return (
-		<div className="grid gap-4 md:grid-cols-4">
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Total Sets</CardTitle>
-					<Dumbbell className="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div className="text-2xl font-bold">
-						{completedSets}/{totalSets}
-					</div>
-					<p className="text-xs text-muted-foreground">
-						{completedSets === totalSets
-							? "All sets completed"
-							: "Sets remaining"}
-					</p>
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Total Volume</CardTitle>
-					<Weight className="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div className="text-2xl font-bold">
-						{totalVolume.toLocaleString()} lbs
-					</div>
-					<p className="text-xs text-muted-foreground">
-						Current workout volume
-					</p>
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Primary Lift</CardTitle>
-					<TrendingUp className="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div className="text-2xl font-bold">{primaryLiftMax} lbs</div>
-					<p className="text-xs text-muted-foreground">Heaviest set today</p>
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Consistency</CardTitle>
-					<Activity className="h-4 w-4 text-muted-foreground" />
-				</CardHeader>
-				<CardContent>
-					<div className="text-2xl font-bold">
-						{Math.round((completedSets / totalSets) * 100)}%
-					</div>
-					<p className="text-xs text-muted-foreground">Workout completion</p>
-				</CardContent>
-			</Card>
-		</div>
-	);
-}
-
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
 }
@@ -372,6 +280,27 @@ export function WorkoutView({ workout }: WorkoutViewProps) {
 	const accessoryExercises = sorted.filter(
 		(e) => e.definition.type !== "primary",
 	);
+
+	// Calculate stats for the progress dashboard
+	const totalSets = sorted.reduce((acc, ex) => acc + ex.sets.length, 0);
+	const completedSets = sorted.reduce(
+		(acc, ex) => acc + ex.sets.filter((s) => s.status === "completed").length,
+		0,
+	);
+	const totalVolume = sorted.reduce(
+		(acc, ex) =>
+			acc +
+			ex.sets.reduce(
+				(setAcc: number, set) => setAcc + set.weight * (set.reps || 0),
+				0,
+			),
+		0,
+	);
+	const primaryLiftMax =
+		mainExercise?.sets.reduce(
+			(max: number, set) => Math.max(max, set.weight),
+			0,
+		) ?? 0;
 
 	const handleStartSet = useCallback(() => {
 		if (workoutState.status === Status.Pending) {
@@ -532,8 +461,39 @@ export function WorkoutView({ workout }: WorkoutViewProps) {
 	]);
 
 	return (
-		<div className="container space-y-8 py-8">
-			<WorkoutProgress workout={workoutState} />
+		<div className="container mx-auto p-6 space-y-8">
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-2xl">Workout Stats</CardTitle>
+					<CardDescription>
+						Track your progress through this workout
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">
+							{completedSets}/{totalSets}
+						</span>
+						<span className="text-sm text-muted-foreground">Total Sets</span>
+					</div>
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">
+							{totalVolume.toLocaleString()} lbs
+						</span>
+						<span className="text-sm text-muted-foreground">Total Volume</span>
+					</div>
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">{primaryLiftMax} lbs</span>
+						<span className="text-sm text-muted-foreground">Primary Lift</span>
+					</div>
+					<div className="flex flex-col space-y-1.5">
+						<span className="text-2xl font-semibold">
+							{Math.round((completedSets / totalSets) * 100)}%
+						</span>
+						<span className="text-sm text-muted-foreground">Consistency</span>
+					</div>
+				</CardContent>
+			</Card>
 
 			<Card className="w-full space-y-3">
 				<CardHeader className="pb-2">
