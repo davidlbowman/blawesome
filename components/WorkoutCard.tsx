@@ -33,48 +33,45 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Dumbbell, Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-function useInterval(callback: () => void, delay: number | null) {
-	const savedCallback = useRef(callback);
-
-	useEffect(() => {
-		savedCallback.current = callback;
-	}, [callback]);
-
-	useEffect(() => {
-		if (delay !== null) {
-			const id = setInterval(() => savedCallback.current(), delay);
-			return () => clearInterval(id);
-		}
-	}, [delay]);
-}
-
-const useRestTimer = () => {
-	const [displayTime, setDisplayTime] = useState(0);
+const useRestTimer = (initialValue = 0) => {
+	const [displayTime, setDisplayTime] = useState(initialValue);
 	const startTimeRef = useRef<number | null>(null);
-	const isRunningRef = useRef(false);
+	const isRunningRef = useRef<boolean>(false);
+	const frameRef = useRef<number | undefined>(undefined);
+
+	const tick = useCallback((startTime: number) => {
+		if (!isRunningRef.current) return;
+
+		const elapsed = Math.floor((performance.now() - startTime) / 1000);
+		setDisplayTime(elapsed);
+		frameRef.current = requestAnimationFrame(() => tick(startTime));
+	}, []);
 
 	const start = useCallback(() => {
-		startTimeRef.current = performance.now();
+		const startTime = performance.now();
+		startTimeRef.current = startTime;
 		isRunningRef.current = true;
-	}, []);
+		frameRef.current = requestAnimationFrame(() => tick(startTime));
+	}, [tick]);
 
 	const stop = useCallback(() => {
 		isRunningRef.current = false;
 		startTimeRef.current = null;
 		setDisplayTime(0);
+		if (frameRef.current !== undefined) {
+			cancelAnimationFrame(frameRef.current);
+			frameRef.current = undefined;
+		}
 	}, []);
 
-	useInterval(
-		() => {
-			if (startTimeRef.current && isRunningRef.current) {
-				const elapsed = Math.floor(
-					(performance.now() - startTimeRef.current) / 1000,
-				);
-				setDisplayTime(elapsed);
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			if (frameRef.current !== undefined) {
+				cancelAnimationFrame(frameRef.current);
 			}
-		},
-		isRunningRef.current ? 1000 : null,
-	);
+		};
+	}, []);
 
 	return {
 		time: displayTime,
@@ -268,7 +265,7 @@ export function WorkoutCard({
 }: WorkoutDetails) {
 	const { toast } = useToast();
 	const isDesktop = useMediaQuery("(min-width: 768px)");
-	const restTimer = useRestTimer();
+	const restTimer = useRestTimer(0);
 
 	const [status, setStatus] = useState(initialStatus);
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -311,11 +308,14 @@ export function WorkoutCard({
 		const currentSet = currentExercise.sets[currentSetIndex];
 
 		try {
-			await completeSet(currentSet.id, currentExercise.exercise.id, id);
-
+			// Optimistically update UI
 			setIsCollectingData(false);
 			restTimer.start();
 
+			// Save to DB in background
+			await completeSet(currentSet.id, currentExercise.exercise.id, id);
+
+			// Update local state
 			if (currentSetIndex < currentExercise.sets.length - 1) {
 				setCurrentSetIndex((prev) => prev + 1);
 			} else if (currentExerciseIndex < sorted.length - 1) {
@@ -324,7 +324,6 @@ export function WorkoutCard({
 			} else {
 				setStatus(Status.Completed);
 				restTimer.stop();
-				window.location.reload();
 			}
 		} catch (err: unknown) {
 			console.error("Failed to save set:", err);
@@ -333,6 +332,9 @@ export function WorkoutCard({
 				description: "Failed to save your progress. Please try again.",
 				variant: "destructive",
 			});
+			// Revert optimistic updates on error
+			setIsCollectingData(true);
+			restTimer.stop();
 		}
 	}, [id, currentExerciseIndex, currentSetIndex, sorted, restTimer, toast]);
 
@@ -341,11 +343,14 @@ export function WorkoutCard({
 		const currentSet = currentExercise.sets[currentSetIndex];
 
 		try {
-			await completeSet(currentSet.id, currentExercise.exercise.id, id);
-
+			// Optimistically update UI
 			setIsCollectingData(false);
 			restTimer.start();
 
+			// Save to DB in background
+			await completeSet(currentSet.id, currentExercise.exercise.id, id);
+
+			// Update local state
 			if (currentSetIndex < currentExercise.sets.length - 1) {
 				setCurrentSetIndex((prev) => prev + 1);
 			} else if (currentExerciseIndex < sorted.length - 1) {
@@ -354,7 +359,6 @@ export function WorkoutCard({
 			} else {
 				setStatus(Status.Completed);
 				restTimer.stop();
-				window.location.reload();
 			}
 		} catch (err: unknown) {
 			console.error("Failed to skip set:", err);
@@ -363,6 +367,9 @@ export function WorkoutCard({
 				description: "Failed to skip set. Please try again.",
 				variant: "destructive",
 			});
+			// Revert optimistic updates on error
+			setIsCollectingData(true);
+			restTimer.stop();
 		}
 	}, [id, currentExerciseIndex, currentSetIndex, sorted, restTimer, toast]);
 
@@ -487,20 +494,12 @@ export function WorkoutCard({
 				</div>
 
 				<div className="flex justify-between items-center">
-					{restTimer.isRunning && (
-						<div className="text-xl font-mono">
-							Rest: {restTimer.formatTime(restTimer.time)}
-						</div>
-					)}
 					<Button
+						className="w-full"
 						onClick={handleStartSet}
 						disabled={status === Status.Completed || isCollectingData}
 					>
-						{status === Status.Pending
-							? "Start Workout"
-							: currentExerciseIndex === 0 && currentSetIndex === 0
-								? "Start First Set"
-								: "Complete Set"}
+						{status === Status.Pending ? "Start Workout" : "Rest"}
 					</Button>
 				</div>
 
