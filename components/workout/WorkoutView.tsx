@@ -2,7 +2,6 @@
 
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
-import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { WorkoutCard } from "./WorkoutCard";
 import { WorkoutStatsCard } from "./WorkoutStatsCard";
 
@@ -36,18 +35,9 @@ interface WorkoutViewProps {
 		status: WorkoutsSelect["status"];
 		exercises: ExerciseWithDefinition[];
 	};
-	actions: {
-		onStartWorkout: () => Promise<void>;
-		onCompleteSet: (
-			setId: string,
-			exerciseId: string,
-			performance: SetPerformance,
-		) => Promise<void>;
-		onSkipSet: (setId: string) => Promise<void>;
-	};
 }
 
-export function WorkoutView({ workout, actions }: WorkoutViewProps) {
+export function WorkoutView({ workout }: WorkoutViewProps) {
 	const mainExercise = workout.exercises.find(
 		(e) => e.definition.type === "primary",
 	);
@@ -96,15 +86,13 @@ export function WorkoutView({ workout, actions }: WorkoutViewProps) {
 
 			<WorkoutCard
 				workoutState={{
+					id: workout.id,
 					primaryLift: mainExercise.definition.name,
 					date: workout.date,
 					status: workout.status,
 				}}
 				mainExercise={mainExercise}
 				accessoryExercises={accessoryExercises}
-				onStartWorkout={actions.onStartWorkout}
-				onCompleteSet={actions.onCompleteSet}
-				onSkipSet={actions.onSkipSet}
 			/>
 		</div>
 	);

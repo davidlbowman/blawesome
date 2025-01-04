@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/drawer";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
+import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
+import { skipSet } from "@/drizzle/modules/strength-training/functions/sets/skipSet";
+import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { CalendarDays, Dumbbell } from "lucide-react";
@@ -48,19 +51,13 @@ interface ExerciseWithDefinition {
 
 interface WorkoutCardProps {
 	workoutState: {
+		id: string;
 		primaryLift: string;
 		date: Date;
 		status: string;
 	};
 	mainExercise: ExerciseWithDefinition;
 	accessoryExercises: ExerciseWithDefinition[];
-	onStartWorkout: () => Promise<void>;
-	onCompleteSet: (
-		setId: string,
-		exerciseId: string,
-		performance: SetPerformance,
-	) => Promise<void>;
-	onSkipSet: (setId: string) => Promise<void>;
 }
 
 const formatDate = (date: Date) => {
@@ -86,9 +83,6 @@ export function WorkoutCard({
 	workoutState,
 	mainExercise,
 	accessoryExercises,
-	onStartWorkout,
-	onCompleteSet,
-	onSkipSet,
 }: WorkoutCardProps) {
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
@@ -162,7 +156,7 @@ export function WorkoutCard({
 	}));
 
 	const handleStartWorkout = async () => {
-		await onStartWorkout();
+		await startWorkout(workoutState.id);
 		setCurrentExerciseIndex(0);
 		setCurrentSetIndex(0);
 	};
@@ -185,9 +179,10 @@ export function WorkoutCard({
 	const handleCompleteSet = async () => {
 		if (!currentSet) return;
 
-		await onCompleteSet(
+		await completeSet(
 			currentSet.id,
 			currentExercise.exercise.id,
+			workoutState.id,
 			performance,
 		);
 		setIsCollectingData(false);
@@ -229,7 +224,7 @@ export function WorkoutCard({
 		if (!currentSet) return;
 
 		// Mark the set as skipped in the database
-		await onSkipSet(currentSet.id);
+		await skipSet(currentSet.id);
 
 		// Move to next set or exercise
 		if (currentSetIndex === currentExercise.sets.length - 1) {
