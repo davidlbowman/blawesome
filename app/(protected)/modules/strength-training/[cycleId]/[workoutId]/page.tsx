@@ -1,21 +1,18 @@
-import { WorkoutView } from "@/components/WorkoutView";
-import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
+import { WorkoutView } from "@/components/workout/WorkoutView";
+import { getWorkoutById } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutById";
+import { notFound } from "next/navigation";
 
-export default async function WorkoutPage({
-	params,
-}: {
-	params: Promise<{ workoutId: string; cycleId: string }>;
-}) {
+interface Props {
+	params: Promise<{ cycleId: string; workoutId: string }>;
+}
+
+export default async function WorkoutPage({ params }: Props) {
 	const { workoutId } = await params;
-	const workoutDetails = await getWorkoutDetails(workoutId);
+	const workout = await getWorkoutById(workoutId);
 
-	if (!workoutDetails) {
-		return (
-			<div className="container mx-auto p-6">
-				<h1 className="text-2xl font-bold mb-6">No workout found</h1>
-			</div>
-		);
+	if (!workout) {
+		notFound();
 	}
 
-	return <WorkoutView workout={workoutDetails} />;
+	return <WorkoutView workout={workout} />;
 }
