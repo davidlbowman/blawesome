@@ -616,22 +616,6 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 					</Drawer>
 				);
 			})()}
-
-			{/* Bottom Left Timer */}
-			{restTimer.isRunning && !showRestTimer && (
-				<div className="fixed bottom-4 left-4 bg-background border rounded-lg shadow-lg p-4 flex items-center gap-4">
-					<div className="text-2xl font-bold">
-						{restTimer.formatTime(restTimer.time)}
-					</div>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => setShowRestTimer(true)}
-					>
-						View
-					</Button>
-				</div>
-			)}
 		</div>
 	);
 }
