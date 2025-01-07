@@ -40,6 +40,7 @@ import {
 	TrendingUp,
 	Weight,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 
@@ -75,6 +76,7 @@ interface WorkoutDetails {
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
+	cycleId: string;
 }
 
 const getStatusColor = (status: string) => {
@@ -96,7 +98,10 @@ const formatDate = (date: Date) => {
 	}).format(new Date(date));
 };
 
-export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
+export function WorkoutView({
+	workout: initialWorkout,
+	cycleId,
+}: WorkoutViewProps) {
 	const router = useRouter();
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
@@ -470,8 +475,8 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 					</div>
 
 					{/* Action Buttons */}
-					{status !== Status.Completed &&
-						(status === Status.Pending ? (
+					{status !== Status.Completed ? (
+						status === Status.Pending ? (
 							<Button
 								className="w-full"
 								size="lg"
@@ -512,7 +517,17 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 									</Button>
 								)}
 							</div>
-						))}
+						)
+					) : (
+						<Link
+							href={`/modules/strength-training/${cycleId}`}
+							className="block w-full"
+						>
+							<Button className="w-full" size="lg">
+								Return to Cycle
+							</Button>
+						</Link>
+					)}
 				</CardContent>
 			</Card>
 
