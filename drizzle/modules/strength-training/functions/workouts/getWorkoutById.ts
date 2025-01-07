@@ -17,10 +17,12 @@ interface ExerciseWithDefinition {
 		ExerciseDefinitionsSelect,
 		"id" | "name" | "type" | "rpeMax" | "repMax"
 	>;
-	sets: Pick<
-		SetsSelect,
-		"id" | "setNumber" | "weight" | "reps" | "percentageOfMax" | "status"
-	>[];
+	sets: Array<
+		Pick<
+			SetsSelect,
+			"id" | "setNumber" | "weight" | "reps" | "percentageOfMax" | "status"
+		>
+	>;
 }
 
 export interface WorkoutDetails {

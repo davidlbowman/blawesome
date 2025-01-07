@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
@@ -119,12 +119,12 @@ export function WorkoutView({
 	const primaryLiftChange = 5;
 	const consistency = Math.round((completedSetCount / totalSets) * 100);
 
-	const handleStartRest = useCallback(() => {
+	const handleStartRest = () => {
 		setShowRestTimer(true);
 		restTimer.start();
-	}, [restTimer]);
+	};
 
-	const handleCompleteSet = useCallback(async () => {
+	const handleCompleteSet = async () => {
 		const currentExercise = sorted[currentExerciseIndex];
 		const currentSet = currentExercise.sets[currentSetIndex];
 
@@ -159,19 +159,11 @@ export function WorkoutView({
 				router.refresh();
 			});
 		}
-	}, [
-		currentExerciseIndex,
-		currentSetIndex,
-		sorted,
-		initialWorkout.id,
-		performance,
-		router,
-	]);
+	};
 
-	const handleSkipSet = useCallback(() => {
+	const handleSkipSet = () => {
 		const currentExercise = sorted[currentExerciseIndex];
 
-		// Move to next set or exercise
 		if (currentSetIndex < currentExercise.sets.length - 1) {
 			setCurrentSetIndex((prev) => prev + 1);
 			const nextSet = currentExercise.sets[currentSetIndex + 1];
@@ -192,9 +184,9 @@ export function WorkoutView({
 			setStatus(Status.Completed);
 			router.refresh();
 		}
-	}, [currentExerciseIndex, currentSetIndex, sorted, router]);
+	};
 
-	const handleWorkoutProgress = useCallback(async () => {
+	const handleWorkoutProgress = async () => {
 		if (status === Status.Pending) {
 			startTransition(async () => {
 				await startWorkout(initialWorkout.id);
@@ -213,16 +205,9 @@ export function WorkoutView({
 			reps: currentSet.reps,
 		});
 		handleStartRest();
-	}, [
-		status,
-		initialWorkout.id,
-		currentExerciseIndex,
-		currentSetIndex,
-		sorted,
-		handleStartRest,
-	]);
+	};
 
-	const handleSkipRemainingExerciseSets = useCallback(() => {
+	const handleSkipRemainingExerciseSets = () => {
 		setCurrentExerciseIndex((prev) => prev + 1);
 		setCurrentSetIndex(0);
 		setShowRestTimer(false);
@@ -238,9 +223,9 @@ export function WorkoutView({
 			setStatus(Status.Completed);
 			router.refresh();
 		}
-	}, [currentExerciseIndex, sorted, router]);
+	};
 
-	const handleCompleteWorkout = useCallback(async () => {
+	const handleCompleteWorkout = async () => {
 		setStatus(Status.Completed);
 		await completeSet(
 			sorted[currentExerciseIndex].sets[currentSetIndex].id,
@@ -249,14 +234,7 @@ export function WorkoutView({
 			performance,
 		);
 		router.refresh();
-	}, [
-		currentExerciseIndex,
-		currentSetIndex,
-		initialWorkout.id,
-		performance,
-		sorted,
-		router,
-	]);
+	};
 
 	if (!mainExercise) {
 		return (
