@@ -33,6 +33,7 @@ import { Status } from "@/drizzle/modules/strength-training/schemas";
 import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRestTimer } from "@/hooks/useRestTimer";
+import { formatDate } from "@/lib/formatDate";
 import {
 	CalendarDays,
 	Dumbbell,
@@ -59,14 +60,6 @@ const getStatusColor = (status: string) => {
 		default:
 			return "bg-secondary text-secondary-foreground";
 	}
-};
-
-const formatDate = (date: Date) => {
-	return new Intl.DateTimeFormat("en-US", {
-		month: "long",
-		day: "numeric",
-		year: "numeric",
-	}).format(new Date(date));
 };
 
 export function WorkoutView({
@@ -333,7 +326,9 @@ export function WorkoutView({
 								</CardTitle>
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<CalendarDays className="h-4 w-4" />
-									<span>{formatDate(initialWorkout.date)}</span>
+									<span>
+										{formatDate({ date: initialWorkout.date, month: "long" })}
+									</span>
 								</div>
 							</div>
 						</div>

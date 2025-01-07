@@ -11,6 +11,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatDate } from "@/lib/formatDate";
 import {
 	Calendar,
 	CheckCircle,
@@ -20,7 +21,6 @@ import {
 	Plus,
 } from "lucide-react";
 import Link from "next/link";
-
 // Static data for the dashboard
 const stats = {
 	totalCycles: 12,
@@ -59,14 +59,6 @@ const completedCycles = [
 		totalWorkouts: 16,
 	},
 ];
-
-const formatDate = (date: Date) => {
-	return new Intl.DateTimeFormat("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	}).format(date);
-};
 
 const getStatusColor = (status: string) => {
 	switch (status) {
@@ -213,8 +205,8 @@ function CycleCard({
 						<Calendar className="h-4 w-4" />
 						<span>
 							{status === "completed" && completedAt
-								? `Completed on ${formatDate(completedAt)}`
-								: `Started on ${formatDate(startDate)}`}
+								? `Completed on ${formatDate({ date: completedAt })}`
+								: `Started on ${formatDate({ date: startDate })}`}
 						</span>
 					</div>
 					<div className="mt-4 space-y-2">

@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { formatDate } from "@/lib/formatDate";
 import { Calendar, CheckCircle, Dumbbell, LineChart } from "lucide-react";
 import Link from "next/link";
 
@@ -25,14 +26,6 @@ interface WorkoutCardProps {
 	completedSets: number;
 	totalSets: number;
 }
-
-const formatDate = (date: Date) => {
-	return new Intl.DateTimeFormat("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	}).format(date);
-};
 
 const getStatusColor = (status: string) => {
 	switch (status) {
@@ -91,8 +84,8 @@ function WorkoutCard({
 						<Calendar className="h-4 w-4" />
 						<span>
 							{status === Status.Completed && completedAt
-								? `Completed on ${formatDate(completedAt)}`
-								: `Scheduled for ${formatDate(date)}`}
+								? `Completed on ${formatDate({ date: completedAt })}`
+								: `Scheduled for ${formatDate({ date: date })}`}
 						</span>
 					</div>
 					<div className="mt-4 space-y-2">
