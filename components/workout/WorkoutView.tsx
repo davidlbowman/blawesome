@@ -250,6 +250,24 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 		handleStartRest,
 	]);
 
+	const handleSkipRemainingExerciseSets = useCallback(() => {
+		setCurrentExerciseIndex((prev) => prev + 1);
+		setCurrentSetIndex(0);
+		setShowRestTimer(false);
+
+		if (currentExerciseIndex < sorted.length - 1) {
+			const nextExercise = sorted[currentExerciseIndex + 1];
+			const nextSet = nextExercise.sets[0];
+			setPerformance({
+				weight: nextSet.weight,
+				reps: nextSet.reps,
+			});
+		} else {
+			setStatus(Status.Completed);
+			window.location.reload();
+		}
+	}, [currentExerciseIndex, sorted]);
+
 	if (!mainExercise) {
 		return (
 			<div className="container mx-auto p-6">
@@ -307,7 +325,7 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 			</div>
 
 			{/* Workout Card */}
-			<Card className="w-full max-w-4xl space-y-3">
+			<Card className="w-full space-y-3">
 				<CardHeader className="pb-2">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-4">
@@ -431,21 +449,26 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 					</div>
 
 					{/* Action Buttons */}
-					{status !== Status.Completed && (
-						<div className="grid grid-cols-2 gap-2">
+					{status !== Status.Completed &&
+						(status === Status.Pending ? (
 							<Button
 								className="w-full"
 								size="lg"
 								onClick={handleWorkoutProgress}
-								disabled={status === Status.Completed || isPending}
+								disabled={isPending}
 							>
-								{isPending
-									? "Processing..."
-									: status === Status.Pending
-										? "Start Workout"
-										: "Rest"}
+								{isPending ? "Processing..." : "Start Workout"}
 							</Button>
-							{status === Status.InProgress && (
+						) : (
+							<div className="grid grid-cols-2 gap-2">
+								<Button
+									className="w-full"
+									size="lg"
+									onClick={handleWorkoutProgress}
+									disabled={isPending}
+								>
+									Rest
+								</Button>
 								<Button
 									variant="outline"
 									size="lg"
@@ -454,9 +477,8 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 								>
 									Skip Set
 								</Button>
-							)}
-						</div>
-					)}
+							</div>
+						))}
 				</CardContent>
 			</Card>
 
@@ -553,14 +575,18 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 
 						<div className="flex flex-col gap-2 pt-4">
 							<Button onClick={handleCompleteSet}>
-								{isLastSet ? "Start Next Exercise" : "Start Next Set"}
+								{isLastSet && currentExerciseIndex === sorted.length - 1
+									? "Complete Workout"
+									: isLastSet
+										? "Start Next Exercise"
+										: "Start Next Set"}
 							</Button>
 							<Button
 								variant="ghost"
 								className="text-destructive hover:text-destructive"
-								onClick={handleSkipSet}
+								onClick={handleSkipRemainingExerciseSets}
 							>
-								Skip Set
+								Skip Remaining Exercise Sets
 							</Button>
 						</div>
 					</div>
