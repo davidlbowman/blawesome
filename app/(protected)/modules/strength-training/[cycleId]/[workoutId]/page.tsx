@@ -10,12 +10,12 @@ interface Props {
 }
 
 export default async function WorkoutPage({ params }: Props) {
-	const { workoutId, cycleId } = await params;
+	const { workoutId } = await params;
 	const workout = await getWorkoutById(workoutId);
 
 	if (!workout) {
 		notFound();
 	}
 
-	return <WorkoutView workout={workout} cycleId={cycleId} />;
+	return <WorkoutView workout={workout} />;
 }
