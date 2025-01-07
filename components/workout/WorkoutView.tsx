@@ -27,6 +27,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
+import type { WorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutById";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import { Status } from "@/drizzle/modules/strength-training/schemas";
 import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
@@ -43,36 +44,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
-
-interface ExerciseWithDefinition {
-	exercise: {
-		id: string;
-		order: number;
-		status: string;
-	};
-	definition: {
-		id: string;
-		name: string;
-		type: string;
-		rpeMax: number | null;
-		repMax: number | null;
-	};
-	sets: Array<{
-		id: string;
-		setNumber: number;
-		weight: number;
-		reps: number;
-		percentageOfMax: number;
-		status: string;
-	}>;
-}
-
-interface WorkoutDetails {
-	id: string;
-	date: Date;
-	status: string;
-	exercises: ExerciseWithDefinition[];
-}
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;

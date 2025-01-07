@@ -23,6 +23,9 @@
 			"correctness": {
 				"noUnusedVariables": "error",
 				"noUnusedImports": "error"
+			},
+			"style": {
+				"useConsistentArrayType": "error"
 			}
 		}
 	},

@@ -1,5 +1,9 @@
 import { db } from "@/drizzle/db";
 import {
+	type ExerciseDefinitionsSelect,
+	type ExercisesSelect,
+	type SetsSelect,
+	type WorkoutsSelect,
 	exerciseDefinitions,
 	exercises,
 	sets,
@@ -8,32 +12,21 @@ import {
 import { eq } from "drizzle-orm";
 
 interface ExerciseWithDefinition {
-	exercise: {
-		id: string;
-		order: number;
-		status: string;
-	};
-	definition: {
-		id: string;
-		name: string;
-		type: string;
-		rpeMax: number;
-		repMax: number;
-	};
-	sets: Array<{
-		id: string;
-		setNumber: number;
-		weight: number;
-		reps: number;
-		percentageOfMax: number;
-		status: string;
-	}>;
+	exercise: Pick<ExercisesSelect, "id" | "order" | "status">;
+	definition: Pick<
+		ExerciseDefinitionsSelect,
+		"id" | "name" | "type" | "rpeMax" | "repMax"
+	>;
+	sets: Pick<
+		SetsSelect,
+		"id" | "setNumber" | "weight" | "reps" | "percentageOfMax" | "status"
+	>[];
 }
 
-interface WorkoutDetails {
-	id: string;
-	date: Date;
-	status: string;
+export interface WorkoutDetails {
+	id: WorkoutsSelect["id"];
+	date: WorkoutsSelect["date"];
+	status: WorkoutsSelect["status"];
 	exercises: ExerciseWithDefinition[];
 }
 
