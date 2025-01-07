@@ -40,6 +40,7 @@ import {
 	TrendingUp,
 	Weight,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 
 interface ExerciseWithDefinition {
@@ -96,6 +97,7 @@ const formatDate = (date: Date) => {
 };
 
 export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
+	const router = useRouter();
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
 	const [status, setStatus] = useState(initialWorkout.status);
@@ -185,7 +187,7 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 					performance,
 				);
 				setStatus(Status.Completed);
-				window.location.reload();
+				router.refresh();
 			});
 		}
 	}, [
@@ -194,6 +196,7 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 		sorted,
 		initialWorkout.id,
 		performance,
+		router,
 	]);
 
 	const handleSkipSet = useCallback(() => {
@@ -218,9 +221,9 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 			});
 		} else {
 			setStatus(Status.Completed);
-			window.location.reload();
+			router.refresh();
 		}
-	}, [currentExerciseIndex, currentSetIndex, sorted]);
+	}, [currentExerciseIndex, currentSetIndex, sorted, router]);
 
 	const handleWorkoutProgress = useCallback(async () => {
 		if (status === Status.Pending) {
@@ -264,9 +267,27 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 			});
 		} else {
 			setStatus(Status.Completed);
-			window.location.reload();
+			router.refresh();
 		}
-	}, [currentExerciseIndex, sorted]);
+	}, [currentExerciseIndex, sorted, router]);
+
+	const handleCompleteWorkout = useCallback(async () => {
+		setStatus(Status.Completed);
+		await completeSet(
+			sorted[currentExerciseIndex].sets[currentSetIndex].id,
+			sorted[currentExerciseIndex].exercise.id,
+			initialWorkout.id,
+			performance,
+		);
+		router.refresh();
+	}, [
+		currentExerciseIndex,
+		currentSetIndex,
+		initialWorkout.id,
+		performance,
+		sorted,
+		router,
+	]);
 
 	if (!mainExercise) {
 		return (
@@ -469,14 +490,27 @@ export function WorkoutView({ workout: initialWorkout }: WorkoutViewProps) {
 								>
 									Rest
 								</Button>
-								<Button
-									variant="outline"
-									size="lg"
-									onClick={handleSkipSet}
-									disabled={isPending}
-								>
-									Skip Set
-								</Button>
+								{currentExerciseIndex === sorted.length - 1 &&
+								currentSetIndex ===
+									sorted[currentExerciseIndex].sets.length - 1 ? (
+									<Button
+										variant="outline"
+										size="lg"
+										onClick={handleCompleteWorkout}
+										disabled={isPending}
+									>
+										Skip and Complete Workout
+									</Button>
+								) : (
+									<Button
+										variant="outline"
+										size="lg"
+										onClick={handleSkipSet}
+										disabled={isPending}
+									>
+										Skip Set
+									</Button>
+								)}
 							</div>
 						))}
 				</CardContent>
