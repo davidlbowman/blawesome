@@ -37,7 +37,6 @@ import { formatDate } from "@/lib/formatDate";
 import {
 	CalendarDays,
 	Dumbbell,
-	Save,
 	Target,
 	TrendingUp,
 	Weight,
@@ -92,7 +91,6 @@ export function WorkoutView({
 		startingExerciseIndex,
 	);
 	const [currentSetIndex, setCurrentSetIndex] = useState(startingSetIndex);
-	const [completedSets, setCompletedSets] = useState<string[]>([]);
 	const [showRestTimer, setShowRestTimer] = useState(false);
 	const [performance, setPerformance] = useState<SetPerformance>(() => {
 		const currentSet = currentExercise?.sets[startingSetIndex];
@@ -101,6 +99,18 @@ export function WorkoutView({
 			reps: currentSet?.reps,
 		};
 	});
+
+	// Find and keep main exercise separate from current exercise
+	const mainExercise = sorted.find((e) => e.definition.type === "primary");
+	if (!mainExercise) {
+		return (
+			<div className="container mx-auto p-6">
+				<p className="text-lg text-muted-foreground">
+					No primary exercise found for this workout.
+				</p>
+			</div>
+		);
+	}
 
 	const accessoryExercises = sorted.filter(
 		(e) => e.definition.type !== "primary",
@@ -150,7 +160,6 @@ export function WorkoutView({
 			performance,
 		);
 
-		setCompletedSets((prev) => [...prev, currentSet.id]);
 		setShowRestTimer(false);
 
 		if (currentSetIndex < currentExercise.sets.length - 1) {
@@ -320,7 +329,7 @@ export function WorkoutView({
 							<Dumbbell className="h-6 w-6 text-primary" />
 							<div className="flex flex-col">
 								<CardTitle className="text-2xl font-bold capitalize">
-									{currentExercise.definition.name} Day
+									{mainExercise.definition.name} Day
 								</CardTitle>
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<CalendarDays className="h-4 w-4" />
@@ -342,10 +351,10 @@ export function WorkoutView({
 					{/* Main Exercise */}
 					<div className="rounded-lg bg-muted p-6">
 						<h4 className="text-lg font-semibold mb-1">
-							{currentExercise.definition.name}
+							{mainExercise.definition.name}
 						</h4>
 						<p className="text-sm text-muted-foreground mb-4">
-							{`Type: ${currentExercise.definition.type.charAt(0).toUpperCase()}${currentExercise.definition.type.slice(1)}`}
+							{`Type: ${mainExercise.definition.type.charAt(0).toUpperCase()}${mainExercise.definition.type.slice(1)}`}
 						</p>
 						<Table>
 							<TableHeader>
@@ -357,17 +366,15 @@ export function WorkoutView({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{currentExercise.sets.map((set) => (
+								{mainExercise.sets.map((set) => (
 									<TableRow
 										key={set.id}
 										className={
-											status === Status.InProgress && currentExerciseIndex === 0
-												? set.setNumber - 1 === currentSetIndex
-													? "bg-primary/20"
-													: set.setNumber - 1 < currentSetIndex
-														? "bg-muted-foreground/10"
-														: ""
-												: ""
+											set.status === Status.InProgress
+												? "bg-primary/20"
+												: set.status === Status.Completed
+													? "bg-muted-foreground/10"
+													: ""
 										}
 									>
 										<TableCell>{set.setNumber}</TableCell>
