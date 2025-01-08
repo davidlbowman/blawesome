@@ -7,9 +7,7 @@ import {
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
-import { ExerciseType } from "@/drizzle/modules/strength-training/schemas";
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { and, eq, gt } from "drizzle-orm";
 
 interface SetPerformance {
 	weight: number;
@@ -23,45 +21,64 @@ export async function completeSet(
 	workoutId: string,
 	performance: SetPerformance,
 ) {
-	await db.transaction(async (tx) => {
-		// Get the exercise and its definition to determine the type
-		const [exercise] = await tx
+	return await db.transaction(async (tx) => {
+		// Get current exercise, current set, and next set in one query
+		const [result] = await tx
 			.select({
-				exercise: exercises,
-				definition: exerciseDefinitions,
+				exercise: {
+					id: exercises.id,
+					status: exercises.status,
+					workoutId: exercises.workoutId,
+					order: exercises.order,
+				},
+				definition: {
+					id: exerciseDefinitions.id,
+					type: exerciseDefinitions.type,
+				},
+				currentSet: {
+					setNumber: sets.setNumber,
+				},
 			})
 			.from(exercises)
-			.where(eq(exercises.id, exerciseId))
 			.innerJoin(
 				exerciseDefinitions,
 				eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
-			);
+			)
+			.innerJoin(sets, eq(sets.id, setId))
+			.where(eq(exercises.id, exerciseId));
 
-		// Complete current set with performance data
-		const updateData = {
-			status: "completed" as const,
-			completedAt: new Date(),
-			updatedAt: new Date(),
-			weight: performance.weight,
-			...(exercise.definition.type === ExerciseType.Primary
-				? { reps: performance.reps }
-				: { rpe: performance.rpe }),
-		};
+		if (!result) return;
 
-		await tx.update(sets).set(updateData).where(eq(sets.id, setId));
-
-		// Get all sets for this exercise
-		const exerciseSets = await tx
-			.select()
+		// Get next set in a separate query to avoid complexity
+		const [nextSet] = await tx
+			.select({
+				id: sets.id,
+				setNumber: sets.setNumber,
+			})
 			.from(sets)
-			.where(eq(sets.exerciseId, exerciseId))
-			.orderBy(sets.setNumber);
+			.where(
+				and(
+					eq(sets.exerciseId, exerciseId),
+					gt(sets.setNumber, result.currentSet.setNumber),
+				),
+			)
+			.orderBy(sets.setNumber)
+			.limit(1);
 
-		const currentSetIndex = exerciseSets.findIndex((s) => s.id === setId);
-		const nextSet = exerciseSets[currentSetIndex + 1];
+		// Update current set
+		await tx
+			.update(sets)
+			.set({
+				weight: performance.weight,
+				reps: performance.reps,
+				status: "completed",
+				updatedAt: new Date(),
+				completedAt: new Date(),
+			})
+			.where(eq(sets.id, setId));
 
-		if (nextSet) {
-			// If there's another set, mark it as in_progress
+		// If there's a next set, mark it as in progress
+		if (nextSet?.id) {
 			await tx
 				.update(sets)
 				.set({
@@ -69,79 +86,65 @@ export async function completeSet(
 					updatedAt: new Date(),
 				})
 				.where(eq(sets.id, nextSet.id));
-		} else {
-			// If no more sets, complete the exercise
+			return;
+		}
+
+		// No more sets, complete the exercise
+		await tx
+			.update(exercises)
+			.set({
+				status: "completed",
+				completedAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.where(eq(exercises.id, exerciseId));
+
+		// Get next exercise if any
+		const [nextExercise] = await tx
+			.select({
+				id: exercises.id,
+				firstSetId: sets.id,
+			})
+			.from(exercises)
+			.leftJoin(sets, eq(sets.exerciseId, exercises.id))
+			.where(
+				and(
+					eq(exercises.workoutId, result.exercise.workoutId),
+					gt(exercises.order, result.exercise.order),
+				),
+			)
+			.orderBy(exercises.order, sets.setNumber)
+			.limit(1);
+
+		if (nextExercise?.id) {
 			await tx
 				.update(exercises)
 				.set({
-					status: "completed",
-					completedAt: new Date(),
+					status: "in_progress",
 					updatedAt: new Date(),
 				})
-				.where(eq(exercises.id, exerciseId));
+				.where(eq(exercises.id, nextExercise.id));
 
-			// Get all exercises for this workout
-			const workoutExercises = await tx
-				.select()
-				.from(exercises)
-				.where(eq(exercises.workoutId, workoutId))
-				.orderBy(exercises.order);
-
-			const currentExerciseIndex = workoutExercises.findIndex(
-				(e) => e.id === exerciseId,
-			);
-			const nextExercise = workoutExercises[currentExerciseIndex + 1];
-
-			if (nextExercise) {
-				// If there's another exercise, mark it and its first set as in_progress
+			if (nextExercise.firstSetId) {
 				await tx
-					.update(exercises)
+					.update(sets)
 					.set({
 						status: "in_progress",
 						updatedAt: new Date(),
 					})
-					.where(eq(exercises.id, nextExercise.id));
-
-				const nextExerciseSets = await tx
-					.select()
-					.from(sets)
-					.where(eq(sets.exerciseId, nextExercise.id))
-					.orderBy(sets.setNumber);
-
-				if (nextExerciseSets.length > 0) {
-					await tx
-						.update(sets)
-						.set({
-							status: "in_progress",
-							updatedAt: new Date(),
-						})
-						.where(eq(sets.id, nextExerciseSets[0].id));
-				}
-			} else {
-				// If no more exercises, complete the workout
-				await tx
-					.update(workouts)
-					.set({
-						status: "completed",
-						completedAt: new Date(),
-						updatedAt: new Date(),
-					})
-					.where(eq(workouts.id, workoutId));
+					.where(eq(sets.id, nextExercise.firstSetId));
 			}
+			return;
 		}
+
+		// No more exercises, complete workout
+		await tx
+			.update(workouts)
+			.set({
+				status: "completed",
+				completedAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.where(eq(workouts.id, workoutId));
 	});
-
-	// Only revalidate when the workout is completed
-	if (await isWorkoutCompleted(workoutId)) {
-		revalidatePath("/modules/strength-training/[cycleId]", "page");
-	}
-}
-
-// Helper function to check if workout is completed
-async function isWorkoutCompleted(workoutId: string) {
-	const [workout] = await db
-		.select()
-		.from(workouts)
-		.where(eq(workouts.id, workoutId));
-	return workout.status === "completed";
 }
