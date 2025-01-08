@@ -70,22 +70,38 @@ export function WorkoutView({
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const restTimer = useRestTimer();
 	const [status, setStatus] = useState(initialWorkout.status);
-	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-	const [currentSetIndex, setCurrentSetIndex] = useState(0);
+
+	// Find current exercise and set indices from DB state
+	const sorted = [...initialWorkout.exercises].sort(
+		(a, b) => a.exercise.order - b.exercise.order,
+	);
+
+	const currentExerciseIdx = sorted.findIndex(
+		(e) => e.exercise.status === Status.InProgress,
+	);
+	const startingExerciseIndex =
+		currentExerciseIdx === -1 ? 0 : currentExerciseIdx;
+
+	const currentExercise = sorted[startingExerciseIndex];
+	const currentSetIdx = currentExercise?.sets.findIndex(
+		(s) => s.status === Status.InProgress,
+	);
+	const startingSetIndex = currentSetIdx === -1 ? 0 : currentSetIdx;
+
+	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(
+		startingExerciseIndex,
+	);
+	const [currentSetIndex, setCurrentSetIndex] = useState(startingSetIndex);
 	const [completedSets, setCompletedSets] = useState<string[]>([]);
 	const [showRestTimer, setShowRestTimer] = useState(false);
 	const [performance, setPerformance] = useState<SetPerformance>(() => {
-		const currentSet = initialWorkout.exercises[0]?.sets[0];
+		const currentSet = currentExercise?.sets[startingSetIndex];
 		return {
 			weight: currentSet?.weight || 0,
 			reps: currentSet?.reps,
 		};
 	});
 
-	const sorted = [...initialWorkout.exercises].sort(
-		(a, b) => a.exercise.order - b.exercise.order,
-	);
-	const mainExercise = sorted.find((e) => e.definition.type === "primary");
 	const accessoryExercises = sorted.filter(
 		(e) => e.definition.type !== "primary",
 	);
@@ -114,7 +130,7 @@ export function WorkoutView({
 
 	// TODO: Calculate these from actual data
 	const volumeChange = 120;
-	const primaryLiftWeight = mainExercise?.sets[0].weight ?? 0;
+	const primaryLiftWeight = currentExercise?.sets[0].weight ?? 0;
 	const primaryLiftChange = 5;
 	const consistency = Math.round((completedSetCount / totalSets) * 100);
 
@@ -126,6 +142,13 @@ export function WorkoutView({
 	const handleCompleteSet = async () => {
 		const currentExercise = sorted[currentExerciseIndex];
 		const currentSet = currentExercise.sets[currentSetIndex];
+
+		await completeSet(
+			currentSet.id,
+			currentExercise.exercise.id,
+			initialWorkout.id,
+			performance,
+		);
 
 		setCompletedSets((prev) => [...prev, currentSet.id]);
 		setShowRestTimer(false);
@@ -147,19 +170,21 @@ export function WorkoutView({
 				reps: nextSet.reps,
 			});
 		} else {
-			await completeSet(
-				currentSet.id,
-				currentExercise.exercise.id,
-				initialWorkout.id,
-				performance,
-			);
 			setStatus(Status.Completed);
-			router.refresh();
 		}
+		router.refresh();
 	};
 
-	const handleSkipSet = () => {
+	const handleSkipSet = async () => {
 		const currentExercise = sorted[currentExerciseIndex];
+		const currentSet = currentExercise.sets[currentSetIndex];
+
+		await completeSet(
+			currentSet.id,
+			currentExercise.exercise.id,
+			initialWorkout.id,
+			{ weight: currentSet.weight, reps: currentSet.reps },
+		);
 
 		if (currentSetIndex < currentExercise.sets.length - 1) {
 			setCurrentSetIndex((prev) => prev + 1);
@@ -179,8 +204,8 @@ export function WorkoutView({
 			});
 		} else {
 			setStatus(Status.Completed);
-			router.refresh();
 		}
+		router.refresh();
 	};
 
 	const handleWorkoutProgress = async () => {
@@ -231,7 +256,7 @@ export function WorkoutView({
 		router.refresh();
 	};
 
-	if (!mainExercise) {
+	if (!currentExercise) {
 		return (
 			<div className="container mx-auto p-6">
 				<p className="text-lg text-muted-foreground">
@@ -295,7 +320,7 @@ export function WorkoutView({
 							<Dumbbell className="h-6 w-6 text-primary" />
 							<div className="flex flex-col">
 								<CardTitle className="text-2xl font-bold capitalize">
-									{mainExercise.definition.name} Day
+									{currentExercise.definition.name} Day
 								</CardTitle>
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<CalendarDays className="h-4 w-4" />
@@ -306,17 +331,6 @@ export function WorkoutView({
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={handleWorkoutProgress}
-								className="text-muted-foreground hover:text-primary"
-								disabled={
-									status !== Status.InProgress || completedSets.length === 0
-								}
-							>
-								<Save className="h-5 w-5" />
-							</Button>
 							<Badge className={getStatusColor(status)}>
 								{status.charAt(0).toUpperCase() + status.slice(1)}
 							</Badge>
@@ -328,10 +342,10 @@ export function WorkoutView({
 					{/* Main Exercise */}
 					<div className="rounded-lg bg-muted p-6">
 						<h4 className="text-lg font-semibold mb-1">
-							{mainExercise.definition.name}
+							{currentExercise.definition.name}
 						</h4>
 						<p className="text-sm text-muted-foreground mb-4">
-							{`Type: ${mainExercise.definition.type.charAt(0).toUpperCase()}${mainExercise.definition.type.slice(1)}`}
+							{`Type: ${currentExercise.definition.type.charAt(0).toUpperCase()}${currentExercise.definition.type.slice(1)}`}
 						</p>
 						<Table>
 							<TableHeader>
@@ -343,7 +357,7 @@ export function WorkoutView({
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{mainExercise.sets.map((set) => (
+								{currentExercise.sets.map((set) => (
 									<TableRow
 										key={set.id}
 										className={
