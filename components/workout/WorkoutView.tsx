@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
@@ -72,7 +72,6 @@ export function WorkoutView({
 	const [status, setStatus] = useState(initialWorkout.status);
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 	const [currentSetIndex, setCurrentSetIndex] = useState(0);
-	const [isPending, startTransition] = useTransition();
 	const [completedSets, setCompletedSets] = useState<string[]>([]);
 	const [showRestTimer, setShowRestTimer] = useState(false);
 	const [performance, setPerformance] = useState<SetPerformance>(() => {
@@ -148,16 +147,14 @@ export function WorkoutView({
 				reps: nextSet.reps,
 			});
 		} else {
-			startTransition(async () => {
-				await completeSet(
-					currentSet.id,
-					currentExercise.exercise.id,
-					initialWorkout.id,
-					performance,
-				);
-				setStatus(Status.Completed);
-				router.refresh();
-			});
+			await completeSet(
+				currentSet.id,
+				currentExercise.exercise.id,
+				initialWorkout.id,
+				performance,
+			);
+			setStatus(Status.Completed);
+			router.refresh();
 		}
 	};
 
@@ -188,10 +185,8 @@ export function WorkoutView({
 
 	const handleWorkoutProgress = async () => {
 		if (status === Status.Pending) {
-			startTransition(async () => {
-				await startWorkout(initialWorkout.id);
-				setStatus(Status.InProgress);
-			});
+			await startWorkout(initialWorkout.id);
+			setStatus(Status.InProgress);
 			return;
 		}
 
@@ -317,9 +312,7 @@ export function WorkoutView({
 								onClick={handleWorkoutProgress}
 								className="text-muted-foreground hover:text-primary"
 								disabled={
-									status !== Status.InProgress ||
-									isPending ||
-									completedSets.length === 0
+									status !== Status.InProgress || completedSets.length === 0
 								}
 							>
 								<Save className="h-5 w-5" />
@@ -425,9 +418,8 @@ export function WorkoutView({
 								className="w-full"
 								size="lg"
 								onClick={handleWorkoutProgress}
-								disabled={isPending}
 							>
-								{isPending ? "Processing..." : "Start Workout"}
+								Start Workout
 							</Button>
 						) : (
 							<div className="grid grid-cols-2 gap-2">
@@ -435,7 +427,6 @@ export function WorkoutView({
 									className="w-full"
 									size="lg"
 									onClick={handleWorkoutProgress}
-									disabled={isPending}
 								>
 									Rest
 								</Button>
@@ -446,17 +437,11 @@ export function WorkoutView({
 										variant="outline"
 										size="lg"
 										onClick={handleCompleteWorkout}
-										disabled={isPending}
 									>
 										Skip and Complete Workout
 									</Button>
 								) : (
-									<Button
-										variant="outline"
-										size="lg"
-										onClick={handleSkipSet}
-										disabled={isPending}
-									>
+									<Button variant="outline" size="lg" onClick={handleSkipSet}>
 										Skip Set
 									</Button>
 								)}
