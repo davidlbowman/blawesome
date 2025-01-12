@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 
-const DEFAULT_REST_TIME = 90; // 90 seconds
-
 export function useRestTimer() {
-	const [time, setTime] = useState(DEFAULT_REST_TIME);
+	const [time, setTime] = useState(0);
 	const [isRunning, setIsRunning] = useState(false);
 
 	useEffect(() => {
 		let intervalId: ReturnType<typeof setInterval>;
 
-		if (isRunning && time > 0) {
+		if (isRunning) {
 			intervalId = setInterval(() => {
-				setTime((prev) => prev - 1);
+				setTime((prev) => prev + 1);
 			}, 1000);
 		}
 
@@ -20,10 +18,10 @@ export function useRestTimer() {
 				clearInterval(intervalId);
 			}
 		};
-	}, [isRunning, time]);
+	}, [isRunning]);
 
 	const start = useCallback(() => {
-		setTime(DEFAULT_REST_TIME);
+		setTime(0);
 		setIsRunning(true);
 	}, []);
 
@@ -32,7 +30,7 @@ export function useRestTimer() {
 	}, []);
 
 	const reset = useCallback(() => {
-		setTime(DEFAULT_REST_TIME);
+		setTime(0);
 		setIsRunning(false);
 	}, []);
 
