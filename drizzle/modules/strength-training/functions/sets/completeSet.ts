@@ -7,13 +7,8 @@ import {
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
+import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { and, eq, gt } from "drizzle-orm";
-
-interface SetPerformance {
-	weight: number;
-	reps?: number;
-	rpe?: number;
-}
 
 export async function completeSet(
 	setId: string,
@@ -70,7 +65,8 @@ export async function completeSet(
 			.update(sets)
 			.set({
 				weight: performance.weight,
-				reps: performance.reps,
+				reps: performance.reps ?? undefined,
+				rpe: performance.rpe ?? undefined,
 				status: "completed",
 				updatedAt: new Date(),
 				completedAt: new Date(),

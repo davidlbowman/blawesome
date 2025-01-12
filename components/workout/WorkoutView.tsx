@@ -96,7 +96,8 @@ export function WorkoutView({
 		const currentSet = currentExercise?.sets[startingSetIndex];
 		return {
 			weight: currentSet?.weight || 0,
-			reps: currentSet?.reps,
+			reps: currentSet?.reps ?? null,
+			rpe: currentSet?.rpe ?? null,
 		};
 	});
 
@@ -134,7 +135,10 @@ export function WorkoutView({
 	const totalVolume = sorted.reduce(
 		(acc, exercise) =>
 			acc +
-			exercise.sets.reduce((setAcc, set) => setAcc + set.weight * set.reps, 0),
+			exercise.sets.reduce(
+				(setAcc, set) => setAcc + set.weight * (set.reps ?? 0),
+				0,
+			),
 		0,
 	);
 
@@ -168,6 +172,7 @@ export function WorkoutView({
 			setPerformance({
 				weight: nextSet.weight,
 				reps: nextSet.reps,
+				rpe: nextSet.rpe,
 			});
 		} else if (currentExerciseIndex < sorted.length - 1) {
 			setCurrentExerciseIndex((prev) => prev + 1);
@@ -177,6 +182,7 @@ export function WorkoutView({
 			setPerformance({
 				weight: nextSet.weight,
 				reps: nextSet.reps,
+				rpe: nextSet.rpe,
 			});
 		} else {
 			setStatus(Status.Completed);
@@ -192,7 +198,7 @@ export function WorkoutView({
 			currentSet.id,
 			currentExercise.exercise.id,
 			initialWorkout.id,
-			{ weight: currentSet.weight, reps: currentSet.reps },
+			{ weight: currentSet.weight, reps: currentSet.reps, rpe: currentSet.rpe },
 		);
 
 		if (currentSetIndex < currentExercise.sets.length - 1) {
@@ -201,6 +207,7 @@ export function WorkoutView({
 			setPerformance({
 				weight: nextSet.weight,
 				reps: nextSet.reps,
+				rpe: nextSet.rpe,
 			});
 		} else if (currentExerciseIndex < sorted.length - 1) {
 			setCurrentExerciseIndex((prev) => prev + 1);
@@ -210,6 +217,7 @@ export function WorkoutView({
 			setPerformance({
 				weight: nextSet.weight,
 				reps: nextSet.reps,
+				rpe: nextSet.rpe,
 			});
 		} else {
 			setStatus(Status.Completed);
@@ -232,6 +240,7 @@ export function WorkoutView({
 		setPerformance({
 			weight: currentSet.weight,
 			reps: currentSet.reps,
+			rpe: currentSet.rpe,
 		});
 		handleStartRest();
 	};
@@ -247,6 +256,7 @@ export function WorkoutView({
 			setPerformance({
 				weight: nextSet.weight,
 				reps: nextSet.reps,
+				rpe: nextSet.rpe,
 			});
 		} else {
 			setStatus(Status.Completed);
@@ -526,11 +536,12 @@ export function WorkoutView({
 									<Input
 										id="reps"
 										type="number"
-										value={performance.reps}
+										value={performance.reps ?? ""}
 										onChange={(e) =>
 											setPerformance({
 												...performance,
-												reps: Number(e.target.value),
+												reps:
+													e.target.value === "" ? null : Number(e.target.value),
 											})
 										}
 									/>

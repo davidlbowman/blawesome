@@ -20,7 +20,13 @@ interface ExerciseWithDefinition {
 	sets: Array<
 		Pick<
 			SetsSelect,
-			"id" | "setNumber" | "weight" | "reps" | "percentageOfMax" | "status"
+			| "id"
+			| "setNumber"
+			| "weight"
+			| "reps"
+			| "rpe"
+			| "percentageOfMax"
+			| "status"
 		>
 	>;
 }
@@ -59,6 +65,7 @@ export async function getWorkoutById(
 				setNumber: sets.setNumber,
 				weight: sets.weight,
 				reps: sets.reps,
+				rpe: sets.rpe,
 				percentageOfMax: sets.percentageOfMax,
 				status: sets.status,
 			},
@@ -108,6 +115,7 @@ export async function getWorkoutById(
 					setNumber: row.set.setNumber,
 					weight: row.set.weight,
 					reps: row.set.reps,
+					rpe: row.set.rpe,
 					percentageOfMax: row.set.percentageOfMax || 0,
 					status: row.set.status,
 				});
