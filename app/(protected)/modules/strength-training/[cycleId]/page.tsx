@@ -10,10 +10,17 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
+import { skipRemainingWorkouts } from "@/drizzle/modules/strength-training/functions/cycles/skipRemainingWorkouts";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { formatDate } from "@/lib/formatDate";
-import { Calendar, CheckCircle, Dumbbell, LineChart } from "lucide-react";
+import {
+	Calendar,
+	CheckCircle,
+	Dumbbell,
+	LineChart,
+	XCircle,
+} from "lucide-react";
 import Link from "next/link";
 
 interface WorkoutCardProps {
@@ -35,6 +42,8 @@ const getStatusColor = (status: string) => {
 			return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
 		case Status.Completed:
 			return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
+		case "skipped":
+			return "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
 		default:
 			return "";
 	}
@@ -85,7 +94,9 @@ function WorkoutCard({
 						<span>
 							{status === Status.Completed && completedAt
 								? `Completed on ${formatDate({ date: completedAt })}`
-								: `Scheduled for ${formatDate({ date: date })}`}
+								: status === "skipped"
+									? `Skipped on ${formatDate({ date: completedAt ?? date })}`
+									: `Scheduled for ${formatDate({ date: date })}`}
 						</span>
 					</div>
 					<div className="mt-4 space-y-2">
@@ -101,6 +112,11 @@ function WorkoutCard({
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
 							<CheckCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Completed</span>
+						</div>
+					) : status === "skipped" ? (
+						<div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+							<XCircle className="h-4 w-4" />
+							<span className="font-medium">Workout Skipped</span>
 						</div>
 					) : (
 						<div className="mt-4 flex items-center space-x-4 text-sm">
@@ -163,12 +179,17 @@ export default async function CyclePage({ params }: PageProps) {
 		(w) => w.status === Status.Pending,
 	);
 	const previousWorkouts = workoutsWithSets.filter(
-		(w) => w.status === Status.Completed,
+		(w) => w.status === Status.Completed || w.status === "skipped",
 	);
 
 	// Static data for now - we'll implement these calculations later
 	const totalVolume = 45600; // lbs
 	const consistency = 92; // percentage
+
+	async function handleSkipRemainingWorkouts() {
+		"use server";
+		await skipRemainingWorkouts(cycleId);
+	}
 
 	return (
 		<div className="container mx-auto p-6 space-y-8">
@@ -258,6 +279,14 @@ export default async function CyclePage({ params }: PageProps) {
 					</div>
 				</div>
 			</div>
+
+			{nextWorkouts.length > 0 && (
+				<form action={handleSkipRemainingWorkouts}>
+					<Button type="submit" variant="destructive" className="w-full">
+						Skip Remaining Workouts & End Cycle
+					</Button>
+				</form>
+			)}
 		</div>
 	);
 }
