@@ -44,6 +44,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
@@ -275,6 +276,11 @@ export function WorkoutView({
 		router.refresh();
 	};
 
+	async function handleSkipRemainingWorkoutSets() {
+		await skipRemainingWorkoutSets(initialWorkout.id);
+		router.push(`/modules/strength-training/${cycleId}`);
+	}
+
 	if (!currentExercise) {
 		return (
 			<div className="container mx-auto p-6">
@@ -445,13 +451,23 @@ export function WorkoutView({
 					{/* Action Buttons */}
 					{status !== Status.Completed ? (
 						status === Status.Pending ? (
-							<Button
-								className="w-full"
-								size="lg"
-								onClick={handleWorkoutProgress}
-							>
-								Start Workout
-							</Button>
+							<div className="space-y-2">
+								<Button
+									className="w-full"
+									size="lg"
+									onClick={handleWorkoutProgress}
+								>
+									Start Workout
+								</Button>
+								<Button
+									variant="destructive"
+									size="lg"
+									className="w-full"
+									onClick={handleSkipRemainingWorkoutSets}
+								>
+									Skip Remaining Sets & Complete Workout
+								</Button>
+							</div>
 						) : (
 							<div className="grid grid-cols-2 gap-2">
 								<Button
