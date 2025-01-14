@@ -22,6 +22,7 @@ import {
 	XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 interface WorkoutCardProps {
 	id: string;
@@ -203,6 +204,7 @@ export default async function CyclePage({ params }: PageProps) {
 	async function handleSkipRemainingWorkouts() {
 		"use server";
 		await skipRemainingWorkouts(cycleId);
+		redirect("/modules/strength-training");
 	}
 
 	return (
