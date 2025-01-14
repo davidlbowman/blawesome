@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -8,8 +9,8 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import { skipRemainingWorkouts } from "@/drizzle/modules/strength-training/functions/cycles/skipRemainingWorkouts";
+import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { formatDate } from "@/lib/formatDate";
@@ -22,7 +23,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 
 interface WorkoutCardProps {
 	id: string;

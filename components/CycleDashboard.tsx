@@ -1,5 +1,6 @@
 "use client";
 
+import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,7 +11,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { formatDate } from "@/lib/formatDate";
 import {
 	Calendar,

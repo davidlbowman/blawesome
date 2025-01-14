@@ -1,6 +1,7 @@
 "use client";
 
-import { Statistic } from "@/components/Statistic";
+import { Statistic } from "@/components/strength-training/shared/Statistic";
+import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import type { WorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutById";
+import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import { Status } from "@/drizzle/modules/strength-training/schemas";
 import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
@@ -43,8 +45,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
-import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
