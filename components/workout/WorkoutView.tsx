@@ -449,7 +449,7 @@ export function WorkoutView({
 					</div>
 
 					{/* Action Buttons */}
-					{status !== Status.Completed ? (
+					{status !== Status.Completed && status !== "skipped" ? (
 						status === Status.Pending ? (
 							<div className="space-y-2">
 								<Button
