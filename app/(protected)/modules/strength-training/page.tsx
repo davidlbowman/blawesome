@@ -28,18 +28,35 @@ type WorkoutStats = {
 };
 
 function calculateWorkoutStats(workouts: WorkoutsSelect[]): WorkoutStats {
+	// Group workouts by cycle
+	const workoutsByCycle = workouts.reduce(
+		(acc, workout) => {
+			if (!acc[workout.cycleId]) {
+				acc[workout.cycleId] = [];
+			}
+			acc[workout.cycleId].push(workout);
+			return acc;
+		},
+		{} as Record<string, WorkoutsSelect[]>,
+	);
+
+	// Get the active cycle's workouts (the one that has pending workouts)
+	const activeCycleWorkouts =
+		Object.values(workoutsByCycle).find((cycleWorkouts) =>
+			cycleWorkouts.some((w) => w.status === Status.Pending),
+		) ?? [];
+
 	return {
-		totalWorkouts: workouts.length,
-		completedWorkouts: workouts.filter((w) => w.status === Status.Completed)
-			.length,
-		nextWorkout: workouts.find((w) => w.status === Status.Pending),
+		totalWorkouts: 16, // Each cycle has exactly 16 workouts
+		completedWorkouts: activeCycleWorkouts.filter(
+			(w) => w.status === Status.Completed,
+		).length,
+		nextWorkout: activeCycleWorkouts.find((w) => w.status === Status.Pending),
 	};
 }
 
 function getCompletedWorkouts(cycle: CyclesSelect, stats: WorkoutStats) {
-	return cycle.status === Status.Completed
-		? stats.totalWorkouts
-		: stats.completedWorkouts;
+	return cycle.status === Status.Completed ? 16 : stats.completedWorkouts;
 }
 
 function getNextWorkout(

@@ -47,6 +47,7 @@ export async function getTrainingData(userId: string) {
 				},
 				workout: {
 					id: workouts.id,
+					cycleId: workouts.cycleId,
 					primaryLift: workouts.primaryLift,
 					status: workouts.status,
 					sequence: workouts.sequence,

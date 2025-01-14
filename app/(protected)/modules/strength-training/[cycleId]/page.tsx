@@ -144,8 +144,7 @@ interface PageProps {
 
 export default async function CyclePage({ params }: PageProps) {
 	const { cycleId } = await params;
-	const { workouts, totalWorkouts, completedWorkouts } =
-		await getActiveWorkouts(cycleId);
+	const { workouts } = await getActiveWorkouts(cycleId);
 
 	if (!workouts.length) {
 		return (
@@ -154,6 +153,21 @@ export default async function CyclePage({ params }: PageProps) {
 			</div>
 		);
 	}
+
+	const cycleStatus =
+		workouts[0]?.status === "completed" || workouts[0]?.status === "skipped"
+			? "completed"
+			: "in_progress";
+
+	// For completed cycles, we know it's always 16/16
+	const cycleWorkoutStats =
+		cycleStatus === "completed"
+			? { totalWorkouts: 16, completedWorkouts: 16 }
+			: {
+					totalWorkouts: 16,
+					completedWorkouts: workouts.filter((w) => w.status === "completed")
+						.length,
+				};
 
 	// Calculate sets for each workout
 	const workoutsWithSets = workouts.map((workout) => {
@@ -202,13 +216,17 @@ export default async function CyclePage({ params }: PageProps) {
 				</CardHeader>
 				<CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 					<div className="flex flex-col space-y-1.5">
-						<span className="text-2xl font-semibold">{totalWorkouts}</span>
+						<span className="text-2xl font-semibold">
+							{cycleWorkoutStats.totalWorkouts}
+						</span>
 						<span className="text-sm text-muted-foreground">
 							Total Workouts
 						</span>
 					</div>
 					<div className="flex flex-col space-y-1.5">
-						<span className="text-2xl font-semibold">{completedWorkouts}</span>
+						<span className="text-2xl font-semibold">
+							{cycleWorkoutStats.completedWorkouts}
+						</span>
 						<span className="text-sm text-muted-foreground">Workouts Done</span>
 					</div>
 					<div className="flex flex-col space-y-1.5">
