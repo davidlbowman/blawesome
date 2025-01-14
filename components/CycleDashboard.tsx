@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -11,6 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { formatDate } from "@/lib/formatDate";
 import {
 	Calendar,
@@ -21,6 +21,7 @@ import {
 	Plus,
 } from "lucide-react";
 import Link from "next/link";
+
 // Static data for the dashboard
 const stats = {
 	totalCycles: 12,
@@ -59,19 +60,6 @@ const completedCycles = [
 		totalWorkouts: 16,
 	},
 ];
-
-const getStatusColor = (status: string) => {
-	switch (status) {
-		case "pending":
-			return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
-		case "in_progress":
-			return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
-		case "completed":
-			return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
-		default:
-			return "";
-	}
-};
 
 const getPrimaryLiftDisplayName = (lift: string) => {
 	return lift
@@ -196,9 +184,7 @@ function CycleCard({
 					<CardTitle className="text-sm font-medium">
 						Workout Cycle {id.slice(0, 8)}
 					</CardTitle>
-					<Badge className={getStatusColor(status)}>
-						{status.charAt(0).toUpperCase() + status.slice(1)}
-					</Badge>
+					<StatusBadge status={status} />
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center space-x-4 text-sm text-muted-foreground">

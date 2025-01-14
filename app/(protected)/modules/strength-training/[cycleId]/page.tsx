@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 
 interface WorkoutCardProps {
 	id: string;
@@ -34,21 +34,6 @@ interface WorkoutCardProps {
 	completedSets: number;
 	totalSets: number;
 }
-
-const getStatusColor = (status: string) => {
-	switch (status) {
-		case Status.Pending:
-			return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
-		case Status.InProgress:
-			return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
-		case Status.Completed:
-			return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
-		case "skipped":
-			return "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
-		default:
-			return "";
-	}
-};
 
 const getPrimaryLiftDisplayName = (lift: string) => {
 	return lift
@@ -80,14 +65,7 @@ function WorkoutCard({
 					<CardTitle className="text-sm font-medium">
 						Workout {sequence} - {getPrimaryLiftDisplayName(primaryLift)}
 					</CardTitle>
-					<Badge className={getStatusColor(status)}>
-						{status
-							.split("_")
-							.map(
-								(word: string) => word.charAt(0).toUpperCase() + word.slice(1),
-							)
-							.join(" ")}
-					</Badge>
+					<StatusBadge status={status} />
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center space-x-4 text-sm text-muted-foreground">

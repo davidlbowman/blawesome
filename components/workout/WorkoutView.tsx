@@ -1,7 +1,6 @@
 "use client";
 
 import { Statistic } from "@/components/Statistic";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -45,22 +44,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
+import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 
 interface WorkoutViewProps {
 	workout: WorkoutDetails;
 	cycleId: string;
 }
-
-const getStatusColor = (status: string) => {
-	switch (status) {
-		case Status.Completed:
-			return "bg-green-500 text-white";
-		case Status.InProgress:
-			return "bg-blue-500 text-white";
-		default:
-			return "bg-secondary text-secondary-foreground";
-	}
-};
 
 export function WorkoutView({
 	workout: initialWorkout,
@@ -356,9 +345,7 @@ export function WorkoutView({
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
-							<Badge className={getStatusColor(status)}>
-								{status.charAt(0).toUpperCase() + status.slice(1)}
-							</Badge>
+							<StatusBadge status={status} />
 						</div>
 					</div>
 				</CardHeader>
@@ -449,7 +436,7 @@ export function WorkoutView({
 					</div>
 
 					{/* Action Buttons */}
-					{status !== Status.Completed && status !== "skipped" ? (
+					{status !== Status.Completed ? (
 						status === Status.Pending ? (
 							<div className="space-y-2">
 								<Button
