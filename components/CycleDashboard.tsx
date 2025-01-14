@@ -1,5 +1,6 @@
 "use client";
 
+import { ProgressBar } from "@/components/strength-training/shared/ProgressBar";
 import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +11,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/formatDate";
 import {
 	Calendar,
@@ -175,8 +175,6 @@ function CycleCard({
 	totalWorkouts,
 	nextWorkout,
 }: CycleCardProps) {
-	const progressPercentage = (completedWorkouts / totalWorkouts) * 100;
-
 	return (
 		<Link href={`/modules/strength-training/${id}`} className="block">
 			<Card className="w-full transition-colors hover:bg-muted/50">
@@ -202,7 +200,13 @@ function CycleCard({
 								{completedWorkouts} / {totalWorkouts}
 							</span>
 						</div>
-						<Progress value={progressPercentage} className="h-2" />
+						<div className="mt-4">
+							<ProgressBar
+								value={completedWorkouts}
+								max={totalWorkouts}
+								className="mt-4"
+							/>
+						</div>
 					</div>
 					{status !== "completed" && nextWorkout && (
 						<div className="mt-4 flex items-center space-x-4 text-sm">

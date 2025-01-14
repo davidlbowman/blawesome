@@ -1,3 +1,4 @@
+import { ProgressBar } from "@/components/strength-training/shared/ProgressBar";
 import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +9,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { skipRemainingWorkouts } from "@/drizzle/modules/strength-training/functions/cycles/skipRemainingWorkouts";
 import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
@@ -53,8 +53,6 @@ function WorkoutCard({
 	completedSets,
 	totalSets,
 }: WorkoutCardProps & { cycleId: string }) {
-	const progressPercentage = (completedSets / totalSets) * 100;
-
 	return (
 		<Link
 			href={`/modules/strength-training/${cycleId}/${id}`}
@@ -78,14 +76,11 @@ function WorkoutCard({
 									: `Scheduled for ${formatDate({ date: date })}`}
 						</span>
 					</div>
-					<div className="mt-4 space-y-2">
-						<div className="flex items-center justify-between text-sm">
-							<span>Sets Progress</span>
-							<span className="font-medium">
-								{completedSets} / {totalSets}
-							</span>
+					<div className="mt-4">
+						<div className="text-sm text-muted-foreground mb-2">
+							Sets Progress
 						</div>
-						<Progress value={progressPercentage} className="h-2" />
+						<ProgressBar value={completedSets} max={totalSets} />
 					</div>
 					{status === Status.Completed ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
