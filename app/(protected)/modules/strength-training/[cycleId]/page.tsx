@@ -68,7 +68,7 @@ function WorkoutCard({
 			<Card className="w-full transition-colors hover:bg-muted/50">
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">
-						Workout {sequence + 1} - {getPrimaryLiftDisplayName(primaryLift)}
+						Workout {sequence} - {getPrimaryLiftDisplayName(primaryLift)}
 					</CardTitle>
 					<Badge className={getStatusColor(status)}>
 						{status
