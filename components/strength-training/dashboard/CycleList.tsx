@@ -1,6 +1,6 @@
 "use client";
 
-import { CycleCard } from "@/components/CycleCard";
+import { CycleCard } from "@/components/strength-training/cycle/CycleCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
 	CyclesSelect,
