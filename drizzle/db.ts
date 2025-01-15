@@ -14,12 +14,16 @@ interface QueryMetrics {
 export class CustomLogger implements Logger {
 	private queryCount = 0;
 	private transactionDepth = 0;
-	private transactionStart = 0;
 	private batchOperations = new Map<
 		string,
 		{ count: number; totalParams: number }
 	>();
+	private isEnabled = true;
 	private slowQueryThreshold = 10; // ms
+
+	constructor(enabled = true) {
+		this.isEnabled = enabled;
+	}
 
 	private formatQuery(query: string): string {
 		return query.replace(/\s+/g, " ").trim();
@@ -72,88 +76,87 @@ export class CustomLogger implements Logger {
 		return params.length > 10;
 	}
 
+	private isTransactionBoundary(query: string): boolean {
+		const lowerQuery = query.toLowerCase();
+		return (
+			lowerQuery.includes("begin") ||
+			lowerQuery.includes("commit") ||
+			lowerQuery.includes("rollback")
+		);
+	}
+
 	logQuery(query: string, params: unknown[]): void {
-		const start = performance.now();
+		if (!this.isEnabled) return;
+
 		this.queryCount++;
+		const start = performance.now();
 		const formattedQuery = this.formatQuery(query);
 
 		// Handle transaction boundaries
-		if (formattedQuery.toLowerCase().includes("begin")) {
-			this.transactionDepth++;
-			this.transactionStart = start;
-			console.log("\n📦 Transaction Started");
-			return;
-		}
-
-		if (
-			formattedQuery.toLowerCase().includes("commit") ||
-			formattedQuery.toLowerCase().includes("rollback")
-		) {
-			const duration = performance.now() - this.transactionStart;
-			const status = formattedQuery.toLowerCase().includes("commit")
-				? "Committed"
-				: "Rolled Back";
-
-			console.log(
-				`\n${status === "Committed" ? "✅" : "❌"} Transaction ${status}`,
-			);
-			console.log("📊 Stats:");
-			console.log(`Queries: ${this.queryCount}`);
-			console.log(`Duration: ${duration.toFixed(2)}ms`);
-			console.log(`Avg Query: ${(duration / this.queryCount).toFixed(2)}ms`);
-			console.log(
-				`Batch Operations: ${JSON.stringify(Object.fromEntries(this.batchOperations))}\n`,
-			);
-
-			// Reset transaction state
-			this.queryCount = 0;
-			this.transactionDepth--;
-			this.batchOperations.clear();
-			return;
-		}
-
-		// Handle regular queries
-		setTimeout(() => {
-			const duration = performance.now() - start;
-			const metrics = this.analyzeQuery(formattedQuery);
-			metrics.duration = duration;
-
-			if (this.isBatchOperation(params)) {
-				this.handleBatchOperation(metrics.type, params.length);
-				console.log(`🔄 Batch ${metrics.type}: ${params.length} parameters`);
+		if (this.isTransactionBoundary(formattedQuery)) {
+			if (formattedQuery.includes("BEGIN")) {
+				this.transactionDepth++;
+				console.log("\n🔄 Starting Transaction");
 				return;
 			}
 
-			const durationIndicator =
-				duration < 5 ? "🟢" : duration < 10 ? "🟡" : "🔴";
-			const tips = this.getOptimizationTips(formattedQuery, metrics);
+			if (
+				formattedQuery.includes("COMMIT") ||
+				formattedQuery.includes("ROLLBACK")
+			) {
+				const duration = performance.now() - start;
 
-			console.log(`\n${durationIndicator} Query #${this.queryCount}`);
-			console.log(
-				`Type: ${metrics.type} | Tables: ${metrics.tables} | Joins: ${metrics.joins} | Conditions: ${metrics.conditions}`,
-			);
-			console.log(`Duration: ${duration.toFixed(2)}ms`);
-			console.log(`SQL: ${formattedQuery}`);
-			console.log(`Params: ${JSON.stringify(params)}`);
+				console.log("📊 Stats:");
+				console.log(`Queries: ${this.queryCount}`);
+				console.log(`Duration: ${duration.toFixed(2)}ms`);
+				console.log(`Avg Query: ${(duration / this.queryCount).toFixed(2)}ms`);
+				console.log(
+					`Batch Operations: ${JSON.stringify(Object.fromEntries(this.batchOperations))}\n`,
+				);
 
-			if (tips.length > 0) {
-				console.log(`⚠️  ${tips.join(" | ")}\n`);
+				// Reset transaction state
+				this.queryCount = 0;
+				this.transactionDepth--;
+				this.batchOperations.clear();
+				return;
 			}
-		}, 0);
+		}
+
+		// Handle regular queries
+		const duration = performance.now() - start;
+		const metrics = this.analyzeQuery(formattedQuery);
+		metrics.duration = duration;
+
+		if (this.isBatchOperation(params)) {
+			this.handleBatchOperation(metrics.type, params.length);
+			console.log(`🔄 Batch ${metrics.type}: ${params.length} parameters`);
+			return;
+		}
+
+		const durationIndicator = duration < 5 ? "🟢" : duration < 10 ? "🟡" : "🔴";
+		const tips = this.getOptimizationTips(formattedQuery, metrics);
+
+		console.log(`\n${durationIndicator} Query #${this.queryCount}`);
+		console.log(
+			`Type: ${metrics.type} | Tables: ${metrics.tables} | Joins: ${metrics.joins} | Conditions: ${metrics.conditions}`,
+		);
+		console.log(`Duration: ${duration.toFixed(2)}ms`);
+		console.log(`SQL: ${formattedQuery}`);
+		console.log(`Params: ${JSON.stringify(params)}`);
+
+		if (tips.length > 0) {
+			console.log(`⚠️  ${tips.join(" | ")}\n`);
+		}
 	}
 }
 
+// Create logger instance with logging enabled only in development
+export const logger = new CustomLogger(process.env.NODE_ENV !== "production");
+
+// Create database instance with logger
 const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) {
 	throw new Error("DATABASE_URL is not defined");
 }
 
-const client = createClient({
-	url: dbUrl,
-	authToken: process.env.DATABASE_AUTH_TOKEN,
-});
-
-export const db = drizzle(client, {
-	logger:
-		process.env.NODE_ENV === "production" ? undefined : new CustomLogger(),
-});
+export const db = drizzle(createClient({ url: dbUrl }), { logger });
