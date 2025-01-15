@@ -56,19 +56,29 @@ export function WorkoutActions({
 	}
 
 	return (
-		<div className="grid grid-cols-2 gap-2">
-			<Button className="w-full" size="lg" onClick={onStartRest}>
-				Rest
+		<div className="space-y-2">
+			<div className="grid grid-cols-2 gap-2">
+				<Button className="w-full" size="lg" onClick={onStartRest}>
+					Rest
+				</Button>
+				{isLastSet ? (
+					<Button variant="outline" size="lg" onClick={onCompleteWorkout}>
+						Skip and Complete Workout
+					</Button>
+				) : (
+					<Button variant="outline" size="lg" onClick={onSkipSet}>
+						Skip Set
+					</Button>
+				)}
+			</div>
+			<Button
+				variant="destructive"
+				size="lg"
+				className="w-full"
+				onClick={onSkipRemainingWorkoutSets}
+			>
+				Skip Remaining Sets & Complete Workout
 			</Button>
-			{isLastSet ? (
-				<Button variant="outline" size="lg" onClick={onCompleteWorkout}>
-					Skip and Complete Workout
-				</Button>
-			) : (
-				<Button variant="outline" size="lg" onClick={onSkipSet}>
-					Skip Set
-				</Button>
-			)}
 		</div>
 	);
 }

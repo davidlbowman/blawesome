@@ -5,8 +5,9 @@ import {
 	exercises,
 	sets,
 	workouts,
+	Status,
 } from "@/drizzle/modules/strength-training/schemas";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export async function skipRemainingWorkoutSets(workoutId: string) {
 	const now = new Date();
@@ -20,21 +21,29 @@ export async function skipRemainingWorkoutSets(workoutId: string) {
 
 		// Skip all exercises and their sets
 		for (const exercise of workoutExercises) {
-			if (exercise.status === "pending" || exercise.status === "in_progress") {
-				// Skip all pending sets for this exercise
+			if (
+				exercise.status === Status.Pending ||
+				exercise.status === Status.InProgress
+			) {
+				// Skip only pending sets for this exercise
 				await tx
 					.update(sets)
 					.set({
-						status: "skipped",
+						status: Status.Skipped,
 						updatedAt: now,
 					})
-					.where(eq(sets.exerciseId, exercise.id));
+					.where(
+						and(
+							eq(sets.exerciseId, exercise.id),
+							eq(sets.status, Status.Pending),
+						),
+					);
 
 				// Skip the exercise
 				await tx
 					.update(exercises)
 					.set({
-						status: "skipped",
+						status: Status.Skipped,
 						updatedAt: now,
 					})
 					.where(eq(exercises.id, exercise.id));
@@ -45,7 +54,7 @@ export async function skipRemainingWorkoutSets(workoutId: string) {
 		await tx
 			.update(workouts)
 			.set({
-				status: "completed",
+				status: Status.Completed,
 				completedAt: now,
 				updatedAt: now,
 			})
