@@ -136,6 +136,11 @@ export function WorkoutView({
 			workoutId,
 			performance,
 		);
+
+		// First refresh the server data
+		await router.refresh();
+
+		// Then update local state
 		setShowRestTimer(false);
 
 		// Update current exercise and set indices
@@ -159,7 +164,12 @@ export function WorkoutView({
 			}
 		}
 
-		router.refresh();
+		// Reset performance state for next set
+		setPerformance({
+			weight: 0,
+			reps: null,
+			rpe: null,
+		});
 	};
 
 	const handleSkipRemainingExerciseSets = async () => {

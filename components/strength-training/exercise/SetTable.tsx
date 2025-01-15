@@ -6,7 +6,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { cn } from "@/lib/utils";
 
 type StatusType = (typeof Status)[keyof typeof Status];
@@ -32,7 +32,7 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 			<TableHeader>
 				<TableRow>
 					<TableHead className="w-[100px]">Set</TableHead>
-					<TableHead>Weight</TableHead>
+					<TableHead>Weight (lbs)</TableHead>
 					<TableHead>Reps</TableHead>
 					<TableHead>% 1RM</TableHead>
 				</TableRow>
@@ -43,6 +43,9 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 						key={set.id}
 						className={cn({
 							"bg-muted": isActive && index === currentSetIndex,
+							"bg-muted/50":
+								set.status === Status.Completed ||
+								set.status === Status.Skipped,
 						})}
 					>
 						<TableCell>{set.setNumber}</TableCell>
