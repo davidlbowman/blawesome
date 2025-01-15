@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
 import { skipRemainingExerciseSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingExerciseSets";
+import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
 import { skipSet } from "@/drizzle/modules/strength-training/functions/workouts/skipSet";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
@@ -139,7 +140,12 @@ export function WorkoutView({
 	};
 
 	const handleSkipRemainingWorkoutSets = async () => {
-		await skipRemainingExerciseSets(workoutId);
+		// First skip all remaining sets in all exercises
+		await skipRemainingWorkoutSets(workoutId);
+		// Then mark the workout as completed
+		await completeWorkout(workoutId);
+		// Refresh server data and redirect
+		await router.refresh();
 		router.push(`/modules/strength-training/${cycleId}`);
 	};
 
@@ -200,7 +206,12 @@ export function WorkoutView({
 	};
 
 	const handleSkipRemainingExerciseSets = async () => {
-		await skipRemainingExerciseSets(workoutId);
+		const currentExercise =
+			currentExerciseIndex === 0
+				? primaryExercise
+				: accessoryExercises[currentExerciseIndex - 1];
+
+		await skipRemainingExerciseSets(currentExercise.id);
 
 		// Move to next exercise if available
 		if (currentExerciseIndex === 0 && accessoryExercises.length > 0) {
@@ -225,8 +236,6 @@ export function WorkoutView({
 			? primaryExercise.name
 			: accessoryExercises[currentExerciseIndex - 1]?.name;
 
-	const allExercises = [primaryExercise, ...accessoryExercises];
-
 	return (
 		<Card>
 			<CardContent className="p-6 space-y-6">
@@ -239,7 +248,7 @@ export function WorkoutView({
 				<WorkoutStats {...stats} />
 
 				<ExerciseList
-					exercises={allExercises}
+					exercises={[primaryExercise, ...accessoryExercises]}
 					currentExerciseIndex={currentExerciseIndex}
 					currentSetIndex={currentSetIndex}
 				/>

@@ -2,10 +2,10 @@
 
 import { db } from "@/drizzle/db";
 import {
+	Status,
 	exercises,
 	sets,
 	workouts,
-	Status,
 } from "@/drizzle/modules/strength-training/schemas";
 import { and, eq } from "drizzle-orm";
 
