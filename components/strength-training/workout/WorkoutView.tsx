@@ -149,6 +149,30 @@ export function WorkoutView({
 		router.refresh();
 	};
 
+	const handleSkipRemainingExerciseSets = async () => {
+		const currentExercise =
+			currentExerciseIndex === 0
+				? primaryExercise
+				: accessoryExercises[currentExerciseIndex - 1];
+
+		// Skip all remaining sets in current exercise
+		for (let i = currentSetIndex; i < currentExercise.sets.length; i++) {
+			await skipSet(workoutId);
+		}
+
+		// Move to next exercise if available
+		if (currentExerciseIndex === 0 && accessoryExercises.length > 0) {
+			setCurrentExerciseIndex(1);
+			setCurrentSetIndex(0);
+		} else if (currentExerciseIndex < accessoryExercises.length) {
+			setCurrentExerciseIndex(currentExerciseIndex + 1);
+			setCurrentSetIndex(0);
+		}
+
+		setShowRestTimer(false);
+		router.refresh();
+	};
+
 	const isLastSet =
 		currentExerciseIndex === accessoryExercises.length &&
 		currentSetIndex ===
@@ -204,7 +228,7 @@ export function WorkoutView({
 					performance={performance}
 					onPerformanceChange={setPerformance}
 					onCompleteSet={handleCompleteSet}
-					onSkipRemainingExerciseSets={handleSkipRemainingWorkoutSets}
+					onSkipRemainingExerciseSets={handleSkipRemainingExerciseSets}
 				/>
 			</CardContent>
 		</Card>
