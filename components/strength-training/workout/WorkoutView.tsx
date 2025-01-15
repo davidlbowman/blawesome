@@ -85,6 +85,19 @@ export function WorkoutView({
 	};
 
 	const handleStartRest = async () => {
+		const currentExercise =
+			currentExerciseIndex === 0
+				? primaryExercise
+				: accessoryExercises[currentExerciseIndex - 1];
+
+		const currentSet = currentExercise.sets[currentSetIndex];
+
+		setPerformance({
+			weight: currentSet.weight,
+			reps: currentExerciseIndex === 0 ? currentSet.reps : null,
+			rpe: currentExerciseIndex === 0 ? null : 8, // Default RPE for accessory exercises
+		});
+
 		setShowRestTimer(true);
 	};
 
