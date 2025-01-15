@@ -8,8 +8,8 @@ interface Set {
 	id: string;
 	setNumber: number;
 	weight: number;
-	reps: number | null;
-	percentageOfMax: number | null;
+	reps: number;
+	rpe: number;
 	status: StatusType;
 }
 
@@ -31,13 +31,18 @@ interface ExerciseListProps {
 export function ExerciseList({
 	exercises,
 	currentExerciseIndex,
-	currentSetIndex,
+	currentSetIndex = 0,
 	className,
 }: ExerciseListProps) {
 	const primaryExercise = exercises.find((e) => e.type === "primary");
 	const accessoryExercises = exercises.filter(
 		(e) => e.type === "variation" || e.type === "accessory",
 	);
+
+	const currentExerciseId =
+		currentExerciseIndex !== undefined
+			? exercises[currentExerciseIndex]?.id
+			: "";
 
 	return (
 		<div className={className}>
@@ -57,24 +62,14 @@ export function ExerciseList({
 
 			{accessoryExercises.length > 0 && (
 				<div className="grid md:grid-cols-2 gap-6">
-					{accessoryExercises.map((exercise, index) => {
-						const exerciseIndex = index + 1; // Add 1 because primary exercise is index 0
-						const isCurrentExercise = exerciseIndex === currentExerciseIndex;
-						const exerciseSetIndex = isCurrentExercise
-							? currentSetIndex
-							: undefined;
-
-						return (
-							<ExerciseCard
-								key={exercise.id}
-								name={exercise.name}
-								type={exercise.type}
-								sets={exercise.sets}
-								status={exercise.status}
-								currentSetIndex={exerciseSetIndex}
-							/>
-						);
-					})}
+					{accessoryExercises.map((exercise) => (
+						<ExerciseCard
+							key={exercise.id}
+							exercise={exercise}
+							currentExerciseId={currentExerciseId}
+							currentSetIndex={currentSetIndex}
+						/>
+					))}
 				</div>
 			)}
 		</div>

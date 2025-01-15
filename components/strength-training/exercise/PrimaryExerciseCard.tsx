@@ -5,17 +5,19 @@ import { SetTable } from "./SetTable";
 
 type StatusType = (typeof Status)[keyof typeof Status];
 
+interface Set {
+	id: string;
+	setNumber: number;
+	weight: number;
+	reps: number;
+	rpe: number;
+	status: StatusType;
+}
+
 interface PrimaryExerciseCardProps {
 	name: string;
 	type: "primary" | "variation" | "accessory";
-	sets: Array<{
-		id: string;
-		setNumber: number;
-		weight: number;
-		reps: number | null;
-		percentageOfMax: number | null;
-		status: StatusType;
-	}>;
+	sets: Set[];
 	status: StatusType;
 	currentSetIndex?: number;
 	className?: string;

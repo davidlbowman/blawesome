@@ -17,18 +17,26 @@ import { WorkoutStats } from "./WorkoutStats";
 
 type StatusType = (typeof Status)[keyof typeof Status];
 
+interface SetPerformance {
+	weight: number;
+	reps: number | null;
+	rpe: number | null;
+}
+
+interface Set {
+	id: string;
+	setNumber: number;
+	weight: number;
+	reps: number;
+	rpe: number;
+	status: StatusType;
+}
+
 interface Exercise {
 	id: string;
 	name: string;
 	type: "primary" | "variation" | "accessory";
-	sets: Array<{
-		id: string;
-		setNumber: number;
-		weight: number;
-		reps: number | null;
-		percentageOfMax: number | null;
-		status: StatusType;
-	}>;
+	sets: Set[];
 	status: StatusType;
 }
 
@@ -69,11 +77,7 @@ export function WorkoutView({
 		startingExerciseIndex,
 	);
 	const [currentSetIndex, setCurrentSetIndex] = useState(startingSetIndex);
-	const [performance, setPerformance] = useState<{
-		weight: number;
-		reps: number | null;
-		rpe: number | null;
-	}>({
+	const [performance, setPerformance] = useState<SetPerformance>({
 		weight: 0,
 		reps: null,
 		rpe: null,

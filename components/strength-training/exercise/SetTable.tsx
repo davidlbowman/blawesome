@@ -15,8 +15,8 @@ interface Set {
 	id: string;
 	setNumber: number;
 	weight: number;
-	reps: number | null;
-	percentageOfMax: number | null;
+	reps: number;
+	rpe: number;
 	status: StatusType;
 }
 
@@ -34,7 +34,7 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 					<TableHead className="w-[100px]">Set</TableHead>
 					<TableHead>Weight (lbs)</TableHead>
 					<TableHead>Reps</TableHead>
-					<TableHead>% 1RM</TableHead>
+					<TableHead>RPE</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
@@ -50,10 +50,8 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 					>
 						<TableCell>{set.setNumber}</TableCell>
 						<TableCell>{set.weight} lbs</TableCell>
-						<TableCell>{set.reps ?? "-"}</TableCell>
-						<TableCell>
-							{set.percentageOfMax ? `${set.percentageOfMax}%` : "-"}
-						</TableCell>
+						<TableCell>{set.reps}</TableCell>
+						<TableCell>{set.rpe}</TableCell>
 					</TableRow>
 				))}
 			</TableBody>
