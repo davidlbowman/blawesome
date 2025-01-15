@@ -64,9 +64,6 @@ export function WorkoutCard({
 						</span>
 					</div>
 					<div className="mt-4">
-						<div className="text-sm text-muted-foreground mb-2">
-							Sets Progress
-						</div>
 						<ProgressBar value={completedSets} max={totalSets} />
 					</div>
 					{status === Status.Completed ? (

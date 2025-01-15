@@ -55,10 +55,16 @@ export function CycleView({
 				cycleId={cycleId}
 			/>
 
-			{nextWorkouts.length > 0 && (
+			{nextWorkouts.length > 0 ? (
 				<form action={onSkipRemainingWorkouts}>
 					<Button type="submit" variant="destructive" className="w-full">
 						Skip Remaining Workouts & End Cycle
+					</Button>
+				</form>
+			) : (
+				<form action={onSkipRemainingWorkouts}>
+					<Button type="submit" className="w-full">
+						Complete Cycle
 					</Button>
 				</form>
 			)}
