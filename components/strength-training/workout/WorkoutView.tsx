@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
-import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
+import { skipRemainingExerciseSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingExerciseSets";
 import { skipSet } from "@/drizzle/modules/strength-training/functions/workouts/skipSet";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
@@ -107,7 +107,30 @@ export function WorkoutView({
 
 	const handleSkipSet = async () => {
 		await skipSet(workoutId);
-		router.refresh();
+
+		// First refresh the server data
+		await router.refresh();
+
+		// Then update local state similar to handleCompleteSet
+		if (currentExerciseIndex === 0) {
+			// Primary exercise
+			if (currentSetIndex + 1 < primaryExercise.sets.length) {
+				setCurrentSetIndex(currentSetIndex + 1);
+			} else if (accessoryExercises.length > 0) {
+				setCurrentExerciseIndex(1);
+				setCurrentSetIndex(0);
+			}
+		} else {
+			// Accessory exercise
+			const currentAccessoryExercise =
+				accessoryExercises[currentExerciseIndex - 1];
+			if (currentSetIndex + 1 < currentAccessoryExercise.sets.length) {
+				setCurrentSetIndex(currentSetIndex + 1);
+			} else if (currentExerciseIndex < accessoryExercises.length) {
+				setCurrentExerciseIndex(currentExerciseIndex + 1);
+				setCurrentSetIndex(0);
+			}
+		}
 	};
 
 	const handleCompleteWorkout = async () => {
@@ -116,7 +139,7 @@ export function WorkoutView({
 	};
 
 	const handleSkipRemainingWorkoutSets = async () => {
-		await skipRemainingWorkoutSets(workoutId);
+		await skipRemainingExerciseSets(workoutId);
 		router.push(`/modules/strength-training/${cycleId}`);
 	};
 
@@ -177,15 +200,7 @@ export function WorkoutView({
 	};
 
 	const handleSkipRemainingExerciseSets = async () => {
-		const currentExercise =
-			currentExerciseIndex === 0
-				? primaryExercise
-				: accessoryExercises[currentExerciseIndex - 1];
-
-		// Skip all remaining sets in current exercise
-		for (let i = currentSetIndex; i < currentExercise.sets.length; i++) {
-			await skipSet(workoutId);
-		}
+		await skipRemainingExerciseSets(workoutId);
 
 		// Move to next exercise if available
 		if (currentExerciseIndex === 0 && accessoryExercises.length > 0) {
@@ -197,7 +212,7 @@ export function WorkoutView({
 		}
 
 		setShowRestTimer(false);
-		router.refresh();
+		await router.refresh();
 	};
 
 	const isLastSet =

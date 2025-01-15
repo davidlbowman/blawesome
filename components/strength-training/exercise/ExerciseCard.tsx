@@ -1,4 +1,5 @@
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { cn } from "@/lib/utils";
 import { StatusBadge } from "../shared/StatusBadge";
 
 type StatusType = (typeof Status)[keyof typeof Status];
@@ -16,6 +17,7 @@ interface Exercise {
 	name: string;
 	type: string;
 	sets: Set[];
+	status: StatusType;
 }
 
 interface ExerciseCardProps {
@@ -29,44 +31,50 @@ export function ExerciseCard({
 	currentExerciseId,
 	currentSetIndex,
 }: ExerciseCardProps) {
-	const { name, sets } = exercise;
+	const { name, type, sets, status } = exercise;
 	const isCurrentExercise = exercise.id === currentExerciseId;
-	const currentSet = isCurrentExercise ? sets[currentSetIndex] : null;
 	const targetReps = sets[0]?.reps ?? "-";
 	const targetRpe = sets[0]?.rpe ?? "-";
 	const suggestedWeight = sets[0]?.weight ?? "-";
 
-	const completedSets = sets.filter(
-		(set) => set.status === Status.Completed || set.status === Status.Skipped,
-	).length;
+	// If exercise is completed, show all sets as completed
+	const setsDisplay =
+		status === Status.Completed
+			? `${sets.length}/${sets.length}`
+			: isCurrentExercise
+				? `${currentSetIndex + 1}/${sets.length}`
+				: `${sets.filter((set) => set.status === Status.Completed || set.status === Status.Skipped).length}/${sets.length}`;
 
 	return (
-		<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-			<div className="col-span-2">
-				<div className="flex items-center justify-between">
-					<h3 className="font-semibold">{name}</h3>
-					<StatusBadge status={currentSet?.status ?? Status.Pending} />
+		<div
+			className={cn("rounded-lg bg-muted p-6", {
+				"ring-2 ring-primary": isCurrentExercise,
+			})}
+		>
+			<div className="flex items-center justify-between mb-1">
+				<h4 className="text-base font-semibold">{name}</h4>
+				<StatusBadge status={status} />
+			</div>
+			<p className="text-sm text-muted-foreground mb-3">
+				{`Type: ${type.charAt(0).toUpperCase()}${type.slice(1)}`}
+			</p>
+			<div className="grid grid-cols-4 gap-4">
+				<div className="flex flex-col">
+					<span className="text-sm font-medium">Weight</span>
+					<span className="text-2xl">{suggestedWeight} lbs</span>
 				</div>
-			</div>
-			<div>
-				<p className="text-sm text-muted-foreground">Suggested Weight</p>
-				<p className="text-lg font-medium">{suggestedWeight} lbs</p>
-			</div>
-			<div>
-				<p className="text-sm text-muted-foreground">Reps</p>
-				<p className="text-lg font-medium">{targetReps}</p>
-			</div>
-			<div>
-				<p className="text-sm text-muted-foreground">RPE</p>
-				<p className="text-lg font-medium">{targetRpe}</p>
-			</div>
-			<div>
-				<p className="text-sm text-muted-foreground">Sets</p>
-				<p className="text-lg font-medium">
-					{isCurrentExercise
-						? `${currentSetIndex + 1}/${sets.length}`
-						: `${completedSets}/${sets.length}`}
-				</p>
+				<div className="flex flex-col">
+					<span className="text-sm font-medium">RPE</span>
+					<span className="text-2xl">{targetRpe}</span>
+				</div>
+				<div className="flex flex-col">
+					<span className="text-sm font-medium">Reps</span>
+					<span className="text-2xl">{targetReps}</span>
+				</div>
+				<div className="flex flex-col">
+					<span className="text-sm font-medium">Sets</span>
+					<span className="text-2xl">{setsDisplay}</span>
+				</div>
 			</div>
 		</div>
 	);
