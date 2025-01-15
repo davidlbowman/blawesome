@@ -1,4 +1,4 @@
-import { OneRMForm } from "@/components/1RMForm";
+import { OneRMForm } from "@/components/strength-training/cycle/OneRMForm";
 import { DashboardView } from "@/components/strength-training/dashboard/DashboardView";
 import { getUserId } from "@/drizzle/core/functions/users/getUserId";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
