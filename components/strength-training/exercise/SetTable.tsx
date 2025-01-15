@@ -6,7 +6,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { cn } from "@/lib/utils";
 
 type StatusType = (typeof Status)[keyof typeof Status];
@@ -35,7 +35,6 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 					<TableHead>Weight</TableHead>
 					<TableHead>Reps</TableHead>
 					<TableHead>% 1RM</TableHead>
-					<TableHead>Status</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
@@ -47,23 +46,10 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 						})}
 					>
 						<TableCell>{set.setNumber}</TableCell>
-						<TableCell>{set.weight}kg</TableCell>
+						<TableCell>{set.weight} lbs</TableCell>
 						<TableCell>{set.reps ?? "-"}</TableCell>
 						<TableCell>
 							{set.percentageOfMax ? `${set.percentageOfMax}%` : "-"}
-						</TableCell>
-						<TableCell>
-							<span
-								className={cn("inline-block px-2 py-1 text-xs rounded-full", {
-									"bg-slate-100 text-slate-500": set.status === Status.Pending,
-									"bg-blue-100 text-blue-500": set.status === Status.InProgress,
-									"bg-green-100 text-green-500":
-										set.status === Status.Completed,
-									"bg-amber-100 text-amber-500": set.status === Status.Skipped,
-								})}
-							>
-								{set.status}
-							</span>
 						</TableCell>
 					</TableRow>
 				))}

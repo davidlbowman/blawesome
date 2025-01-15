@@ -33,7 +33,7 @@ export function PrimaryExerciseCard({
 	return (
 		<Card className={className}>
 			<CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-base font-medium">
+				<CardTitle className="text-lg font-semibold">
 					{name}
 					<span className="ml-2 text-xs text-muted-foreground">(Primary)</span>
 				</CardTitle>

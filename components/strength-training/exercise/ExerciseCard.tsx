@@ -58,7 +58,7 @@ export function ExerciseCard({
 				<div className="flex flex-col">
 					<span className="text-sm font-medium">Weight</span>
 					<span className="text-2xl">
-						{currentSet?.weight ?? sets[0]?.weight ?? 0}
+						{currentSet?.weight ?? sets[0]?.weight ?? 0} lbs
 					</span>
 				</div>
 				<div className="flex flex-col">
