@@ -2,13 +2,16 @@
 
 import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
 import { CardTitle } from "@/components/ui/card";
+import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { formatDate } from "@/lib/formatDate";
 import { CalendarDays, Dumbbell } from "lucide-react";
+
+type StatusType = (typeof Status)[keyof typeof Status];
 
 interface WorkoutHeaderProps {
 	exerciseName: string;
 	date: Date;
-	status: string;
+	status: StatusType;
 }
 
 export function WorkoutHeader({

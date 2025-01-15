@@ -6,55 +6,39 @@ import { completeWorkout } from "@/drizzle/modules/strength-training/functions/w
 import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
 import { skipSet } from "@/drizzle/modules/strength-training/functions/workouts/skipSet";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
+import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AccessoryExercises } from "./AccessoryExercises";
-import { MainExercise } from "./MainExercise";
+import { ExerciseList } from "../exercise/ExerciseList";
 import { RestTimer } from "./RestTimer";
 import { WorkoutActions } from "./WorkoutActions";
 import { WorkoutHeader } from "./WorkoutHeader";
 import { WorkoutStats } from "./WorkoutStats";
 
+type StatusType = (typeof Status)[keyof typeof Status];
+
 interface Exercise {
 	id: string;
 	name: string;
-	type: string;
-	rpeMax: number | null;
-	repMax: number | null;
-}
-
-interface Set {
-	id: string;
-	setNumber: number;
-	weight: number;
-	reps: number | null;
-	percentageOfMax: number;
-	status: string;
-}
-
-interface AccessoryExercise {
-	exercise: {
+	type: "primary" | "variation" | "accessory";
+	sets: Array<{
 		id: string;
-	};
-	definition: Exercise;
-	sets: {
-		id: string;
-		status: string;
-		length: number;
-	}[];
+		setNumber: number;
+		weight: number;
+		reps: number | null;
+		percentageOfMax: number | null;
+		status: StatusType;
+	}>;
+	status: StatusType;
 }
 
 interface WorkoutViewProps {
 	workoutId: string;
 	cycleId: string;
-	status: string;
+	status: StatusType;
 	date: Date;
-	primaryExercise: {
-		name: string;
-		type: string;
-		sets: Set[];
-	};
-	accessoryExercises: AccessoryExercise[];
+	primaryExercise: Exercise;
+	accessoryExercises: Exercise[];
 	stats: {
 		completedSetCount: number;
 		totalSets: number;
@@ -124,14 +108,13 @@ export function WorkoutView({
 			currentExerciseIndex === 0
 				? {
 						id: primaryExercise.sets[currentSetIndex].id,
-						exerciseId: primaryExercise.sets[currentSetIndex].id,
+						exerciseId: primaryExercise.id,
 					}
 				: {
 						id: accessoryExercises[currentExerciseIndex - 1].sets[
 							currentSetIndex
 						].id,
-						exerciseId:
-							accessoryExercises[currentExerciseIndex - 1].exercise.id,
+						exerciseId: accessoryExercises[currentExerciseIndex - 1].id,
 					};
 
 		await completeSet(
@@ -174,7 +157,9 @@ export function WorkoutView({
 	const currentExerciseName =
 		currentExerciseIndex === 0
 			? primaryExercise.name
-			: accessoryExercises[currentExerciseIndex - 1]?.definition.name;
+			: accessoryExercises[currentExerciseIndex - 1]?.name;
+
+	const allExercises = [primaryExercise, ...accessoryExercises];
 
 	return (
 		<Card>
@@ -187,18 +172,11 @@ export function WorkoutView({
 
 				<WorkoutStats {...stats} />
 
-				<div className="space-y-6">
-					<MainExercise {...primaryExercise} />
-
-					{accessoryExercises.length > 0 && (
-						<AccessoryExercises
-							exercises={accessoryExercises}
-							currentExerciseIndex={currentExerciseIndex}
-							currentSetIndex={currentSetIndex}
-							status={status}
-						/>
-					)}
-				</div>
+				<ExerciseList
+					exercises={allExercises}
+					currentExerciseIndex={currentExerciseIndex}
+					currentSetIndex={currentSetIndex}
+				/>
 
 				<WorkoutActions
 					status={status}

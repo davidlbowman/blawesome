@@ -1,5 +1,8 @@
 import { WorkoutView } from "@/components/strength-training/workout/WorkoutView";
 import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
+import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+
+type ExerciseType = "primary" | "variation" | "accessory";
 
 export default async function Page({
 	params,
@@ -24,7 +27,8 @@ export default async function Page({
 	}
 
 	const accessoryExercises = sorted.filter(
-		(e) => e.definition.type !== "primary",
+		(e) =>
+			e.definition.type === "variation" || e.definition.type === "accessory",
 	);
 
 	// Calculate stats
@@ -37,7 +41,7 @@ export default async function Page({
 		(acc, exercise) =>
 			acc +
 			exercise.sets.filter(
-				(s) => s.status === "completed" || s.status === "skipped",
+				(s) => s.status === Status.Completed || s.status === Status.Skipped,
 			).length,
 		0,
 	);
@@ -60,14 +64,14 @@ export default async function Page({
 
 	// Find current exercise and set indices from DB state
 	const currentExerciseIdx = sorted.findIndex(
-		(e) => e.exercise.status === "in_progress",
+		(e) => e.exercise.status === Status.InProgress,
 	);
 	const startingExerciseIndex =
 		currentExerciseIdx === -1 ? 0 : currentExerciseIdx;
 
 	const currentExercise = sorted[startingExerciseIndex];
 	const currentSetIdx = currentExercise?.sets.findIndex(
-		(s) => s.status === "in_progress",
+		(s) => s.status === Status.InProgress,
 	);
 	const startingSetIndex = currentSetIdx === -1 ? 0 : currentSetIdx;
 
@@ -78,33 +82,32 @@ export default async function Page({
 			status={workout.status}
 			date={workout.date}
 			primaryExercise={{
+				id: mainExercise.exercise.id,
 				name: mainExercise.definition.name,
-				type: mainExercise.definition.type,
+				type: mainExercise.definition.type as ExerciseType,
 				sets: mainExercise.sets.map((set) => ({
 					id: set.id,
 					setNumber: set.setNumber,
 					weight: set.weight,
 					reps: set.reps,
-					percentageOfMax: set.percentageOfMax ?? 0,
+					percentageOfMax: set.percentageOfMax,
 					status: set.status,
 				})),
+				status: mainExercise.exercise.status,
 			}}
 			accessoryExercises={accessoryExercises.map((exercise) => ({
-				exercise: {
-					id: exercise.exercise.id,
-				},
-				definition: {
-					id: exercise.definition.id,
-					name: exercise.definition.name,
-					type: exercise.definition.type,
-					rpeMax: exercise.definition.rpeMax,
-					repMax: exercise.definition.repMax,
-				},
+				id: exercise.exercise.id,
+				name: exercise.definition.name,
+				type: exercise.definition.type as ExerciseType,
 				sets: exercise.sets.map((set) => ({
 					id: set.id,
+					setNumber: set.setNumber,
+					weight: set.weight,
+					reps: set.reps,
+					percentageOfMax: set.percentageOfMax,
 					status: set.status,
-					length: exercise.sets.length,
 				})),
+				status: exercise.exercise.status,
 			}))}
 			stats={{
 				completedSetCount,

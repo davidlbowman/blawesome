@@ -8,9 +8,11 @@ import { formatDate } from "@/lib/formatDate";
 import { Calendar, CheckCircle, Dumbbell, XCircle } from "lucide-react";
 import Link from "next/link";
 
+type StatusType = (typeof Status)[keyof typeof Status];
+
 interface WorkoutCardProps {
 	id: string;
-	status: string;
+	status: StatusType;
 	date: Date;
 	completedAt?: Date | null;
 	primaryLift: string;
@@ -56,7 +58,7 @@ export function WorkoutCard({
 						<span>
 							{status === Status.Completed && completedAt
 								? `Completed on ${formatDate({ date: completedAt })}`
-								: status === "skipped"
+								: status === Status.Skipped
 									? `Skipped on ${formatDate({ date: completedAt ?? date })}`
 									: `Scheduled for ${formatDate({ date: date })}`}
 						</span>
@@ -72,7 +74,7 @@ export function WorkoutCard({
 							<CheckCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Completed</span>
 						</div>
-					) : status === "skipped" ? (
+					) : status === Status.Skipped ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
 							<XCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Skipped</span>
