@@ -12,7 +12,9 @@
 		"db:generate": "bunx drizzle-kit generate",
 		"db:migrate": "bunx drizzle-kit migrate",
 		"db:studio": "bunx drizzle-kit studio",
-		"db:setup": "bun run drizzle/tests/integration/setup.ts"
+		"db:setup": "bun run drizzle/tests/integration/setup.ts",
+		"test": "bun test",
+		"test:nolog": "DISABLE_QUERY_LOGGING=true bun test"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^3.9.1",

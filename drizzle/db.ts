@@ -150,8 +150,11 @@ export class CustomLogger implements Logger {
 	}
 }
 
-// Create logger instance with logging enabled only in development
-export const logger = new CustomLogger(process.env.NODE_ENV !== "production");
+// Create logger instance with logging enabled only in development and when not explicitly disabled
+export const logger = new CustomLogger(
+	process.env.NODE_ENV !== "production" &&
+		process.env.DISABLE_QUERY_LOGGING !== "true",
+);
 
 // Create database instance with logger
 const dbUrl = process.env.DATABASE_URL;
