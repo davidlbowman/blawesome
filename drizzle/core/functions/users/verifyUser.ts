@@ -4,15 +4,30 @@ import { type User, users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
+import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
+import type { ExtractTablesWithRelations } from "drizzle-orm";
+import type { ResultSet } from "@libsql/client";
 
 interface VerifyUserParams {
 	email: User["email"];
 	password: User["password"];
+	tx?: SQLiteTransaction<
+		"async",
+		ResultSet,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>;
 }
 
 export async function verifyUser(data: VerifyUserParams) {
-	const [user] = await db
-		.select()
+	const queryRunner = data.tx || db;
+
+	const [user] = await queryRunner
+		.select({
+			id: users.id,
+			email: users.email,
+			password: users.password,
+		})
 		.from(users)
 		.where(eq(users.email, data.email));
 
