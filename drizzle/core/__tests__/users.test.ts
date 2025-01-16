@@ -1,8 +1,8 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
+import bcrypt from "bcrypt";
 import { verifyUser } from "../functions/users/verifyUser";
 import { users } from "../schemas/users";
 import { createTestUser, withTestTransaction } from "./utils";
-import bcrypt from "bcrypt";
 
 describe("User Authentication", () => {
 	test("should verify user with correct credentials", async () => {

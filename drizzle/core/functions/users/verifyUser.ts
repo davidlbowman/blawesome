@@ -2,11 +2,11 @@
 
 import { type User, users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
+import type { ResultSet } from "@libsql/client";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
-import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
-import type { ResultSet } from "@libsql/client";
+import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 
 interface VerifyUserParams {
 	email: User["email"];
@@ -23,11 +23,7 @@ export async function verifyUser(data: VerifyUserParams) {
 	const queryRunner = data.tx || db;
 
 	const [user] = await queryRunner
-		.select({
-			id: users.id,
-			email: users.email,
-			password: users.password,
-		})
+		.select()
 		.from(users)
 		.where(eq(users.email, data.email));
 

@@ -4,7 +4,13 @@
 
 import { db } from "@/drizzle/db";
 import { faker } from "@faker-js/faker";
-import { PrimaryLift, Status } from "../schemas";
+import {
+	ExerciseCategory,
+	type ExerciseDefinitionsInsert,
+	ExerciseType,
+	PrimaryLift,
+	Status,
+} from "../schemas";
 
 export async function withTestTransaction<T>(
 	// @ts-expect-error
@@ -90,6 +96,36 @@ export function createTestSet({
 		rpe: faker.number.int({ min: 6, max: 10 }),
 		percentageOfMax: faker.number.int({ min: 50, max: 95 }),
 		status: Status.Pending,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+	};
+}
+
+export function createTestExerciseDefinition({
+	id = faker.string.uuid(),
+	name = faker.string.alpha({ length: 20 }),
+	type = ExerciseType.Primary,
+	category = ExerciseCategory.MainLift,
+	primaryLiftDay = PrimaryLift.Squat,
+	rpeMax = faker.number.int({ min: 6, max: 10 }),
+	repMax = faker.number.int({ min: 1, max: 12 }),
+}: {
+	id?: string;
+	name?: string;
+	type?: (typeof ExerciseType)[keyof typeof ExerciseType];
+	category?: (typeof ExerciseCategory)[keyof typeof ExerciseCategory];
+	primaryLiftDay?: (typeof PrimaryLift)[keyof typeof PrimaryLift];
+	rpeMax?: number;
+	repMax?: number;
+} = {}): ExerciseDefinitionsInsert {
+	return {
+		id: id || faker.string.uuid(),
+		name,
+		type,
+		category,
+		primaryLiftDay,
+		rpeMax,
+		repMax,
 		createdAt: new Date(),
 		updatedAt: new Date(),
 	};
