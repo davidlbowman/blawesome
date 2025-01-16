@@ -9,21 +9,21 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import {
-	createTestWorkout,
-	createTestExercise,
-	createTestSet,
-	withTestTransaction,
-} from "./utils";
-import { workouts } from "../schemas/workouts";
+import { users } from "@/drizzle/core/schemas/users";
+import { faker } from "@faker-js/faker";
+import { eq } from "drizzle-orm";
+import { cycles } from "../schemas/cycles";
+import { exerciseDefinitions } from "../schemas/exerciseDefinitions";
 import { exercises } from "../schemas/exercises";
 import { sets } from "../schemas/sets";
-import { eq } from "drizzle-orm";
-import { exerciseDefinitions } from "../schemas/exerciseDefinitions";
 import { PrimaryLift, Status } from "../schemas/types";
-import { users } from "@/drizzle/core/schemas/users";
-import { cycles } from "../schemas/cycles";
-import { faker } from "@faker-js/faker";
+import { workouts } from "../schemas/workouts";
+import {
+	createTestExercise,
+	createTestSet,
+	createTestWorkout,
+	withTestTransaction,
+} from "./utils";
 
 describe("Test Utilities", () => {
 	test("should generate and insert test data", async () => {

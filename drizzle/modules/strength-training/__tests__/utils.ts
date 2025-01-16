@@ -2,9 +2,9 @@
  * Test Utilities for Strength Training Module
  */
 
-import { faker } from "@faker-js/faker";
 import { db } from "@/drizzle/db";
-import { Status, PrimaryLift } from "../schemas";
+import { faker } from "@faker-js/faker";
+import { PrimaryLift, Status } from "../schemas";
 
 export async function withTestTransaction<T>(
 	// @ts-expect-error
