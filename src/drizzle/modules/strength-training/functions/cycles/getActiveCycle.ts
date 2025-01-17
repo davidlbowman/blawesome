@@ -1,19 +1,26 @@
 "use server";
 
+import type { User } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import {
 	type CyclesSelect,
 	cycles,
+	cyclesSelectSchema,
 } from "@/drizzle/modules/strength-training/schemas";
+import { Status } from "@/drizzle/modules/strength-training/utils/enums";
 import { and, eq } from "drizzle-orm";
 
 export async function getActiveCycle(
-	userId: string,
+	userId: User["id"],
 ): Promise<CyclesSelect | null> {
 	const [activeCycle] = await db
 		.select()
 		.from(cycles)
-		.where(and(eq(cycles.userId, userId), eq(cycles.status, "pending")));
+		.where(
+			and(eq(cycles.userId, userId), eq(cycles.status, Status.Enum.pending)),
+		);
 
-	return activeCycle || null;
+	if (!activeCycle) return null;
+	const parsedCycle = cyclesSelectSchema.parse(activeCycle);
+	return parsedCycle;
 }

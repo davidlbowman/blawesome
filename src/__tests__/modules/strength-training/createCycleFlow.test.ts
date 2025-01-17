@@ -1,20 +1,20 @@
-import { test, describe, expect } from "bun:test";
-import { faker } from "@faker-js/faker";
-import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
+import { describe, expect, test } from "bun:test";
+import { withTestTransaction } from "@/__tests__/utils";
 import { createUser } from "@/drizzle/core/functions/users/createUser";
+import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
 import {
-	oneRepMaxes,
-	exercises,
-	workouts,
-	sets,
 	ExerciseType,
 	PrimaryLift,
 	Status,
 	exerciseDefinitions,
+	exercises,
+	oneRepMaxes,
+	sets,
+	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
-import { eq, and } from "drizzle-orm";
-import { withTestTransaction } from "@/__tests__/utils";
 import { roundDownToNearest5 } from "@/drizzle/modules/strength-training/utils/math";
+import { faker } from "@faker-js/faker";
+import { and, eq } from "drizzle-orm";
 
 describe("Cycle Creation Flow", () => {
 	test("should create a complete cycle with workouts, exercises, and sets", async () => {

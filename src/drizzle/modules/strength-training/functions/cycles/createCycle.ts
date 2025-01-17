@@ -15,8 +15,8 @@ import {
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
-import { eq } from "drizzle-orm";
 import { roundDownToNearest5 } from "@/drizzle/modules/strength-training/utils/math";
+import { eq } from "drizzle-orm";
 
 const WORKOUT_SEQUENCE = [
 	PrimaryLift.Squat,
