@@ -2,6 +2,7 @@
 
 import { users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
+import type { DrizzleTransaction } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 
@@ -10,7 +11,12 @@ function base64URLDecode(str: string): string {
 	return Buffer.from(base64, "base64").toString();
 }
 
-export async function getUserId() {
+interface GetUserIDParams {
+	tx?: DrizzleTransaction;
+}
+
+export async function getUserId({ tx }: GetUserIDParams = {}) {
+	const queryRunner = tx || db;
 	const cookieStore = await cookies();
 	const token = cookieStore.get("session")?.value;
 	if (!token) throw new Error("Not authenticated");
@@ -19,7 +25,7 @@ export async function getUserId() {
 	const payload = JSON.parse(base64URLDecode(payloadBase64));
 	const userId = payload.id;
 
-	const user = await db
+	const user = await queryRunner
 		.select({ id: users.id })
 		.from(users)
 		.where(eq(users.id, userId))
