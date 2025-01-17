@@ -6,10 +6,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { cn } from "@/lib/utils";
 
-type StatusType = (typeof Status)[keyof typeof Status];
+type StatusType = (typeof Status.Enum)[keyof typeof Status.Enum];
 
 interface Set {
 	id: string;
@@ -44,8 +44,8 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 						className={cn({
 							"bg-muted": isActive && index === currentSetIndex,
 							"bg-muted/50":
-								set.status === Status.Completed ||
-								set.status === Status.Skipped,
+								set.status === Status.Enum.completed ||
+								set.status === Status.Enum.skipped,
 						})}
 					>
 						<TableCell>{set.setNumber}</TableCell>

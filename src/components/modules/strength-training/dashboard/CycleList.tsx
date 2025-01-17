@@ -2,12 +2,9 @@
 
 import { CycleCard } from "@/components/modules/strength-training/cycle/CycleCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type {
-	CyclesSelect,
-	PrimaryLift,
-	WorkoutsSelect,
-} from "@/drizzle/modules/strength-training/schemas";
-import { Status } from "@/drizzle/modules/strength-training/schemas";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 
 type WorkoutStats = {
 	totalWorkouts: number;
@@ -31,34 +28,35 @@ function calculateWorkoutStats(workouts: WorkoutsSelect[]): WorkoutStats {
 	// Get the active cycle's workouts (the one that has pending workouts)
 	const activeCycleWorkouts =
 		Object.values(workoutsByCycle).find((cycleWorkouts) =>
-			cycleWorkouts.some((w) => w.status === Status.Pending),
+			cycleWorkouts.some((w) => w.status === Status.Enum.pending),
 		) ?? [];
 
 	return {
 		totalWorkouts: 16, // Each cycle has exactly 16 workouts
 		completedWorkouts: activeCycleWorkouts.filter(
-			(w) => w.status === Status.Completed,
+			(w) => w.status === Status.Enum.completed,
 		).length,
-		nextWorkout: activeCycleWorkouts.find((w) => w.status === Status.Pending),
+		nextWorkout: activeCycleWorkouts.find(
+			(w) => w.status === Status.Enum.pending,
+		),
 	};
 }
 
 function getCompletedWorkouts(cycle: CyclesSelect, stats: WorkoutStats) {
-	return cycle.status === Status.Completed ? 16 : stats.completedWorkouts;
+	return cycle.status === Status.Enum.completed ? 16 : stats.completedWorkouts;
 }
 
 function getNextWorkout(
 	cycle: CyclesSelect,
 	nextWorkout: WorkoutsSelect | undefined,
 ) {
-	if (cycle.status === Status.Completed || !nextWorkout) {
+	if (cycle.status === Status.Enum.completed || !nextWorkout) {
 		return undefined;
 	}
 
 	return {
-		primaryLift:
-			nextWorkout.primaryLift as (typeof PrimaryLift)[keyof typeof PrimaryLift],
-		status: nextWorkout.status as (typeof Status)[keyof typeof Status],
+		primaryLift: nextWorkout.primaryLift,
+		status: nextWorkout.status,
 	};
 }
 
@@ -72,10 +70,10 @@ export function CycleList({ cycles, workoutData }: CycleListProps) {
 
 	// Separate current and completed cycles
 	const currentCycle = cycles.find(
-		(cycle) => cycle.status !== Status.Completed,
+		(cycle) => cycle.status !== Status.Enum.completed,
 	);
 	const completedCycles = cycles
-		.filter((cycle) => cycle.status === Status.Completed)
+		.filter((cycle) => cycle.status === Status.Enum.completed)
 		.sort(
 			(a, b) =>
 				(b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0),

@@ -1,8 +1,8 @@
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "../shared/StatusBadge";
 
-type StatusType = (typeof Status)[keyof typeof Status];
+type StatusType = (typeof Status.Enum)[keyof typeof Status.Enum];
 
 interface Set {
 	id: string;
@@ -39,11 +39,11 @@ export function ExerciseCard({
 
 	// If exercise is completed, show all sets as completed
 	const setsDisplay =
-		status === Status.Completed
+		status === Status.Enum.completed
 			? `${sets.length}/${sets.length}`
 			: isCurrentExercise
 				? `${currentSetIndex + 1}/${sets.length}`
-				: `${sets.filter((set) => set.status === Status.Completed || set.status === Status.Skipped).length}/${sets.length}`;
+				: `${sets.filter((set) => set.status === Status.Enum.completed || set.status === Status.Enum.skipped).length}/${sets.length}`;
 
 	return (
 		<div

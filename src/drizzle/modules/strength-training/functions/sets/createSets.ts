@@ -1,13 +1,14 @@
 "use server";
 
 import { PRIMARY_LIFT_PATTERNS } from "@/drizzle/modules/strength-training/constants/liftPatterns";
+import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import type { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import type { SetsInsert } from "@/drizzle/modules/strength-training/schemas/sets";
 import {
-	type ExerciseDefinitionsSelect,
 	ExerciseType,
-	type SetsInsert,
 	Status,
-	type exercises,
-} from "@/drizzle/modules/strength-training/schemas";
+} from "@/drizzle/modules/strength-training/types";
+
 import type { InferSelectModel } from "drizzle-orm";
 
 type Exercise = InferSelectModel<typeof exercises>;
@@ -38,7 +39,7 @@ function calculateSetScheme(
 	const weekNumber = getWeekNumber(workoutIndex);
 	const weekKey = `week${weekNumber}` as keyof typeof PRIMARY_LIFT_PATTERNS;
 
-	if (exerciseType === ExerciseType.Primary && oneRepMax) {
+	if (exerciseType === ExerciseType.Enum.primary && oneRepMax) {
 		return PRIMARY_LIFT_PATTERNS[weekKey].map((pattern) => ({
 			...pattern,
 			weight: roundToNearest5(
@@ -83,6 +84,6 @@ export async function createSets(
 		rpe: scheme.rpe ?? 7,
 		percentageOfMax: scheme.percentageOfMax ?? null,
 		setNumber: index + 1,
-		status: Status.Pending,
+		status: Status.Enum.pending,
 	}));
 }

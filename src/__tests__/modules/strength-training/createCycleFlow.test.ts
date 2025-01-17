@@ -2,16 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { withTestTransaction } from "@/__tests__/utils";
 import { createUser } from "@/drizzle/core/functions/users/createUser";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
+import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import {
 	ExerciseType,
 	PrimaryLift,
 	Status,
-	exerciseDefinitions,
-	exercises,
-	oneRepMaxes,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+} from "@/drizzle/modules/strength-training/types";
 import { roundDownToNearest5 } from "@/drizzle/modules/strength-training/utils/math";
 import { faker } from "@faker-js/faker";
 import { and, eq } from "drizzle-orm";
@@ -33,7 +33,7 @@ describe("Cycle Creation Flow", () => {
 			const primaryExerciseDefinitions = await tx
 				.select()
 				.from(exerciseDefinitions)
-				.where(eq(exerciseDefinitions.type, ExerciseType.Primary));
+				.where(eq(exerciseDefinitions.type, ExerciseType.Enum.primary));
 
 			// Insert one rep maxes for each primary lift
 			await Promise.all(
@@ -54,7 +54,7 @@ describe("Cycle Creation Flow", () => {
 
 			// 4. Verify cycle was created
 			expect(cycle.userId).toBe(user.id);
-			expect(cycle.status).toBe(Status.Pending);
+			expect(cycle.status).toBe(Status.Enum.pending);
 			expect(cycle.startDate).toBeDefined();
 
 			// 5. Verify workouts were created
@@ -64,7 +64,7 @@ describe("Cycle Creation Flow", () => {
 				.where(eq(workouts.cycleId, cycle.id));
 
 			expect(cycleWorkouts).toHaveLength(16); // 4 weeks * 4 workouts
-			expect(cycleWorkouts[0].status).toBe(Status.Pending);
+			expect(cycleWorkouts[0].status).toBe(Status.Enum.pending);
 			expect(cycleWorkouts[0].primaryLift).toBeDefined();
 
 			// 6. Verify exercises were created
@@ -74,7 +74,7 @@ describe("Cycle Creation Flow", () => {
 				.where(eq(exercises.workoutId, cycleWorkouts[0].id));
 
 			expect(workoutExercises).toHaveLength(6); // 6 exercises per workout
-			expect(workoutExercises[0].status).toBe(Status.Pending);
+			expect(workoutExercises[0].status).toBe(Status.Enum.pending);
 			expect(workoutExercises[0].order).toBe(1);
 
 			// 7. Verify sets were created
@@ -84,7 +84,7 @@ describe("Cycle Creation Flow", () => {
 				.where(eq(sets.exerciseId, workoutExercises[0].id));
 
 			expect(exerciseSets.length).toBeGreaterThan(0);
-			expect(exerciseSets[0].status).toBe(Status.Pending);
+			expect(exerciseSets[0].status).toBe(Status.Enum.pending);
 			expect(exerciseSets[0].weight).toBeGreaterThan(0);
 			expect(exerciseSets[0].reps).toBeGreaterThan(0);
 			expect(exerciseSets[0].rpe).toBeGreaterThan(0);
@@ -106,8 +106,8 @@ describe("Cycle Creation Flow", () => {
 				.from(exerciseDefinitions)
 				.where(
 					and(
-						eq(exerciseDefinitions.type, ExerciseType.Primary),
-						eq(exerciseDefinitions.primaryLiftDay, PrimaryLift.Squat),
+						eq(exerciseDefinitions.type, ExerciseType.Enum.primary),
+						eq(exerciseDefinitions.primaryLiftDay, PrimaryLift.Enum.squat),
 					),
 				);
 
@@ -136,7 +136,7 @@ describe("Cycle Creation Flow", () => {
 				.where(
 					and(
 						eq(workouts.cycleId, cycle.id),
-						eq(workouts.primaryLift, PrimaryLift.Squat),
+						eq(workouts.primaryLift, PrimaryLift.Enum.squat),
 					),
 				)
 				.get();

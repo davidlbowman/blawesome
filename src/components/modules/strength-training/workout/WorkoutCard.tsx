@@ -3,12 +3,12 @@
 import { ProgressBar } from "@/components/modules/strength-training/shared/ProgressBar";
 import { StatusBadge } from "@/components/modules/strength-training/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { formatDate } from "@/lib/formatDate";
 import { Calendar, CheckCircle, Dumbbell, XCircle } from "lucide-react";
 import Link from "next/link";
 
-type StatusType = (typeof Status)[keyof typeof Status];
+type StatusType = (typeof Status.Enum)[keyof typeof Status.Enum];
 
 interface WorkoutCardProps {
 	id: string;
@@ -56,9 +56,9 @@ export function WorkoutCard({
 					<div className="flex items-center space-x-4 text-sm text-muted-foreground">
 						<Calendar className="h-4 w-4" />
 						<span>
-							{status === Status.Completed && completedAt
+							{status === Status.Enum.completed && completedAt
 								? `Completed on ${formatDate({ date: completedAt })}`
-								: status === Status.Skipped
+								: status === Status.Enum.skipped
 									? `Skipped on ${formatDate({ date: completedAt ?? date })}`
 									: `Scheduled for ${formatDate({ date: date })}`}
 						</span>
@@ -66,12 +66,12 @@ export function WorkoutCard({
 					<div className="mt-4">
 						<ProgressBar value={completedSets} max={totalSets} />
 					</div>
-					{status === Status.Completed ? (
+					{status === Status.Enum.completed ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
 							<CheckCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Completed</span>
 						</div>
-					) : status === Status.Skipped ? (
+					) : status === Status.Enum.skipped ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
 							<XCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Skipped</span>
@@ -80,7 +80,7 @@ export function WorkoutCard({
 						<div className="mt-4 flex items-center space-x-4 text-sm">
 							<Dumbbell className="h-4 w-4 text-muted-foreground" />
 							<span>
-								{status === Status.InProgress ? (
+								{status === Status.Enum.in_progress ? (
 									<span className="font-medium">In Progress</span>
 								) : (
 									<span>Upcoming Workout</span>

@@ -2,7 +2,7 @@
 
 import { StatusBadge } from "@/components/modules/strength-training/shared/StatusBadge";
 import { CardTitle } from "@/components/ui/card";
-import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import type { Status } from "@/drizzle/modules/strength-training/types";
 import { formatDate } from "@/lib/formatDate";
 import { CalendarDays, Dumbbell } from "lucide-react";
 

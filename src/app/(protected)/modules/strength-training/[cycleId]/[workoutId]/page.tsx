@@ -1,8 +1,6 @@
 import { WorkoutView } from "@/components/modules/strength-training/workout/WorkoutView";
 import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
-
-type ExerciseType = "primary" | "variation" | "accessory";
+import { Status } from "@/drizzle/modules/strength-training/types";
 
 export default async function Page({
 	params,
@@ -41,7 +39,9 @@ export default async function Page({
 		(acc, exercise) =>
 			acc +
 			exercise.sets.filter(
-				(s) => s.status === Status.Completed || s.status === Status.Skipped,
+				(s) =>
+					s.status === Status.Enum.completed ||
+					s.status === Status.Enum.skipped,
 			).length,
 		0,
 	);
@@ -64,14 +64,14 @@ export default async function Page({
 
 	// Find current exercise and set indices from DB state
 	const currentExerciseIdx = sorted.findIndex(
-		(e) => e.exercise.status === Status.InProgress,
+		(e) => e.exercise.status === Status.Enum.in_progress,
 	);
 	const startingExerciseIndex =
 		currentExerciseIdx === -1 ? 0 : currentExerciseIdx;
 
 	const currentExercise = sorted[startingExerciseIndex];
 	const currentSetIdx = currentExercise?.sets.findIndex(
-		(s) => s.status === Status.InProgress,
+		(s) => s.status === Status.Enum.in_progress,
 	);
 	const startingSetIndex = currentSetIdx === -1 ? 0 : currentSetIdx;
 
@@ -84,7 +84,7 @@ export default async function Page({
 			primaryExercise={{
 				id: mainExercise.exercise.id,
 				name: mainExercise.definition.name,
-				type: mainExercise.definition.type as ExerciseType,
+				type: mainExercise.definition.type,
 				sets: mainExercise.sets.map((set) => ({
 					id: set.id,
 					setNumber: set.setNumber,
@@ -98,7 +98,7 @@ export default async function Page({
 			accessoryExercises={accessoryExercises.map((exercise) => ({
 				id: exercise.exercise.id,
 				name: exercise.definition.name,
-				type: exercise.definition.type as ExerciseType,
+				type: exercise.definition.type,
 				sets: exercise.sets.map((set) => ({
 					id: set.id,
 					setNumber: set.setNumber,

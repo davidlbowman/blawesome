@@ -1,5 +1,5 @@
 import { users } from "@/drizzle/core/schemas/users";
-import { Status } from "@/drizzle/modules/strength-training/utils/enums";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { generateId } from "@/drizzle/utils/uuid";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";

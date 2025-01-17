@@ -1,8 +1,8 @@
 import { CycleView } from "@/components/modules/strength-training/cycle/CycleView";
 import { skipRemainingWorkouts } from "@/drizzle/modules/strength-training/functions/cycles/skipRemainingWorkouts";
 import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
-import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { redirect } from "next/navigation";
 
 type PageProps = {
@@ -40,9 +40,9 @@ export default async function CyclePage({ params }: PageProps) {
 	const workoutsWithSets = workouts.map((workout) => {
 		const totalSets = 25; // This should come from the actual workout data
 		const completedSets =
-			workout.status === Status.Completed
+			workout.status === Status.Enum.completed
 				? totalSets
-				: workout.status === Status.InProgress
+				: workout.status === Status.Enum.in_progress
 					? Math.floor(totalSets * 0.5)
 					: 0;
 		return {
@@ -54,13 +54,14 @@ export default async function CyclePage({ params }: PageProps) {
 
 	// Find current, next, and previous workouts
 	const currentWorkout = workoutsWithSets.find(
-		(w) => w.status === Status.InProgress,
+		(w) => w.status === Status.Enum.in_progress,
 	);
 	const nextWorkouts = workoutsWithSets.filter(
-		(w) => w.status === Status.Pending,
+		(w) => w.status === Status.Enum.pending,
 	);
 	const previousWorkouts = workoutsWithSets.filter(
-		(w) => w.status === Status.Completed || w.status === "skipped",
+		(w) =>
+			w.status === Status.Enum.completed || w.status === Status.Enum.skipped,
 	);
 
 	// Static data for now - we'll implement these calculations later

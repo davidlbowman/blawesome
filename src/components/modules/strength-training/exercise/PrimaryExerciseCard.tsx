@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { StatusBadge } from "../shared/StatusBadge";
 import { SetTable } from "./SetTable";
 
-type StatusType = (typeof Status)[keyof typeof Status];
+type StatusType = (typeof Status.Enum)[keyof typeof Status.Enum];
 
 interface Set {
 	id: string;
@@ -30,7 +30,7 @@ export function PrimaryExerciseCard({
 	status,
 	className,
 }: PrimaryExerciseCardProps) {
-	const isActive = status === Status.InProgress;
+	const isActive = status === Status.Enum.in_progress;
 
 	return (
 		<Card className={className}>

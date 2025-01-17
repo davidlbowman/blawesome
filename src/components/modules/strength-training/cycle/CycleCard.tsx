@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { formatDate } from "@/lib/formatDate";
 import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
 import Link from "next/link";
@@ -23,11 +23,11 @@ interface CycleCardProps {
 
 const getStatusColor = (status: string) => {
 	switch (status) {
-		case Status.Pending:
+		case Status.Enum.pending:
 			return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
-		case Status.InProgress:
+		case Status.Enum.in_progress:
 			return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
-		case Status.Completed:
+		case Status.Enum.completed:
 			return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
 		default:
 			return "";
@@ -72,7 +72,7 @@ export function CycleCard({
 					<div className="flex items-center space-x-4 text-sm text-muted-foreground">
 						<Calendar className="h-4 w-4" />
 						<span>
-							{status === Status.Completed && completedAt
+							{status === Status.Enum.completed && completedAt
 								? `Completed on ${formatDate({ date: completedAt })}`
 								: `Started on ${formatDate({ date: startDate })}`}
 						</span>
@@ -86,17 +86,17 @@ export function CycleCard({
 						</div>
 						<Progress value={progressPercentage} className="h-2" />
 					</div>
-					{status !== Status.Completed && nextWorkout && (
+					{status !== Status.Enum.completed && nextWorkout && (
 						<div className="mt-4 flex items-center space-x-4 text-sm">
-							{nextWorkout.status === Status.Completed ? (
+							{nextWorkout.status === Status.Enum.completed ? (
 								<CheckCircle className="h-4 w-4 text-green-500" />
 							) : (
 								<Dumbbell className="h-4 w-4 text-muted-foreground" />
 							)}
 							<span>
-								{nextWorkout.status === Status.InProgress
+								{nextWorkout.status === Status.Enum.in_progress
 									? "Current Workout: "
-									: nextWorkout.status === Status.Completed
+									: nextWorkout.status === Status.Enum.completed
 										? "Last Completed: "
 										: "Next Workout: "}
 								<span className="font-medium">
@@ -105,7 +105,7 @@ export function CycleCard({
 							</span>
 						</div>
 					)}
-					{status === Status.Completed && (
+					{status === Status.Enum.completed && (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
 							<CheckCircle className="h-4 w-4" />
 							<span className="font-medium">Cycle Completed</span>

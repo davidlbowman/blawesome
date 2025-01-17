@@ -1,7 +1,7 @@
 import { users } from "@/drizzle/core/schemas/users";
 import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
-import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { generateId } from "@/drizzle/utils/uuid";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -22,10 +22,7 @@ export const exercises = sqliteTable("exercises", {
 		.notNull(),
 	oneRepMax: integer("one_rep_max"),
 	order: integer("order").notNull(),
-	status: text("status")
-		.$type<(typeof Status)[keyof typeof Status]>()
-		.notNull()
-		.default("pending"),
+	status: text("status").notNull().default(Status.Enum.pending),
 	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
 		() => new Date(),
 	),
@@ -35,7 +32,12 @@ export const exercises = sqliteTable("exercises", {
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
-export const exercisesInsertSchema = createInsertSchema(exercises);
+export const exercisesInsertSchema = createInsertSchema(exercises).extend({
+	status: Status,
+});
 export type ExercisesInsert = z.infer<typeof exercisesInsertSchema>;
-export const exercisesSelectSchema = createSelectSchema(exercises);
+
+export const exercisesSelectSchema = createSelectSchema(exercises).extend({
+	status: Status,
+});
 export type ExercisesSelect = z.infer<typeof exercisesSelectSchema>;

@@ -7,7 +7,7 @@ import { skipRemainingExerciseSets } from "@/drizzle/modules/strength-training/f
 import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
 import { skipSet } from "@/drizzle/modules/strength-training/functions/workouts/skipSet";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
-import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import type { Status } from "@/drizzle/modules/strength-training/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ExerciseList } from "../exercise/ExerciseList";

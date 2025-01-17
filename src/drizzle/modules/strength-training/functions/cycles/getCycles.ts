@@ -6,7 +6,7 @@ import {
 	type CyclesSelect,
 	cycles,
 	cyclesSelectSchema,
-} from "@/drizzle/modules/strength-training/schemas";
+} from "@/drizzle/modules/strength-training/schemas/cycles";
 import { desc, eq } from "drizzle-orm";
 
 export async function getCycles(userId: User["id"]): Promise<CyclesSelect[]> {

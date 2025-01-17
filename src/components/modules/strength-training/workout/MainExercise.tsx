@@ -8,7 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Status } from "@/drizzle/modules/strength-training/schemas";
+import { Status } from "@/drizzle/modules/strength-training/types";
 
 interface MainExerciseSet {
 	id: string;
@@ -46,9 +46,9 @@ export function MainExercise({ name, type, sets }: MainExerciseProps) {
 						<TableRow
 							key={set.id}
 							className={
-								set.status === Status.InProgress
+								set.status === Status.Enum.in_progress
 									? "bg-primary/20"
-									: set.status === Status.Completed
+									: set.status === Status.Enum.completed
 										? "bg-muted-foreground/10"
 										: ""
 							}

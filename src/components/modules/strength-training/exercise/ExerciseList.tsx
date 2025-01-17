@@ -1,4 +1,4 @@
-import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import type { Status } from "@/drizzle/modules/strength-training/types";
 import { ExerciseCard } from "./ExerciseCard";
 import { PrimaryExerciseCard } from "./PrimaryExerciseCard";
 

@@ -1,14 +1,25 @@
 import { db } from "@/drizzle/db";
 import {
-	type ExerciseDefinitionsSelect,
-	type ExercisesSelect,
-	type SetsSelect,
-	type WorkoutsSelect,
 	exerciseDefinitions,
+	exerciseDefinitionsSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import {
 	exercises,
+	exercisesSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/exercises";
+import type { ExercisesSelect } from "@/drizzle/modules/strength-training/schemas/exercises";
+import {
 	sets,
+	setsSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/sets";
+import type { SetsSelect } from "@/drizzle/modules/strength-training/schemas/sets";
+import {
 	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+	workoutsSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/workouts";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { eq } from "drizzle-orm";
 
 export type WorkoutDetails = WorkoutsSelect & {
@@ -35,9 +46,16 @@ export async function getWorkoutDetails(
 				.where(eq(workouts.cycleId, cycleId))
 				.orderBy(workouts.sequence);
 
+			// Parse workouts through schema
+			const parsedWorkouts = cycleWorkouts.map((w) =>
+				workoutsSelectSchema.parse(w),
+			);
+
 			// Find the next pending workout if workoutId isn't provided
 			if (!targetWorkoutId) {
-				const nextWorkout = cycleWorkouts.find((w) => w.status === "pending");
+				const nextWorkout = parsedWorkouts.find(
+					(w) => w.status === Status.Enum.pending,
+				);
 				if (!nextWorkout) return null;
 				workout = nextWorkout;
 				targetWorkoutId = nextWorkout.id;
@@ -51,8 +69,8 @@ export async function getWorkoutDetails(
 				.from(workouts)
 				.where(eq(workouts.id, targetWorkoutId));
 
-			workout = result[0] ?? null;
-			if (!workout) return null;
+			if (!result[0]) return null;
+			workout = workoutsSelectSchema.parse(result[0]);
 		}
 
 		if (!workout || !targetWorkoutId) return null;
@@ -72,28 +90,18 @@ export async function getWorkoutDetails(
 				)
 				.orderBy(exercises.order),
 			tx
-				.select({
-					id: sets.id,
-					exerciseId: sets.exerciseId,
-					userId: sets.userId,
-					weight: sets.weight,
-					reps: sets.reps,
-					rpe: sets.rpe,
-					percentageOfMax: sets.percentageOfMax,
-					setNumber: sets.setNumber,
-					status: sets.status,
-					createdAt: sets.createdAt,
-					updatedAt: sets.updatedAt,
-					completedAt: sets.completedAt,
-				})
+				.select()
 				.from(sets)
 				.innerJoin(exercises, eq(sets.exerciseId, exercises.id))
 				.where(eq(exercises.workoutId, targetWorkoutId))
 				.orderBy(sets.setNumber),
 		]);
 
-		// Group sets by exercise ID for efficient lookup
-		const setsByExerciseId = allSets.reduce(
+		// Parse results through their respective schemas
+		const parsedSets = allSets.map((set) => setsSelectSchema.parse(set));
+
+		// Group sets by exercise ID
+		const setsByExerciseId = parsedSets.reduce(
 			(acc, set) => {
 				const exerciseId = set.exerciseId;
 				if (exerciseId) {
@@ -107,12 +115,12 @@ export async function getWorkoutDetails(
 			{} as Record<string, SetsSelect[]>,
 		);
 
-		// Format the data for the WorkoutCard component
+		// Parse and format the final result
 		return {
 			...workout,
 			exercises: exerciseResults.map(({ exercise, definition }) => ({
-				definition,
-				exercise,
+				definition: exerciseDefinitionsSelectSchema.parse(definition),
+				exercise: exercisesSelectSchema.parse(exercise),
 				sets: exercise.id ? setsByExerciseId[exercise.id] || [] : [],
 			})),
 		};

@@ -6,8 +6,8 @@ import {
 	type CyclesSelect,
 	cycles,
 	cyclesSelectSchema,
-} from "@/drizzle/modules/strength-training/schemas";
-import { Status } from "@/drizzle/modules/strength-training/utils/enums";
+} from "@/drizzle/modules/strength-training/schemas/cycles";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq } from "drizzle-orm";
 
 export async function getActiveCycle(

@@ -2,10 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
-import type {
-	CyclesSelect,
-	WorkoutsSelect,
-} from "@/drizzle/modules/strength-training/schemas";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Download, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CycleList } from "./CycleList";

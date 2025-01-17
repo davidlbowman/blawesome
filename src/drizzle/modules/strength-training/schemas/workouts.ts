@@ -1,7 +1,6 @@
 import { users } from "@/drizzle/core/schemas/users";
 import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
-import type { PrimaryLift } from "@/drizzle/modules/strength-training/schemas/types";
-import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { PrimaryLift, Status } from "@/drizzle/modules/strength-training/types";
 import { generateId } from "@/drizzle/utils/uuid";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -18,13 +17,8 @@ export const workouts = sqliteTable("workouts", {
 		.references(() => cycles.id)
 		.notNull(),
 	date: integer("date", { mode: "timestamp" }).notNull(),
-	primaryLift: text("primary_lift")
-		.$type<(typeof PrimaryLift)[keyof typeof PrimaryLift]>()
-		.notNull(),
-	status: text("status")
-		.$type<(typeof Status)[keyof typeof Status]>()
-		.notNull()
-		.default("pending"),
+	primaryLift: text("primary_lift").notNull(),
+	status: text("status").notNull().default(Status.Enum.pending),
 	sequence: integer("sequence").notNull(),
 	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
 		() => new Date(),
@@ -35,7 +29,14 @@ export const workouts = sqliteTable("workouts", {
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
-export const workoutsInsertSchema = createInsertSchema(workouts);
+export const workoutsInsertSchema = createInsertSchema(workouts).extend({
+	primaryLift: PrimaryLift,
+	status: Status,
+});
 export type WorkoutsInsert = z.infer<typeof workoutsInsertSchema>;
-export const workoutsSelectSchema = createSelectSchema(workouts);
+
+export const workoutsSelectSchema = createSelectSchema(workouts).extend({
+	primaryLift: PrimaryLift,
+	status: Status,
+});
 export type WorkoutsSelect = z.infer<typeof workoutsSelectSchema>;
