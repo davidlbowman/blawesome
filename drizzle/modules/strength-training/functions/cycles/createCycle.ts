@@ -12,7 +12,9 @@ import {
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
-import { eq } from "drizzle-orm";
+import type { ResultSet } from "@libsql/client";
+import { type ExtractTablesWithRelations, eq } from "drizzle-orm";
+import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 
 const WORKOUT_SEQUENCE = [
 	PrimaryLift.Squat,
@@ -93,13 +95,24 @@ interface SetValues {
 	status: string;
 }
 
-export async function createCycle(userId: string) {
+interface CreateCycleParams {
+	userId: string;
+	tx?: SQLiteTransaction<
+		"async",
+		ResultSet,
+		Record<string, never>,
+		ExtractTablesWithRelations<Record<string, never>>
+	>;
+}
+
+export async function createCycle({ userId, tx }: CreateCycleParams) {
+	const queryRunner = tx || db;
 	const startDate = new Date();
 
 	// First parallel operation: Get exercise definitions, one rep maxes, and create cycle
 	const [allExerciseDefinitions, oneRepMaxRecords, [cycle]] = await Promise.all(
 		[
-			db
+			queryRunner
 				.select({
 					id: exerciseDefinitions.id,
 					category: exerciseDefinitions.category,
@@ -109,14 +122,14 @@ export async function createCycle(userId: string) {
 					rpeMax: exerciseDefinitions.rpeMax,
 				})
 				.from(exerciseDefinitions),
-			db
+			queryRunner
 				.select({
 					exerciseDefinitionId: oneRepMaxes.exerciseDefinitionId,
 					weight: oneRepMaxes.weight,
 				})
 				.from(oneRepMaxes)
 				.where(eq(oneRepMaxes.userId, userId)),
-			db
+			queryRunner
 				.insert(cycles)
 				.values({
 					userId,
@@ -151,7 +164,7 @@ export async function createCycle(userId: string) {
 	});
 
 	// Create workouts
-	const createdWorkouts = await db
+	const createdWorkouts = await queryRunner
 		.insert(workouts)
 		.values(workoutValues)
 		.returning({
@@ -187,7 +200,7 @@ export async function createCycle(userId: string) {
 	});
 
 	// Create exercises and prepare sets in parallel
-	const createdExercises = await db
+	const createdExercises = await queryRunner
 		.insert(exercises)
 		.values(exerciseValues)
 		.returning({
@@ -245,7 +258,9 @@ export async function createCycle(userId: string) {
 
 	// Split sets into chunks and insert all chunks in parallel
 	const setChunks = chunkArray(setValues, 50);
-	await Promise.all(setChunks.map((chunk) => db.insert(sets).values(chunk)));
+	await Promise.all(
+		setChunks.map((chunk) => queryRunner.insert(sets).values(chunk)),
+	);
 
 	return cycle;
 }
