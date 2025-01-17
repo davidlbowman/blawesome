@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/drizzle/db";
 import { PRIMARY_LIFT_PATTERNS } from "@/drizzle/modules/strength-training/constants/liftPatterns";
 import {
