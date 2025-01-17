@@ -163,3 +163,8 @@ if (!dbUrl) {
 }
 
 export const db = drizzle(createClient({ url: dbUrl }), { logger });
+
+// Extract transaction type from db.transaction
+export type DrizzleTransaction = Parameters<
+	Parameters<typeof db.transaction>[0]
+>[0];

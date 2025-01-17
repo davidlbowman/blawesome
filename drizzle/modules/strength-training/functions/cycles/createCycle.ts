@@ -14,9 +14,8 @@ import {
 	sets,
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
-import type { ResultSet } from "@libsql/client";
-import { type ExtractTablesWithRelations, eq } from "drizzle-orm";
-import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
+import { eq } from "drizzle-orm";
+import type { DrizzleTransaction } from "@/drizzle/db";
 
 const WORKOUT_SEQUENCE = [
 	PrimaryLift.Squat,
@@ -99,12 +98,7 @@ interface SetValues {
 
 interface CreateCycleParams {
 	userId: string;
-	tx?: SQLiteTransaction<
-		"async",
-		ResultSet,
-		Record<string, never>,
-		ExtractTablesWithRelations<Record<string, never>>
-	>;
+	tx?: DrizzleTransaction;
 }
 
 export async function createCycle({ userId, tx }: CreateCycleParams) {

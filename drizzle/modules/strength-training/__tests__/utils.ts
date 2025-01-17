@@ -4,17 +4,12 @@
 
 import { db } from "@/drizzle/db";
 import { faker } from "@faker-js/faker";
-import {
-	ExerciseCategory,
-	type ExerciseDefinitionsInsert,
-	ExerciseType,
-	PrimaryLift,
-	Status,
-} from "../schemas";
+import type { ExerciseDefinitionsInsert } from "../schemas";
+import { PrimaryLift, Status } from "../schemas/types";
+import type { DrizzleTransaction } from "@/drizzle/db";
 
 export async function withTestTransaction<T>(
-	// @ts-expect-error
-	callback: (tx) => Promise<T>,
+	callback: (tx: DrizzleTransaction) => Promise<T>,
 ): Promise<T> {
 	return await db
 		.transaction(async (tx) => {
@@ -104,17 +99,29 @@ export function createTestSet({
 export function createTestExerciseDefinition({
 	id = faker.string.uuid(),
 	name = faker.string.alpha({ length: 20 }),
-	type = ExerciseType.Primary,
-	category = ExerciseCategory.MainLift,
-	primaryLiftDay = PrimaryLift.Squat,
+	type = "primary",
+	category = "main_lift",
+	primaryLiftDay = "squat",
 	rpeMax = faker.number.int({ min: 6, max: 10 }),
 	repMax = faker.number.int({ min: 1, max: 12 }),
 }: {
 	id?: string;
 	name?: string;
-	type?: (typeof ExerciseType)[keyof typeof ExerciseType];
-	category?: (typeof ExerciseCategory)[keyof typeof ExerciseCategory];
-	primaryLiftDay?: (typeof PrimaryLift)[keyof typeof PrimaryLift];
+	type?: "primary" | "variation" | "accessory";
+	category?:
+		| "main_lift"
+		| "main_lift_variation"
+		| "compound_leg"
+		| "quad_accessory"
+		| "hamstring_glute_accessory"
+		| "calf_accessory"
+		| "chest_accessory"
+		| "tricep_accessory"
+		| "vertical_pull_accessory"
+		| "lateral_pull_accessory"
+		| "bicep_accessory"
+		| "delt_accessory";
+	primaryLiftDay?: "squat" | "bench" | "deadlift" | "overhead";
 	rpeMax?: number;
 	repMax?: number;
 } = {}): ExerciseDefinitionsInsert {

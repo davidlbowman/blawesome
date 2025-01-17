@@ -1,11 +1,9 @@
-import { db } from "@/drizzle/db";
+import { db, type DrizzleTransaction } from "@/drizzle/db";
 import { faker } from "@faker-js/faker";
 import type { User } from "../schemas/users";
 
 export async function withTestTransaction<T>(
-	callback: (
-		tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
-	) => Promise<T>,
+	callback: (tx: DrizzleTransaction) => Promise<T>,
 ): Promise<T> {
 	return await db
 		.transaction(async (tx) => {

@@ -2,21 +2,14 @@
 
 import { type User, users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
-import type { ResultSet } from "@libsql/client";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
-import type { ExtractTablesWithRelations } from "drizzle-orm";
-import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
+import type { DrizzleTransaction } from "@/drizzle/db";
 
 interface VerifyUserParams {
 	email: User["email"];
 	password: User["password"];
-	tx?: SQLiteTransaction<
-		"async",
-		ResultSet,
-		Record<string, never>,
-		ExtractTablesWithRelations<Record<string, never>>
-	>;
+	tx?: DrizzleTransaction;
 }
 
 export async function verifyUser(data: VerifyUserParams) {
