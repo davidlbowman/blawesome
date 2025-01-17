@@ -7,8 +7,8 @@ if (!url) {
 }
 
 export default defineConfig({
-	out: "./drizzle/migrations",
-	schema: "./drizzle/**/schemas/*.ts",
+	out: "./src/drizzle/migrations",
+	schema: "./src/drizzle/**/schemas/*.ts",
 	dialect: "sqlite",
 	dbCredentials: {
 		url,
