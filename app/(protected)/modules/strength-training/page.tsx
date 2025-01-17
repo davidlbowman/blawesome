@@ -15,7 +15,7 @@ export default async function StrengthTrainingPage() {
 
 	async function startNewCycle() {
 		"use server";
-		await createCycle(userId);
+		await createCycle({ userId });
 		revalidatePath("/modules/strength-training");
 	}
 
