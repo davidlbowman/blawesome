@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/drizzle/db";
+import type { DrizzleTransaction } from "@/drizzle/db";
 import { PRIMARY_LIFT_PATTERNS } from "@/drizzle/modules/strength-training/constants/liftPatterns";
 import {
 	ExerciseCategory,
@@ -15,7 +16,7 @@ import {
 	workouts,
 } from "@/drizzle/modules/strength-training/schemas";
 import { eq } from "drizzle-orm";
-import type { DrizzleTransaction } from "@/drizzle/db";
+import { roundDownToNearest5 } from "@/drizzle/modules/strength-training/utils/math";
 
 const WORKOUT_SEQUENCE = [
 	PrimaryLift.Squat,
@@ -64,11 +65,6 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 	return Array.from({ length: Math.ceil(array.length / size) }, (_, index) =>
 		array.slice(index * size, (index + 1) * size),
 	);
-}
-
-// Helper function to round down to nearest 5
-function roundDownToNearest5(num: number): number {
-	return Math.floor(num / 5) * 5;
 }
 
 function getWeekPattern(workoutNumber: number) {

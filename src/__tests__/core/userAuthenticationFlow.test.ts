@@ -1,12 +1,11 @@
-import { test, describe, expect, mock, type Mock } from "bun:test";
-import { faker } from "@faker-js/faker";
+import { type Mock, describe, expect, mock, test } from "bun:test";
+import { withTestTransaction } from "@/__tests__/utils";
 import { createUser } from "@/drizzle/core/functions/users/createUser";
-import { verifyUser } from "@/drizzle/core/functions/users/verifyUser";
 import { createUserSession } from "@/drizzle/core/functions/users/createUserSession";
 import { getUserId } from "@/drizzle/core/functions/users/getUserId";
 import { logoutUser } from "@/drizzle/core/functions/users/logoutUser";
-import { db } from "@/drizzle/db";
-import type { DrizzleTransaction } from "@/drizzle/db";
+import { verifyUser } from "@/drizzle/core/functions/users/verifyUser";
+import { faker } from "@faker-js/faker";
 import type { RequestCookies } from "next/dist/server/web/spec-extension/cookies";
 
 type RequestCookie = {
@@ -35,23 +34,6 @@ const cookieStore = {
 mock.module("next/headers", () => ({
 	cookies: () => cookieStore,
 }));
-
-async function withTestTransaction<T>(
-	callback: (tx: DrizzleTransaction) => Promise<T>,
-): Promise<T> {
-	return await db
-		.transaction(async (tx) => {
-			const result = await callback(tx);
-			// Always rollback in test environment
-			throw { message: "ROLLBACK_TEST_TRANSACTION", result } as const;
-		})
-		.catch((e: { message: string; result: T }) => {
-			if (e.message === "ROLLBACK_TEST_TRANSACTION") {
-				return e.result;
-			}
-			throw e;
-		});
-}
 
 describe("User Authentication Flow", () => {
 	test("should handle complete user journey from registration through logout", async () => {

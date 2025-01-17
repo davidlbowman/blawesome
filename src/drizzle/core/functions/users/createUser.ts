@@ -1,9 +1,9 @@
 "use server";
 
-import { db } from "@/drizzle/db";
-import type { DrizzleTransaction } from "@/drizzle/db";
 import { users } from "@/drizzle/core/schemas/users";
 import type { User } from "@/drizzle/core/schemas/users";
+import { db } from "@/drizzle/db";
+import type { DrizzleTransaction } from "@/drizzle/db";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 

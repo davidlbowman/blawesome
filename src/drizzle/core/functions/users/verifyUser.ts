@@ -2,9 +2,9 @@
 
 import { type User, users } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
+import type { DrizzleTransaction } from "@/drizzle/db";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
-import type { DrizzleTransaction } from "@/drizzle/db";
 
 interface VerifyUserParams {
 	email: User["email"];
