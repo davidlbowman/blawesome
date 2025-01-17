@@ -1,4 +1,4 @@
-import { SidebarNav } from "@/components/SidebarNav";
+import { SidebarNav } from "@/components/core/SidebarNav";
 
 export default function ModulesLayout({
 	children,

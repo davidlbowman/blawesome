@@ -1,7 +1,7 @@
 "use client";
 
-import { ProgressBar } from "@/components/strength-training/shared/ProgressBar";
-import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
+import { ProgressBar } from "@/components/modules/strength-training/shared/ProgressBar";
+import { StatusBadge } from "@/components/modules/strength-training/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { formatDate } from "@/lib/formatDate";

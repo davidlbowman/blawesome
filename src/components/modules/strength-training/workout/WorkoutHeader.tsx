@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusBadge } from "@/components/strength-training/shared/StatusBadge";
+import { StatusBadge } from "@/components/modules/strength-training/shared/StatusBadge";
 import { CardTitle } from "@/components/ui/card";
 import type { Status } from "@/drizzle/modules/strength-training/schemas/types";
 import { formatDate } from "@/lib/formatDate";

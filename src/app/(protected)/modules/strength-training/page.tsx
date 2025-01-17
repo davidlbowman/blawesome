@@ -1,5 +1,5 @@
-import { OneRMForm } from "@/components/strength-training/cycle/OneRMForm";
-import { DashboardView } from "@/components/strength-training/dashboard/DashboardView";
+import { OneRMForm } from "@/components/modules/strength-training/cycle/OneRMForm";
+import { DashboardView } from "@/components/modules/strength-training/dashboard/DashboardView";
 import { getUserId } from "@/drizzle/core/functions/users/getUserId";
 import { getTrainingData } from "@/drizzle/modules/strength-training/functions/cycles/getTrainingData";
 

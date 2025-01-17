@@ -1,4 +1,4 @@
-import { WorkoutView } from "@/components/strength-training/workout/WorkoutView";
+import { WorkoutView } from "@/components/modules/strength-training/workout/WorkoutView";
 import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
 import { Status } from "@/drizzle/modules/strength-training/schemas/types";
 

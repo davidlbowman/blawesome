@@ -1,4 +1,4 @@
-import { CycleView } from "@/components/strength-training/cycle/CycleView";
+import { CycleView } from "@/components/modules/strength-training/cycle/CycleView";
 import { skipRemainingWorkouts } from "@/drizzle/modules/strength-training/functions/cycles/skipRemainingWorkouts";
 import { getActiveWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/getActiveWorkouts";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas";

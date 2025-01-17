@@ -1,6 +1,6 @@
 "use client";
 
-import { Statistic } from "@/components/strength-training/shared/Statistic";
+import { Statistic } from "@/components/modules/strength-training/shared/Statistic";
 import { Dumbbell, Target, TrendingUp, Weight } from "lucide-react";
 
 interface WorkoutStatsProps {
