@@ -9,6 +9,7 @@ import {
 	exercisesSelectSchema,
 } from "@/drizzle/modules/strength-training/schemas/exercises";
 import type { ExercisesSelect } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
 import {
 	sets,
 	setsSelectSchema,
@@ -20,12 +21,13 @@ import {
 } from "@/drizzle/modules/strength-training/schemas/workouts";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export type WorkoutDetails = WorkoutsSelect & {
 	exercises: {
 		definition: ExerciseDefinitionsSelect;
 		exercise: ExercisesSelect;
+		oneRepMax: number | null;
 		sets: SetsSelect[];
 	}[];
 };
@@ -81,12 +83,20 @@ export async function getWorkoutDetails(
 				.select({
 					exercise: exercises,
 					definition: exerciseDefinitions,
+					oneRepMax: oneRepMaxes.weight,
 				})
 				.from(exercises)
 				.where(eq(exercises.workoutId, targetWorkoutId))
 				.innerJoin(
 					exerciseDefinitions,
 					eq(exercises.exerciseDefinitionId, exerciseDefinitions.id),
+				)
+				.leftJoin(
+					oneRepMaxes,
+					and(
+						eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
+						eq(oneRepMaxes.userId, exercises.userId),
+					),
 				)
 				.orderBy(exercises.order),
 			tx
@@ -131,9 +141,10 @@ export async function getWorkoutDetails(
 		// Parse and format the final result
 		return {
 			...workout,
-			exercises: exerciseResults.map(({ exercise, definition }) => ({
+			exercises: exerciseResults.map(({ exercise, definition, oneRepMax }) => ({
 				definition: exerciseDefinitionsSelectSchema.parse(definition),
 				exercise: exercisesSelectSchema.parse(exercise),
+				oneRepMax,
 				sets: exercise.id ? setsByExerciseId[exercise.id] || [] : [],
 			})),
 		};

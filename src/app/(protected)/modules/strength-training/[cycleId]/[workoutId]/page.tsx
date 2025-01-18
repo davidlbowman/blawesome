@@ -56,28 +56,28 @@ export default async function Page({
 		0,
 	);
 
-	// TODO: Calculate these from actual data
-	const volumeChange = 120;
-	const primaryLiftWeight = mainExercise.sets[0]?.weight ?? 0;
-	const primaryLiftChange = 5;
-	const consistency = Math.round((completedSetCount / totalSets) * 100);
+	// Find the first incomplete exercise and set
+	let startingExerciseIndex = 0;
+	let startingSetIndex = 0;
 
-	// Find current exercise and set indices from DB state
-	const currentExerciseIdx = sorted.findIndex(
-		(e) => e.exercise.status === Status.Enum.in_progress,
-	);
-	const startingExerciseIndex =
-		currentExerciseIdx === -1 ? 0 : currentExerciseIdx;
+	for (let i = 0; i < sorted.length; i++) {
+		const exercise = sorted[i];
+		const incompleteSets = exercise.sets.findIndex(
+			(s) =>
+				s.status === Status.Enum.pending ||
+				s.status === Status.Enum.in_progress,
+		);
 
-	const currentExercise = sorted[startingExerciseIndex];
-	const currentSetIdx = currentExercise?.sets.findIndex(
-		(s) => s.status === Status.Enum.in_progress,
-	);
-	const startingSetIndex = currentSetIdx === -1 ? 0 : currentSetIdx;
+		if (incompleteSets !== -1) {
+			startingExerciseIndex = i;
+			startingSetIndex = incompleteSets;
+			break;
+		}
+	}
 
 	return (
 		<WorkoutView
-			workoutId={workoutId}
+			workoutId={workout.id}
 			cycleId={cycleId}
 			status={workout.status}
 			date={workout.date}
@@ -85,38 +85,26 @@ export default async function Page({
 				id: mainExercise.exercise.id,
 				name: mainExercise.definition.name,
 				type: mainExercise.definition.type,
-				sets: mainExercise.sets.map((set) => ({
-					id: set.id,
-					setNumber: set.setNumber,
-					weight: set.weight,
-					reps: set.reps ?? 8,
-					rpe: set.rpe ?? 8,
-					status: set.status,
-				})),
+				oneRepMax: mainExercise.oneRepMax,
+				sets: mainExercise.sets,
 				status: mainExercise.exercise.status,
 			}}
-			accessoryExercises={accessoryExercises.map((exercise) => ({
-				id: exercise.exercise.id,
-				name: exercise.definition.name,
-				type: exercise.definition.type,
-				sets: exercise.sets.map((set) => ({
-					id: set.id,
-					setNumber: set.setNumber,
-					weight: set.weight,
-					reps: set.reps ?? 8,
-					rpe: set.rpe ?? 8,
-					status: set.status,
-				})),
-				status: exercise.exercise.status,
+			accessoryExercises={accessoryExercises.map((e) => ({
+				id: e.exercise.id,
+				name: e.definition.name,
+				type: e.definition.type,
+				oneRepMax: e.oneRepMax,
+				sets: e.sets,
+				status: e.exercise.status,
 			}))}
 			stats={{
 				completedSetCount,
 				totalSets,
 				totalVolume,
-				volumeChange,
-				primaryLiftWeight,
-				primaryLiftChange,
-				consistency,
+				volumeChange: 0, // TODO: Calculate volume change
+				primaryLiftWeight: mainExercise.oneRepMax ?? 0,
+				primaryLiftChange: 0, // TODO: Calculate primary lift change
+				consistency: (completedSetCount / totalSets) * 100,
 			}}
 			startingExerciseIndex={startingExerciseIndex}
 			startingSetIndex={startingSetIndex}

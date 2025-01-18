@@ -1,13 +1,12 @@
 import { db } from "@/drizzle/db";
-import {
-	cycles,
-	exerciseDefinitions,
-	exercises,
-	oneRepMaxes,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
-import { defaultExerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+
+import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
+import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { DefaultExerciseDefinitions } from "@/drizzle/modules/strength-training/types";
 
 async function clearAllData() {
 	await db.transaction(async (tx) => {
@@ -19,8 +18,14 @@ async function clearAllData() {
 	});
 }
 
-// Use the imported exercise definitions instead of maintaining a duplicate list
-export const exercisesList = [...defaultExerciseDefinitions];
+export const exercisesList = Array.from(
+	DefaultExerciseDefinitions.entries(),
+).flatMap(([primaryLift, exercises]) =>
+	exercises.map((exercise) => ({
+		...exercise,
+		primaryLiftDay: primaryLift,
+	})),
+);
 
 async function main() {
 	try {

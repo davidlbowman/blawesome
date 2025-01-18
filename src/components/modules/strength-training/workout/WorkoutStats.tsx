@@ -3,7 +3,7 @@
 import { Statistic } from "@/components/modules/strength-training/shared/Statistic";
 import { Dumbbell, Target, TrendingUp, Weight } from "lucide-react";
 
-interface WorkoutStatsProps {
+export interface WorkoutStatsProps {
 	completedSetCount: number;
 	totalSets: number;
 	totalVolume: number;

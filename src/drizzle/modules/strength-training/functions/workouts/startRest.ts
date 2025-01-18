@@ -1,11 +1,9 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import {
-	exercises,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { eq } from "drizzle-orm";
 
 export async function startRest(workoutId: string) {

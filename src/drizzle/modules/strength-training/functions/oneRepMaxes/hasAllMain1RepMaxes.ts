@@ -2,10 +2,8 @@
 
 import { db } from "@/drizzle/db";
 import { getPrimaryExerciseDefinitions } from "@/drizzle/modules/strength-training/functions/exerciseDefinitions/getPrimaryExerciseDefinitions";
-import {
-	PrimaryLift,
-	oneRepMaxes,
-} from "@/drizzle/modules/strength-training/schemas";
+import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
+import { PrimaryLift } from "@/drizzle/modules/strength-training/types";
 import { eq } from "drizzle-orm";
 
 export async function hasAllMain1RepMaxes(userId: string): Promise<boolean> {

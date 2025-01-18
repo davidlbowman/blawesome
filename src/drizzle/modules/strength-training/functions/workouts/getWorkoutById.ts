@@ -1,40 +1,49 @@
 import { db } from "@/drizzle/db";
 import {
 	type ExerciseDefinitionsSelect,
-	type ExercisesSelect,
-	type SetsSelect,
-	type WorkoutsSelect,
 	exerciseDefinitions,
+} from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import {
+	type ExercisesSelect,
 	exercises,
+} from "@/drizzle/modules/strength-training/schemas/exercises";
+import {
+	type SetsSelect,
 	sets,
+} from "@/drizzle/modules/strength-training/schemas/sets";
+import {
+	type WorkoutsSelect,
 	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+} from "@/drizzle/modules/strength-training/schemas/workouts";
+import type {
+	ExerciseType,
+	Status,
+} from "@/drizzle/modules/strength-training/types";
 import { eq } from "drizzle-orm";
 
 interface ExerciseWithDefinition {
-	exercise: Pick<ExercisesSelect, "id" | "order" | "status">;
-	definition: Pick<
-		ExerciseDefinitionsSelect,
-		"id" | "name" | "type" | "rpeMax" | "repMax"
-	>;
+	exercise: Pick<ExercisesSelect, "id" | "order"> & {
+		status: Status;
+	};
+	definition: Pick<ExerciseDefinitionsSelect, "id" | "name"> & {
+		type: ExerciseType;
+		rpeMax: number;
+		repMax: number;
+	};
 	sets: Array<
 		Pick<
 			SetsSelect,
-			| "id"
-			| "setNumber"
-			| "weight"
-			| "reps"
-			| "rpe"
-			| "percentageOfMax"
-			| "status"
-		>
+			"id" | "setNumber" | "weight" | "reps" | "rpe" | "percentageOfMax"
+		> & {
+			status: Status;
+		}
 	>;
 }
 
 export interface WorkoutDetails {
 	id: WorkoutsSelect["id"];
 	date: WorkoutsSelect["date"];
-	status: WorkoutsSelect["status"];
+	status: Status;
 	exercises: ExerciseWithDefinition[];
 }
 
@@ -94,12 +103,12 @@ export async function getWorkoutById(
 				exercise: {
 					id: row.exercise.id,
 					order: row.exercise.order,
-					status: row.exercise.status,
+					status: row.exercise.status as Status,
 				},
 				definition: {
 					id: row.definition.id,
 					name: row.definition.name,
-					type: row.definition.type,
+					type: row.definition.type as ExerciseType,
 					rpeMax: row.definition.rpeMax || 0,
 					repMax: row.definition.repMax || 0,
 				},
@@ -117,7 +126,7 @@ export async function getWorkoutById(
 					reps: row.set.reps,
 					rpe: row.set.rpe,
 					percentageOfMax: row.set.percentageOfMax || 0,
-					status: row.set.status,
+					status: row.set.status as Status,
 				});
 			}
 		}
@@ -126,7 +135,7 @@ export async function getWorkoutById(
 	return {
 		id: workout.id,
 		date: workout.date,
-		status: workout.status,
+		status: workout.status as Status,
 		exercises: Array.from(exercisesMap.values()),
 	};
 }

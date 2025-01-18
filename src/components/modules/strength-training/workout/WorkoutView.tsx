@@ -11,12 +11,12 @@ import type { Status } from "@/drizzle/modules/strength-training/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ExerciseList } from "../exercise/ExerciseList";
+import type { ExerciseWithSets } from "../exercise/types";
 import { RestTimer } from "./RestTimer";
 import { WorkoutActions } from "./WorkoutActions";
 import { WorkoutHeader } from "./WorkoutHeader";
 import { WorkoutStats } from "./WorkoutStats";
-
-type StatusType = (typeof Status)[keyof typeof Status];
+import type { WorkoutStatsProps } from "./WorkoutStats";
 
 interface SetPerformance {
 	weight: number;
@@ -24,39 +24,14 @@ interface SetPerformance {
 	rpe: number | null;
 }
 
-interface Set {
-	id: string;
-	setNumber: number;
-	weight: number;
-	reps: number;
-	rpe: number;
-	status: StatusType;
-}
-
-interface Exercise {
-	id: string;
-	name: string;
-	type: "primary" | "variation" | "accessory";
-	sets: Set[];
-	status: StatusType;
-}
-
 interface WorkoutViewProps {
 	workoutId: string;
 	cycleId: string;
-	status: StatusType;
+	status: Status;
 	date: Date;
-	primaryExercise: Exercise;
-	accessoryExercises: Exercise[];
-	stats: {
-		completedSetCount: number;
-		totalSets: number;
-		totalVolume: number;
-		volumeChange: number;
-		primaryLiftWeight: number;
-		primaryLiftChange: number;
-		consistency: number;
-	};
+	primaryExercise: ExerciseWithSets;
+	accessoryExercises: ExerciseWithSets[];
+	stats: WorkoutStatsProps;
 	startingExerciseIndex: number;
 	startingSetIndex: number;
 }
@@ -108,13 +83,9 @@ export function WorkoutView({
 
 	const handleSkipSet = async () => {
 		await skipSet(workoutId);
-
-		// First refresh the server data
 		await router.refresh();
 
-		// Then update local state similar to handleCompleteSet
 		if (currentExerciseIndex === 0) {
-			// Primary exercise
 			if (currentSetIndex + 1 < primaryExercise.sets.length) {
 				setCurrentSetIndex(currentSetIndex + 1);
 			} else if (accessoryExercises.length > 0) {
@@ -122,7 +93,6 @@ export function WorkoutView({
 				setCurrentSetIndex(0);
 			}
 		} else {
-			// Accessory exercise
 			const currentAccessoryExercise =
 				accessoryExercises[currentExerciseIndex - 1];
 			if (currentSetIndex + 1 < currentAccessoryExercise.sets.length) {
@@ -140,11 +110,8 @@ export function WorkoutView({
 	};
 
 	const handleSkipRemainingWorkoutSets = async () => {
-		// First skip all remaining sets in all exercises
 		await skipRemainingWorkoutSets(workoutId);
-		// Then mark the workout as completed
 		await completeWorkout(workoutId);
-		// Refresh server data and redirect
 		await router.refresh();
 		router.push(`/modules/strength-training/${cycleId}`);
 	};
@@ -163,6 +130,8 @@ export function WorkoutView({
 						exerciseId: accessoryExercises[currentExerciseIndex - 1].id,
 					};
 
+		if (!currentExercise.id) return;
+
 		await completeSet(
 			currentExercise.id,
 			currentExercise.exerciseId,
@@ -170,15 +139,10 @@ export function WorkoutView({
 			performance,
 		);
 
-		// First refresh the server data
 		await router.refresh();
-
-		// Then update local state
 		setShowRestTimer(false);
 
-		// Update current exercise and set indices
 		if (currentExerciseIndex === 0) {
-			// Primary exercise
 			if (currentSetIndex + 1 < primaryExercise.sets.length) {
 				setCurrentSetIndex(currentSetIndex + 1);
 			} else if (accessoryExercises.length > 0) {
@@ -186,7 +150,6 @@ export function WorkoutView({
 				setCurrentSetIndex(0);
 			}
 		} else {
-			// Accessory exercise
 			const currentAccessoryExercise =
 				accessoryExercises[currentExerciseIndex - 1];
 			if (currentSetIndex + 1 < currentAccessoryExercise.sets.length) {
@@ -197,7 +160,6 @@ export function WorkoutView({
 			}
 		}
 
-		// Reset performance state for next set
 		setPerformance({
 			weight: 0,
 			reps: null,
@@ -213,7 +175,6 @@ export function WorkoutView({
 
 		await skipRemainingExerciseSets(currentExercise.id);
 
-		// Move to next exercise if available
 		if (currentExerciseIndex === 0 && accessoryExercises.length > 0) {
 			setCurrentExerciseIndex(1);
 			setCurrentSetIndex(0);

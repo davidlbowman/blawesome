@@ -1,23 +1,18 @@
 "use client";
 
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { WorkoutCard } from "./WorkoutCard";
+
+interface WorkoutData extends WorkoutsSelect {
+	completedSets: number;
+	totalSets: number;
+}
 
 interface WorkoutListProps {
 	currentWorkout?: WorkoutData;
 	nextWorkouts: WorkoutData[];
 	previousWorkouts: WorkoutData[];
 	cycleId: string;
-}
-
-interface WorkoutData {
-	id: string;
-	status: string;
-	date: Date;
-	completedAt?: Date | null;
-	primaryLift: string;
-	sequence: number;
-	completedSets: number;
-	totalSets: number;
 }
 
 export function WorkoutList({

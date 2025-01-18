@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { WorkoutList } from "../workout/WorkoutList";
 import { CycleStats } from "./CycleStats";
 
@@ -12,19 +13,13 @@ interface CycleViewProps {
 	};
 	totalVolume: number;
 	consistency: number;
-	currentWorkout?: WorkoutData;
-	nextWorkouts: WorkoutData[];
-	previousWorkouts: WorkoutData[];
+	currentWorkout?: WorkoutListData;
+	nextWorkouts: WorkoutListData[];
+	previousWorkouts: WorkoutListData[];
 	onSkipRemainingWorkouts: () => void;
 }
 
-interface WorkoutData {
-	id: string;
-	status: string;
-	date: Date;
-	completedAt?: Date | null;
-	primaryLift: string;
-	sequence: number;
+interface WorkoutListData extends WorkoutsSelect {
 	completedSets: number;
 	totalSets: number;
 }
