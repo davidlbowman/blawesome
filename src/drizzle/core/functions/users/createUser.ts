@@ -57,7 +57,6 @@ export async function createUser({
 
 		return validatedUser;
 	} catch (error) {
-		console.error("Failed to create user:", error);
 		if (error instanceof Error) {
 			throw error;
 		}

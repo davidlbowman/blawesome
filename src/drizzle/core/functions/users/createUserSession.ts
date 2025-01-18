@@ -56,7 +56,9 @@ export async function createUserSession(user: User) {
 
 		return token;
 	} catch (error) {
-		console.error("Failed to create session:", error);
-		throw new Error("Failed to create session");
+		if (error instanceof Error) {
+			throw error;
+		}
+		throw new Error("An unexpected error occurred while creating session");
 	}
 }
