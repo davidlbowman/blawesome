@@ -1,6 +1,7 @@
 import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
 import type { ExercisesSelect } from "@/drizzle/modules/strength-training/schemas/exercises";
 import type { SetsSelect } from "@/drizzle/modules/strength-training/schemas/sets";
+import { ExerciseType } from "@/drizzle/modules/strength-training/types";
 import { ExerciseCard } from "./ExerciseCard";
 import { PrimaryExerciseCard } from "./PrimaryExerciseCard";
 
@@ -38,9 +39,13 @@ export function ExerciseList({
 	currentSetIndex = 0,
 	className,
 }: ExerciseListProps) {
-	const primaryExercise = exercises.find((e) => e.type === "primary");
+	const primaryExercise = exercises.find(
+		(e) => e.type === ExerciseType.Enum.primary,
+	);
 	const accessoryExercises = exercises.filter(
-		(e) => e.type === "variation" || e.type === "accessory",
+		(e) =>
+			e.type === ExerciseType.Enum.variation ||
+			e.type === ExerciseType.Enum.accessory,
 	);
 
 	const currentExerciseId =
