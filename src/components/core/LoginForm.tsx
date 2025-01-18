@@ -13,33 +13,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { createUserSession } from "@/drizzle/core/functions/users/createUserSession";
 import { verifyUser } from "@/drizzle/core/functions/users/verifyUser";
+import { userSelectSchema } from "@/drizzle/core/schemas/users";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-
-const formSchema = z.object({
-	email: z.string().email({ message: "Invalid email address" }),
-	password: z
-		.string()
-		.min(6, { message: "Password must be at least 6 characters" }),
-});
+import type { z } from "zod";
 
 function LoginFormContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const callbackUrl = searchParams.get("callbackUrl") || "/modules";
 
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
+	const verifyUserSchema = userSelectSchema.pick({
+		email: true,
+		password: true,
+	});
+	type VerifyUser = z.infer<typeof verifyUserSchema>;
+
+	const form = useForm<VerifyUser>({
+		resolver: zodResolver(verifyUserSchema),
 		defaultValues: {
 			email: "",
 			password: "",
 		},
 	});
 
-	async function onSubmit(data: z.infer<typeof formSchema>) {
+	async function onSubmit(data: VerifyUser) {
 		try {
 			const user = await verifyUser(data).catch((error: unknown) => {
 				console.error("Verify user error:", error);

@@ -1,7 +1,10 @@
 "use server";
 
-import { users } from "@/drizzle/core/schemas/users";
-import type { User } from "@/drizzle/core/schemas/users";
+import { users, type User } from "@/drizzle/core/schemas/users";
+import {
+	userInsertSchema,
+	userSelectSchema,
+} from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import type { DrizzleTransaction } from "@/drizzle/db";
 import bcrypt from "bcrypt";
@@ -12,32 +15,47 @@ export async function createUser({
 	password,
 	tx,
 }: {
-	email: string;
-	password: string;
+	email: User["email"];
+	password: User["password"];
 	tx?: DrizzleTransaction;
-}): Promise<User> {
-	const queryRunner = tx || db;
+}): Promise<Pick<User, "id" | "email">> {
+	try {
+		const queryRunner = tx || db;
 
-	const existingUser = await queryRunner
-		.select()
-		.from(users)
-		.where(eq(users.email, email));
+		const existingUser = await queryRunner
+			.select()
+			.from(users)
+			.where(eq(users.email, email));
 
-	if (existingUser.length > 0) {
-		throw new Error("User already exists");
-	}
+		if (existingUser.length > 0) {
+			throw new Error("User already exists");
+		}
 
-	const hashedPassword = await bcrypt.hash(password, 10);
+		const hashedPassword = await bcrypt.hash(password, 10);
 
-	const [user] = await queryRunner
-		.insert(users)
-		.values({
-			email,
+		const validatedCredentials = userSelectSchema
+			.pick({ email: true, password: true })
+			.parse({ email, password });
+
+		const validatedInput = userInsertSchema.parse({
+			...validatedCredentials,
 			password: hashedPassword,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		})
-		.returning();
+		});
 
-	return user;
+		const [user] = await queryRunner
+			.insert(users)
+			.values(validatedInput)
+			.returning();
+
+		const validatedUser = userSelectSchema
+			.pick({ id: true, email: true })
+			.parse(user);
+
+		return validatedUser;
+	} catch (error) {
+		if (error instanceof Error) {
+			throw error;
+		}
+		throw new Error("An unexpected error occurred while creating user");
+	}
 }
