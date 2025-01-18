@@ -2,17 +2,20 @@
 
 import type { User } from "@/drizzle/core/schemas/users";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
-import { Status } from "@/drizzle/modules/strength-training/types";
-import { eq } from "drizzle-orm";
-import { cycles } from "../../schemas/cycles";
+import { createExercises } from "@/drizzle/modules/strength-training/functions/exercises/createExercises";
+import { createSets } from "@/drizzle/modules/strength-training/functions/sets/createSets";
+import { createWorkouts } from "@/drizzle/modules/strength-training/functions/workouts/createWorkouts";
+import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
 import {
 	type ExerciseDefinitionsSelect,
 	exerciseDefinitions,
-} from "../../schemas/exerciseDefinitions";
-import { type OneRepMaxesSelect, oneRepMaxes } from "../../schemas/oneRepMaxes";
-import { createExercises } from "../exercises/createExercises";
-import { createSets } from "../sets/createSets";
-import { createWorkouts } from "../workouts/createWorkouts";
+} from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import {
+	type OneRepMaxesSelect,
+	oneRepMaxes,
+} from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
+import { Status } from "@/drizzle/modules/strength-training/types";
+import { eq } from "drizzle-orm";
 
 export async function createCycle({
 	userId,
