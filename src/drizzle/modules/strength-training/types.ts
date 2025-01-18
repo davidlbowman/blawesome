@@ -9,7 +9,7 @@ export const Status = z.enum([
 ]);
 export type Status = z.infer<typeof Status>;
 
-export const PrimaryLift = z.enum(["squat", "bench", "deadlift", "press"]);
+export const PrimaryLift = z.enum(["squat", "bench", "deadlift", "overhead"]);
 export type PrimaryLift = z.infer<typeof PrimaryLift>;
 
 export const ExerciseType = z.enum(["primary", "variation", "accessory"]);
@@ -37,7 +37,7 @@ export const ExerciseCategory = z.object({
 		"lateral_pull_accessory",
 		"bicep_accessory",
 	]),
-	press: z.enum([
+	overhead: z.enum([
 		"main_lift",
 		"delt_accessory",
 		"tricep_accessory",
@@ -55,14 +55,14 @@ export type BenchExercises = z.infer<typeof BenchExercises>;
 export const DeadliftExercises = ExerciseCategory.shape.deadlift;
 export type DeadliftExercises = z.infer<typeof DeadliftExercises>;
 
-export const PressExercises = ExerciseCategory.shape.press;
-export type PressExercises = z.infer<typeof PressExercises>;
+export const OverheadExercises = ExerciseCategory.shape.overhead;
+export type OverheadExercises = z.infer<typeof OverheadExercises>;
 
 export const AllExerciseCategories = z.union([
 	SquatExercises,
 	BenchExercises,
 	DeadliftExercises,
-	PressExercises,
+	OverheadExercises,
 ]);
 export type AllExerciseCategories = z.infer<typeof AllExerciseCategories>;
 
@@ -223,47 +223,47 @@ export const DefaultExerciseDefinitions = new Map<
 		],
 	],
 	[
-		PrimaryLift.Enum.press,
+		PrimaryLift.Enum.overhead,
 		[
 			{
 				name: "Overhead Press",
 				type: ExerciseType.Enum.primary,
-				category: ExerciseCategory.shape.press.enum.main_lift,
+				category: ExerciseCategory.shape.overhead.enum.main_lift,
 				repMax: 5,
 				rpeMax: 9,
 			},
 			{
 				name: "Lateral Raise",
 				type: ExerciseType.Enum.accessory,
-				category: ExerciseCategory.shape.press.enum.delt_accessory,
+				category: ExerciseCategory.shape.overhead.enum.delt_accessory,
 				repMax: 15,
 				rpeMax: 9,
 			},
 			{
 				name: "Front Raise",
 				type: ExerciseType.Enum.accessory,
-				category: ExerciseCategory.shape.press.enum.delt_accessory,
+				category: ExerciseCategory.shape.overhead.enum.delt_accessory,
 				repMax: 15,
 				rpeMax: 9,
 			},
 			{
 				name: "Rear Delt Flyes",
 				type: ExerciseType.Enum.accessory,
-				category: ExerciseCategory.shape.press.enum.delt_accessory,
+				category: ExerciseCategory.shape.overhead.enum.delt_accessory,
 				repMax: 15,
 				rpeMax: 9,
 			},
 			{
 				name: "Incline Dumbbell Curl",
 				type: ExerciseType.Enum.accessory,
-				category: ExerciseCategory.shape.press.enum.bicep_accessory,
+				category: ExerciseCategory.shape.overhead.enum.bicep_accessory,
 				repMax: 15,
 				rpeMax: 9,
 			},
 			{
 				name: "Close Grip Bench Press",
 				type: ExerciseType.Enum.accessory,
-				category: ExerciseCategory.shape.press.enum.tricep_accessory,
+				category: ExerciseCategory.shape.overhead.enum.tricep_accessory,
 				repMax: 15,
 				rpeMax: 9,
 			},

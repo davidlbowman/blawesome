@@ -4,7 +4,7 @@ import { db } from "@/drizzle/db";
 import {
 	type OneRepMaxesInsert,
 	oneRepMaxes,
-} from "@/drizzle/modules/strength-training/schemas";
+} from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
 import { sql } from "drizzle-orm";
 
 interface InsertOneRepMaxParams

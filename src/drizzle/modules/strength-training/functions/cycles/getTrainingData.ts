@@ -1,16 +1,12 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import type {
-	CyclesSelect,
-	WorkoutsSelect,
-} from "@/drizzle/modules/strength-training/schemas";
-import {
-	cycles,
-	exerciseDefinitions,
-	oneRepMaxes,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
+import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { and, desc, eq } from "drizzle-orm";
 
 export async function getTrainingData(userId: string) {

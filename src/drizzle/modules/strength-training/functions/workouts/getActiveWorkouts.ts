@@ -4,8 +4,10 @@ import { db } from "@/drizzle/db";
 import {
 	type WorkoutsSelect,
 	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+	workoutsSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/workouts";
 import { eq } from "drizzle-orm";
+import { Status } from "../../types";
 
 export interface ActiveWorkoutsResult {
 	workouts: WorkoutsSelect[];
@@ -17,20 +19,35 @@ export interface ActiveWorkoutsResult {
 export async function getActiveWorkouts(
 	cycleId: string,
 ): Promise<ActiveWorkoutsResult> {
-	const activeWorkouts = await db
+	const rawWorkouts = await db
 		.select()
 		.from(workouts)
 		.where(eq(workouts.cycleId, cycleId))
 		.orderBy(workouts.sequence);
 
-	const totalWorkouts = activeWorkouts.length;
-	const completedWorkouts = activeWorkouts.filter(
-		(w) => w.status === "completed",
+	// Parse workouts and handle any invalid data
+	const parsedWorkouts = rawWorkouts
+		.map((workout) => {
+			try {
+				return workoutsSelectSchema.parse(workout);
+			} catch (error) {
+				console.error(`Failed to parse workout ${workout.id}:`, error, workout);
+				return null;
+			}
+		})
+		.filter((w): w is WorkoutsSelect => w !== null);
+
+	const totalWorkouts = rawWorkouts.length;
+	const completedWorkouts = parsedWorkouts.filter(
+		(w) => w.status === Status.Enum.completed,
 	).length;
-	const nextWorkout = activeWorkouts.find((w) => w.status === "pending");
+
+	const nextWorkout = parsedWorkouts.find(
+		(w) => w.status === Status.Enum.pending,
+	);
 
 	return {
-		workouts: activeWorkouts,
+		workouts: parsedWorkouts,
 		totalWorkouts,
 		completedWorkouts,
 		nextWorkout,

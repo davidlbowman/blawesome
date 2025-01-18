@@ -1,299 +1,283 @@
 "use server";
 
 import type { User } from "@/drizzle/core/schemas/users";
-import { db } from "@/drizzle/db";
-import type { DrizzleTransaction } from "@/drizzle/db";
-import { PRIMARY_LIFT_PATTERNS } from "@/drizzle/modules/strength-training/constants/liftPatterns";
+import { type DrizzleTransaction, db } from "@/drizzle/db";
 import {
-	ExerciseCategory,
+	DefaultExerciseDefinitions,
 	ExerciseType,
-	PrimaryLift,
+	type PrimaryLift,
 	Status,
 } from "@/drizzle/modules/strength-training/types";
 import { roundDownToNearest5 } from "@/drizzle/modules/strength-training/utils/math";
 import { eq } from "drizzle-orm";
 import { cycles } from "../../schemas/cycles";
 import {
+	type ExerciseDefinitionsSelect,
 	exerciseDefinitions,
-	exerciseDefinitionsSelectSchema,
 } from "../../schemas/exerciseDefinitions";
-import { exercises } from "../../schemas/exercises";
-import type { ExercisesInsert } from "../../schemas/exercises";
-import { oneRepMaxes } from "../../schemas/oneRepMaxes";
-import { sets } from "../../schemas/sets";
-import type { SetsInsert } from "../../schemas/sets";
-import { workouts } from "../../schemas/workouts";
-import type { WorkoutsInsert } from "../../schemas/workouts";
+import { type ExercisesInsert, exercises } from "../../schemas/exercises";
+import { type OneRepMaxesSelect, oneRepMaxes } from "../../schemas/oneRepMaxes";
+import { type SetsInsert, sets } from "../../schemas/sets";
+import { type WorkoutsInsert, workouts } from "../../schemas/workouts";
 
-const WORKOUT_SEQUENCE = [
-	PrimaryLift.Enum.squat,
-	PrimaryLift.Enum.bench,
-	PrimaryLift.Enum.deadlift,
-	PrimaryLift.Enum.press,
-] as const;
-
-const EXERCISE_CATEGORIES = {
-	[PrimaryLift.Enum.squat]: [
-		ExerciseCategory.Enum.main_lift,
-		ExerciseCategory.Enum.main_lift_variation,
-		ExerciseCategory.Enum.compound_leg,
-		ExerciseCategory.Enum.quad_accessory,
-		ExerciseCategory.Enum.hamstring_glute_accessory,
-		ExerciseCategory.Enum.calf_accessory,
+const PRIMARY_LIFT_PATTERNS = {
+	week1: [
+		{ reps: 10, percentageOfMax: 45 },
+		{ reps: 5, percentageOfMax: 55 },
+		{ reps: 5, percentageOfMax: 65 },
+		{ reps: 5, percentageOfMax: 75 },
+		{ reps: 5, percentageOfMax: 85 },
+		{ reps: 5, percentageOfMax: 85 },
 	],
-	[PrimaryLift.Enum.bench]: [
-		ExerciseCategory.Enum.main_lift,
-		ExerciseCategory.Enum.main_lift_variation,
-		ExerciseCategory.Enum.chest_accessory,
-		ExerciseCategory.Enum.chest_accessory,
-		ExerciseCategory.Enum.tricep_accessory,
-		ExerciseCategory.Enum.tricep_accessory,
+	week2: [
+		{ reps: 8, percentageOfMax: 50 },
+		{ reps: 3, percentageOfMax: 60 },
+		{ reps: 3, percentageOfMax: 70 },
+		{ reps: 3, percentageOfMax: 80 },
+		{ reps: 3, percentageOfMax: 90 },
+		{ reps: 3, percentageOfMax: 90 },
 	],
-	[PrimaryLift.Enum.deadlift]: [
-		ExerciseCategory.Enum.main_lift,
-		ExerciseCategory.Enum.main_lift_variation,
-		ExerciseCategory.Enum.vertical_pull_accessory,
-		ExerciseCategory.Enum.lateral_pull_accessory,
-		ExerciseCategory.Enum.bicep_accessory,
-		ExerciseCategory.Enum.bicep_accessory,
+	week3: [
+		{ reps: 10, percentageOfMax: 50 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 3, percentageOfMax: 80 },
+		{ reps: 2, percentageOfMax: 85 },
+		{ reps: 1, percentageOfMax: 90 },
+		{ reps: 1, percentageOfMax: 95 },
 	],
-	[PrimaryLift.Enum.press]: [
-		ExerciseCategory.Enum.main_lift,
-		ExerciseCategory.Enum.delt_accessory,
-		ExerciseCategory.Enum.delt_accessory,
-		ExerciseCategory.Enum.delt_accessory,
-		ExerciseCategory.Enum.tricep_accessory,
-		ExerciseCategory.Enum.bicep_accessory,
+	week4: [
+		{ reps: 10, percentageOfMax: 50 },
+		{ reps: 8, percentageOfMax: 60 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 5, percentageOfMax: 70 },
 	],
 } as const;
 
-// Helper function to chunk array into smaller pieces
-function chunkArray<T>(array: T[], size: number): T[][] {
-	return Array.from({ length: Math.ceil(array.length / size) }, (_, index) =>
-		array.slice(index * size, (index + 1) * size),
-	);
+async function createWorkouts(
+	userId: User["id"],
+	cycleId: string,
+	startDate: Date,
+	tx: DrizzleTransaction,
+): Promise<Array<{ id: string; primaryLift: PrimaryLift }>> {
+	const workoutValues = Array.from({ length: 16 }).map((_, index) => {
+		const workoutDate = new Date(startDate);
+		workoutDate.setDate(startDate.getDate() + index * 2);
+
+		// Get primary lift in correct order: squat, bench, deadlift, overhead
+		const primaryLifts = ["squat", "bench", "deadlift", "overhead"] as const;
+
+		const primaryLift = primaryLifts[index % 4];
+
+		return {
+			userId,
+			cycleId,
+			date: workoutDate,
+			primaryLift,
+			status: Status.Enum.pending,
+			sequence: index + 1,
+		} satisfies WorkoutsInsert;
+	});
+
+	const createdWorkouts = await tx
+		.insert(workouts)
+		.values(workoutValues)
+		.returning();
+
+	return createdWorkouts.map((w) => ({
+		id: w.id,
+		primaryLift: w.primaryLift as PrimaryLift,
+	}));
 }
 
-function getWeekPattern(workoutNumber: number) {
-	const weekNumber = Math.floor((workoutNumber - 1) / 4) + 1;
-	switch (weekNumber) {
-		case 1:
-			return PRIMARY_LIFT_PATTERNS.week1;
-		case 2:
-			return PRIMARY_LIFT_PATTERNS.week2;
-		case 3:
-			return PRIMARY_LIFT_PATTERNS.week3;
-		default:
-			return PRIMARY_LIFT_PATTERNS.week4;
-	}
-}
+async function createExercises(
+	userId: User["id"],
+	workouts: Array<{ id: string; primaryLift: PrimaryLift }>,
+	definitions: ExerciseDefinitionsSelect[],
+	tx: DrizzleTransaction,
+): Promise<Array<{ id: string; exerciseDefinitionId: string }>> {
+	const exerciseValues = workouts.flatMap((workout) => {
+		const exercises = DefaultExerciseDefinitions.get(workout.primaryLift);
+		if (!exercises) {
+			throw new Error(
+				`No exercises found for primary lift ${workout.primaryLift}`,
+			);
+		}
 
-interface CreateCycleParams {
-	userId: User["id"];
-	tx?: DrizzleTransaction;
-}
+		return exercises.map((exercise, index) => {
+			const definition = definitions.find(
+				(def) =>
+					def.category === exercise.category && def.type === exercise.type,
+			);
 
-export async function createCycle({ userId, tx }: CreateCycleParams) {
-	const queryRunner = tx || db;
-	const startDate = new Date();
-
-	// First parallel operation: Get exercise definitions, one rep maxes, and create cycle
-	const [rawExerciseDefinitions, oneRepMaxRecords, [cycle]] = await Promise.all(
-		[
-			queryRunner
-				.select({
-					id: exerciseDefinitions.id,
-					name: exerciseDefinitions.name,
-					category: exerciseDefinitions.category,
-					type: exerciseDefinitions.type,
-					primaryLiftDay: exerciseDefinitions.primaryLiftDay,
-					repMax: exerciseDefinitions.repMax,
-					rpeMax: exerciseDefinitions.rpeMax,
-					createdAt: exerciseDefinitions.createdAt,
-					updatedAt: exerciseDefinitions.updatedAt,
-				})
-				.from(exerciseDefinitions),
-			queryRunner
-				.select({
-					exerciseDefinitionId: oneRepMaxes.exerciseDefinitionId,
-					weight: oneRepMaxes.weight,
-				})
-				.from(oneRepMaxes)
-				.where(eq(oneRepMaxes.userId, userId)),
-			queryRunner
-				.insert(cycles)
-				.values({
-					userId,
-					startDate,
-					status: Status.Enum.pending,
-				})
-				.returning(),
-		],
-	);
-
-	// Parse exercise definitions through schema
-	const allExerciseDefinitions = rawExerciseDefinitions.map((def) =>
-		exerciseDefinitionsSelectSchema.parse(def),
-	);
-
-	console.log("Exercise Definitions after parse:", allExerciseDefinitions);
-
-	// Create a map of exercise definition IDs to their one rep maxes
-	const oneRepMaxMap = new Map(
-		oneRepMaxRecords.map((record) => [
-			record.exerciseDefinitionId,
-			record.weight,
-		]),
-	);
-
-	// Prepare workout values
-	const workoutValues: WorkoutsInsert[] = Array.from({ length: 16 }).map(
-		(_, index) => {
-			const workoutDate = new Date(startDate);
-			workoutDate.setDate(startDate.getDate() + index * 2);
+			if (!definition) {
+				throw new Error(
+					`No exercise definition found for category ${exercise.category} and type ${exercise.type}`,
+				);
+			}
 
 			return {
 				userId,
-				cycleId: cycle.id,
-				date: workoutDate,
-				primaryLift: WORKOUT_SEQUENCE[index % WORKOUT_SEQUENCE.length],
+				workoutId: workout.id,
+				exerciseDefinitionId: definition.id,
+				order: index + 1,
 				status: Status.Enum.pending,
-				sequence: index + 1,
-			};
-		},
-	);
-
-	// Create workouts
-	const createdWorkouts = await queryRunner
-		.insert(workouts)
-		.values(workoutValues)
-		.returning({
-			id: workouts.id,
-			primaryLift: workouts.primaryLift,
+			} satisfies ExercisesInsert;
 		});
+	});
 
-	// Prepare exercise values
-	const exerciseValues: ExercisesInsert[] = createdWorkouts.flatMap(
-		(workout) => {
-			console.log("Processing workout:", workout);
-			const categories =
-				EXERCISE_CATEGORIES[workout.primaryLift as PrimaryLift];
-			console.log("Categories for workout:", categories);
-
-			return categories.map((category, index) => {
-				console.log("Finding exercises for category:", category);
-				console.log("Available definitions:", allExerciseDefinitions);
-
-				const matchingDefinitions = allExerciseDefinitions.filter((def) => {
-					const categoryMatch = def.category === category;
-					const primaryLiftMatch =
-						category === ExerciseCategory.Enum.main_lift
-							? def.primaryLiftDay === workout.primaryLift
-							: true;
-
-					console.log("Matching attempt:", {
-						def,
-						categoryMatch,
-						primaryLiftMatch,
-						category,
-						isMainLift: category === ExerciseCategory.Enum.main_lift,
-						workoutPrimaryLift: workout.primaryLift,
-					});
-
-					return categoryMatch && primaryLiftMatch;
-				});
-
-				if (matchingDefinitions.length === 0) {
-					throw new Error(
-						`No matching exercise definition found for category ${category}. ` +
-							`Workout primary lift: ${workout.primaryLift}. ` +
-							`Available definitions: ${JSON.stringify(
-								allExerciseDefinitions.map((d) => ({
-									category: d.category,
-									primaryLiftDay: d.primaryLiftDay,
-								})),
-							)}`,
-					);
-				}
-
-				const definition =
-					matchingDefinitions[
-						Math.floor(Math.random() * matchingDefinitions.length)
-					];
-
-				return {
-					userId,
-					workoutId: workout.id,
-					exerciseDefinitionId: definition.id,
-					order: index + 1,
-					status: Status.Enum.pending,
-				};
-			});
-		},
-	);
-
-	// Create exercises and prepare sets in parallel
-	const createdExercises = await queryRunner
+	const createdExercises = await tx
 		.insert(exercises)
 		.values(exerciseValues)
-		.returning({
-			id: exercises.id,
-			exerciseDefinitionId: exercises.exerciseDefinitionId,
-		});
+		.returning();
 
-	// Prepare set values
-	const setValues = createdExercises.flatMap<SetsInsert>((exercise) => {
-		const definition = allExerciseDefinitions.find(
+	return createdExercises.map((e) => ({
+		id: e.id,
+		exerciseDefinitionId: e.exerciseDefinitionId,
+	}));
+}
+
+type SetValues = {
+	userId: string;
+	exerciseId: string;
+	weight: number;
+	reps: number;
+	rpe: number;
+	percentageOfMax: number | null;
+	setNumber: number;
+	status: typeof Status.Enum.pending;
+};
+
+async function createSets(
+	userId: User["id"],
+	exercisesList: Array<{ id: string; exerciseDefinitionId: string }>,
+	definitions: ExerciseDefinitionsSelect[],
+	oneRepMaxMap: Map<string, number>,
+	tx: DrizzleTransaction,
+): Promise<void> {
+	const setValues = exercisesList.flatMap((exercise, index) => {
+		const definition = definitions.find(
 			(def) => def.id === exercise.exerciseDefinitionId,
 		);
 
 		if (!definition) {
 			throw new Error(
-				`Could not find exercise definition for exercise ${exercise.id}`,
+				`No definition found for exercise ${exercise.exerciseDefinitionId}`,
 			);
 		}
 
 		const oneRepMax = oneRepMaxMap.get(definition.id);
-		const workoutIndex = Math.floor(createdExercises.indexOf(exercise) / 6);
-		const weekPattern = getWeekPattern(workoutIndex + 1);
+		const workoutNumber = Math.floor(index / 6) + 1;
+		const weekPattern = getWeekPattern(workoutNumber);
 
 		if (definition.type === ExerciseType.Enum.primary && oneRepMax) {
-			// For primary lifts, use the lift patterns and calculate weight from 1RM
-			return weekPattern.map((pattern, setIndex) => ({
-				userId,
-				exerciseId: exercise.id,
-				weight: roundDownToNearest5(
-					Math.round((pattern.percentageOfMax / 100) * oneRepMax),
-				),
-				reps: pattern.reps,
-				rpe:
-					definition.type === ExerciseType.Enum.primary
-						? 7
-						: (definition.rpeMax ?? 7),
-				percentageOfMax: pattern.percentageOfMax,
-				setNumber: setIndex + 1,
-				status: Status.Enum.pending,
-			}));
+			return weekPattern.map(
+				(pattern, setIndex): SetValues => ({
+					userId,
+					exerciseId: exercise.id,
+					weight: roundDownToNearest5(
+						(oneRepMax * pattern.percentageOfMax) / 100,
+					),
+					reps: pattern.reps,
+					rpe: 7,
+					percentageOfMax: pattern.percentageOfMax,
+					setNumber: setIndex + 1,
+					status: Status.Enum.pending,
+				}),
+			);
 		}
 
-		// For non-primary lifts, use default values
-		return Array.from({ length: 6 }).map((_, setIndex) => ({
-			userId,
-			exerciseId: exercise.id,
-			weight: 100, // Default weight for non-primary lifts
-			reps: definition.repMax ?? 8,
-			rpe: definition.rpeMax ?? 7,
-			percentageOfMax: null,
-			setNumber: setIndex + 1,
-			status: Status.Enum.pending,
-		}));
+		return Array.from({ length: 6 }).map(
+			(_, setIndex): SetValues => ({
+				userId,
+				exerciseId: exercise.id,
+				weight: 100,
+				reps: definition.repMax ?? 8,
+				rpe: definition.rpeMax ?? 7,
+				percentageOfMax: null,
+				setNumber: setIndex + 1,
+				status: Status.Enum.pending,
+			}),
+		);
 	});
 
-	// Split sets into chunks and insert all chunks in parallel
-	const setChunks = chunkArray(setValues, 50);
-	await Promise.all(
-		setChunks.map((chunk) => queryRunner.insert(sets).values(chunk)),
-	);
+	// Batch insert sets
+	const batches = chunkArray(setValues, 500);
+	for (const batch of batches) {
+		await tx.insert(sets).values(batch as SetsInsert[]);
+	}
+}
 
-	return cycle;
+function chunkArray<T>(array: T[], size: number): T[][] {
+	return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+		array.slice(i * size, i + size),
+	);
+}
+
+function getWeekPattern(workoutNumber: number) {
+	const weekNumber = Math.floor((workoutNumber - 1) / 4) + 1;
+	return PRIMARY_LIFT_PATTERNS[
+		`week${weekNumber}` as keyof typeof PRIMARY_LIFT_PATTERNS
+	];
+}
+
+export async function createCycle({
+	userId,
+	tx,
+}: {
+	userId: User["id"];
+	tx?: DrizzleTransaction;
+}) {
+	const queryRunner = tx || db;
+
+	return queryRunner.transaction(async (trx) => {
+		// Step 1: Create cycle and get prerequisites
+		const [cycle, definitions, maxes] = await Promise.all([
+			trx
+				.insert(cycles)
+				.values({
+					userId,
+					startDate: new Date(),
+					status: Status.Enum.pending,
+				})
+				.returning()
+				.then(([c]) => c),
+			trx.select().from(exerciseDefinitions) as Promise<
+				ExerciseDefinitionsSelect[]
+			>,
+			trx
+				.select()
+				.from(oneRepMaxes)
+				.where(eq(oneRepMaxes.userId, userId)) as Promise<OneRepMaxesSelect[]>,
+		]);
+
+		if (!cycle) {
+			throw new Error("Failed to create cycle");
+		}
+
+		// Step 2: Create workouts
+		const workoutList = await createWorkouts(
+			userId,
+			cycle.id,
+			cycle.startDate,
+			trx,
+		);
+
+		// Step 3: Create exercises
+		const exerciseList = await createExercises(
+			userId,
+			workoutList,
+			definitions,
+			trx,
+		);
+
+		// Step 4: Create sets
+		const oneRepMaxMap = new Map(
+			maxes.map((orm) => [orm.exerciseDefinitionId, orm.weight]),
+		);
+		await createSets(userId, exerciseList, definitions, oneRepMaxMap, trx);
+
+		return cycle;
+	});
 }

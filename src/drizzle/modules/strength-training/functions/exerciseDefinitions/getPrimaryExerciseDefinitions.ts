@@ -3,15 +3,16 @@
 import { db } from "@/drizzle/db";
 import {
 	type ExerciseDefinitionsSelect,
-	ExerciseType,
 	exerciseDefinitions,
-} from "@/drizzle/modules/strength-training/schemas";
+	exerciseDefinitionsSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { ExerciseType } from "@/drizzle/modules/strength-training/types";
 import { eq } from "drizzle-orm";
 
 export async function getPrimaryExerciseDefinitions(): Promise<
 	ExerciseDefinitionsSelect[]
 > {
-	return await db
+	const results = await db
 		.select({
 			id: exerciseDefinitions.id,
 			name: exerciseDefinitions.name,
@@ -24,5 +25,7 @@ export async function getPrimaryExerciseDefinitions(): Promise<
 			updatedAt: exerciseDefinitions.updatedAt,
 		})
 		.from(exerciseDefinitions)
-		.where(eq(exerciseDefinitions.type, ExerciseType.Primary));
+		.where(eq(exerciseDefinitions.type, ExerciseType.Enum.primary));
+
+	return results.map((result) => exerciseDefinitionsSelectSchema.parse(result));
 }

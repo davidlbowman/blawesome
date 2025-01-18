@@ -1,12 +1,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import {
-	cycles,
-	exercises,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { eq } from "drizzle-orm";
 
 export async function skipRemainingWorkouts(cycleId: string) {
