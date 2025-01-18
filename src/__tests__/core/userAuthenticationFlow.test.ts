@@ -49,7 +49,7 @@ describe("User Authentication Flow", () => {
 			});
 
 			expect(user.email).toBe(email);
-			expect(user.password).not.toBe(password); // Should be hashed
+			expect(user).not.toHaveProperty("password");
 
 			// Test duplicate user
 			await expect(
@@ -88,8 +88,8 @@ describe("User Authentication Flow", () => {
 			).rejects.toThrow("User not found");
 
 			// 3. Create User Session
-			const sessionResult = await createUserSession(verifiedUser);
-			expect(sessionResult.success).toBe(true);
+			const session = await createUserSession(verifiedUser);
+			expect(session).toBeDefined();
 			expect(cookieStore.set).toHaveBeenCalled();
 
 			// Mock session token for getUserId

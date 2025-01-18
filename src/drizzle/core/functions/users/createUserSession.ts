@@ -54,9 +54,9 @@ export async function createUserSession(user: User) {
 			path: "/",
 		});
 
-		return { success: true };
+		return token;
 	} catch (error) {
 		console.error("Failed to create session:", error);
-		return { success: false, error: "Failed to create session" };
+		throw new Error("Failed to create session");
 	}
 }

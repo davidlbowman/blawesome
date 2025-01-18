@@ -1,6 +1,7 @@
 "use server";
 
-import { users, type User } from "@/drizzle/core/schemas/users";
+import { users } from "@/drizzle/core/schemas/users";
+import type { User } from "@/drizzle/core/schemas/users";
 import {
 	userInsertSchema,
 	userSelectSchema,
@@ -19,18 +20,18 @@ export async function createUser({
 	password: User["password"];
 	tx?: DrizzleTransaction;
 }): Promise<Pick<User, "id" | "email">> {
+	const queryRunner = tx || db;
+
+	const existingUser = await queryRunner
+		.select()
+		.from(users)
+		.where(eq(users.email, email));
+
+	if (existingUser.length > 0) {
+		throw new Error("User already exists");
+	}
+
 	try {
-		const queryRunner = tx || db;
-
-		const existingUser = await queryRunner
-			.select()
-			.from(users)
-			.where(eq(users.email, email));
-
-		if (existingUser.length > 0) {
-			throw new Error("User already exists");
-		}
-
 		const hashedPassword = await bcrypt.hash(password, 10);
 
 		const validatedCredentials = userSelectSchema
@@ -45,7 +46,10 @@ export async function createUser({
 		const [user] = await queryRunner
 			.insert(users)
 			.values(validatedInput)
-			.returning();
+			.returning({
+				id: users.id,
+				email: users.email,
+			});
 
 		const validatedUser = userSelectSchema
 			.pick({ id: true, email: true })
@@ -53,6 +57,7 @@ export async function createUser({
 
 		return validatedUser;
 	} catch (error) {
+		console.error("Failed to create user:", error);
 		if (error instanceof Error) {
 			throw error;
 		}

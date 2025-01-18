@@ -56,13 +56,13 @@ function LoginFormContent() {
 				throw error;
 			});
 
-			if (!session.success) {
+			if (!session) {
 				console.error("Session creation error details:", {
-					error: session.error,
+					error: session,
 					user: user.id,
 				});
 				form.setError("root", {
-					message: session.error || "Failed to create session",
+					message: session || "Failed to create session",
 				});
 				return;
 			}

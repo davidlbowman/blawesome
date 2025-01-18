@@ -29,13 +29,11 @@ describe("Cycle Creation Flow", () => {
 			});
 
 			// 2. Insert test one rep maxes for primary lifts
-			// Get primary lift exercise definitions
 			const primaryExerciseDefinitions = await tx
 				.select()
 				.from(exerciseDefinitions)
 				.where(eq(exerciseDefinitions.type, ExerciseType.Enum.primary));
 
-			// Insert one rep maxes for each primary lift
 			await Promise.all(
 				primaryExerciseDefinitions.map((def) =>
 					tx.insert(oneRepMaxes).values({
