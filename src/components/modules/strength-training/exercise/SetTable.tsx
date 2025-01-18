@@ -6,22 +6,15 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import type { SetsInsert } from "@/drizzle/modules/strength-training/schemas/sets";
 import { Status } from "@/drizzle/modules/strength-training/types";
 import { cn } from "@/lib/utils";
 
-type StatusType = (typeof Status.Enum)[keyof typeof Status.Enum];
-
-interface Set {
-	id: string;
-	setNumber: number;
-	weight: number;
-	reps: number;
-	rpe: number;
-	status: StatusType;
-}
-
 interface SetTableProps {
-	sets: Set[];
+	sets: Pick<
+		SetsInsert,
+		"id" | "setNumber" | "weight" | "reps" | "rpe" | "status"
+	>[];
 	currentSetIndex?: number;
 	isActive: boolean;
 }

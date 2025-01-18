@@ -1,11 +1,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import {
-	exercises,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq, gt } from "drizzle-orm";
 
 export async function skipSet(workoutId: string) {
@@ -27,7 +26,10 @@ export async function skipSet(workoutId: string) {
 			.from(exercises)
 			.innerJoin(sets, eq(sets.exerciseId, exercises.id))
 			.where(
-				and(eq(exercises.workoutId, workoutId), eq(sets.status, "in_progress")),
+				and(
+					eq(exercises.workoutId, workoutId),
+					eq(sets.status, Status.Enum.in_progress),
+				),
 			);
 
 		if (!result) return;
@@ -121,7 +123,7 @@ export async function skipSet(workoutId: string) {
 		await tx
 			.update(workouts)
 			.set({
-				status: "completed",
+				status: Status.Enum.completed,
 				completedAt: new Date(),
 				updatedAt: new Date(),
 			})

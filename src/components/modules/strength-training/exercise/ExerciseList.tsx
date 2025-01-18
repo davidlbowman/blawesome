@@ -1,28 +1,32 @@
-import type { Status } from "@/drizzle/modules/strength-training/types";
+import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import type { ExercisesSelect } from "@/drizzle/modules/strength-training/schemas/exercises";
+import type { SetsSelect } from "@/drizzle/modules/strength-training/schemas/sets";
 import { ExerciseCard } from "./ExerciseCard";
 import { PrimaryExerciseCard } from "./PrimaryExerciseCard";
 
-type StatusType = (typeof Status)[keyof typeof Status];
+type ExerciseSet = Pick<
+	SetsSelect,
+	"id" | "setNumber" | "weight" | "reps" | "rpe" | "status"
+>;
 
-interface Set {
-	id: string;
-	setNumber: number;
-	weight: number;
-	reps: number;
-	rpe: number;
-	status: StatusType;
-}
-
-interface Exercise {
-	id: string;
+interface ExerciseWithSets
+	extends Omit<
+		ExercisesSelect,
+		| "userId"
+		| "workoutId"
+		| "exerciseDefinitionId"
+		| "order"
+		| "createdAt"
+		| "updatedAt"
+		| "completedAt"
+	> {
 	name: string;
-	type: "primary" | "variation" | "accessory";
-	sets: Set[];
-	status: StatusType;
+	type: ExerciseDefinitionsSelect["type"];
+	sets: ExerciseSet[];
 }
 
 interface ExerciseListProps {
-	exercises: Exercise[];
+	exercises: ExerciseWithSets[];
 	currentExerciseIndex?: number;
 	currentSetIndex?: number;
 	className?: string;
@@ -49,10 +53,7 @@ export function ExerciseList({
 			{primaryExercise && (
 				<PrimaryExerciseCard
 					key={primaryExercise.id}
-					name={primaryExercise.name}
-					type={primaryExercise.type}
-					sets={primaryExercise.sets}
-					status={primaryExercise.status}
+					exercise={primaryExercise}
 					currentSetIndex={
 						currentExerciseIndex === 0 ? currentSetIndex : undefined
 					}

@@ -1,12 +1,11 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import {
-	exercises,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { eq } from "drizzle-orm";
+import { exercises } from "../../schemas/exercises";
 
 export async function startWorkout(workoutId: string) {
 	return await db.transaction(async (tx) => {
@@ -26,7 +25,7 @@ export async function startWorkout(workoutId: string) {
 		await tx
 			.update(workouts)
 			.set({
-				status: "in_progress",
+				status: Status.Enum.in_progress,
 				updatedAt: new Date(),
 			})
 			.where(eq(workouts.id, workoutId));
@@ -34,7 +33,7 @@ export async function startWorkout(workoutId: string) {
 		await tx
 			.update(exercises)
 			.set({
-				status: "in_progress",
+				status: Status.Enum.in_progress,
 				updatedAt: new Date(),
 			})
 			.where(eq(exercises.id, firstExercise.exerciseId));
@@ -43,7 +42,7 @@ export async function startWorkout(workoutId: string) {
 			await tx
 				.update(sets)
 				.set({
-					status: "in_progress",
+					status: Status.Enum.in_progress,
 					updatedAt: new Date(),
 				})
 				.where(eq(sets.id, firstExercise.firstSetId));

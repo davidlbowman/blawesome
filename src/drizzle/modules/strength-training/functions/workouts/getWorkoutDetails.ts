@@ -90,7 +90,20 @@ export async function getWorkoutDetails(
 				)
 				.orderBy(exercises.order),
 			tx
-				.select()
+				.select({
+					id: sets.id,
+					userId: sets.userId,
+					exerciseId: sets.exerciseId,
+					weight: sets.weight,
+					reps: sets.reps,
+					rpe: sets.rpe,
+					percentageOfMax: sets.percentageOfMax,
+					setNumber: sets.setNumber,
+					status: sets.status,
+					createdAt: sets.createdAt,
+					updatedAt: sets.updatedAt,
+					completedAt: sets.completedAt,
+				})
 				.from(sets)
 				.innerJoin(exercises, eq(sets.exerciseId, exercises.id))
 				.where(eq(exercises.workoutId, targetWorkoutId))

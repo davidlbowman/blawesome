@@ -1,8 +1,9 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { exercises, sets } from "@/drizzle/modules/strength-training/schemas";
-import { Status } from "@/drizzle/modules/strength-training/schemas/types";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq } from "drizzle-orm";
 
 export async function skipRemainingExerciseSets(exerciseId: string) {
@@ -13,18 +14,21 @@ export async function skipRemainingExerciseSets(exerciseId: string) {
 		await tx
 			.update(sets)
 			.set({
-				status: Status.Skipped,
+				status: Status.Enum.skipped,
 				updatedAt: now,
 			})
 			.where(
-				and(eq(sets.exerciseId, exerciseId), eq(sets.status, Status.Pending)),
+				and(
+					eq(sets.exerciseId, exerciseId),
+					eq(sets.status, Status.Enum.pending),
+				),
 			);
 
 		// Mark the exercise as completed
 		await tx
 			.update(exercises)
 			.set({
-				status: Status.Completed,
+				status: Status.Enum.completed,
 				completedAt: now,
 				updatedAt: now,
 			})

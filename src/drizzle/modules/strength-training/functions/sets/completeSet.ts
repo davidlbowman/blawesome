@@ -1,12 +1,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import {
-	exerciseDefinitions,
-	exercises,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import type { SetPerformance } from "@/drizzle/modules/strength-training/types";
 import { and, eq, gt } from "drizzle-orm";
 

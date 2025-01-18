@@ -1,89 +1,122 @@
 "use server";
 
-import { PRIMARY_LIFT_PATTERNS } from "@/drizzle/modules/strength-training/constants/liftPatterns";
+import type { User } from "@/drizzle/core/schemas/users";
+import type { DrizzleTransaction } from "@/drizzle/db";
 import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
-import type { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
 import type { SetsInsert } from "@/drizzle/modules/strength-training/schemas/sets";
 import {
 	ExerciseType,
 	Status,
 } from "@/drizzle/modules/strength-training/types";
+import { roundDownToNearest5 } from "@/drizzle/modules/strength-training/utils/math";
 
-import type { InferSelectModel } from "drizzle-orm";
+const PRIMARY_LIFT_PATTERNS: Record<
+	string,
+	Pick<SetsInsert, "reps" | "percentageOfMax">[]
+> = {
+	week1: [
+		{ reps: 10, percentageOfMax: 45 },
+		{ reps: 5, percentageOfMax: 55 },
+		{ reps: 5, percentageOfMax: 65 },
+		{ reps: 5, percentageOfMax: 75 },
+		{ reps: 5, percentageOfMax: 85 },
+		{ reps: 5, percentageOfMax: 85 },
+	],
+	week2: [
+		{ reps: 8, percentageOfMax: 50 },
+		{ reps: 3, percentageOfMax: 60 },
+		{ reps: 3, percentageOfMax: 70 },
+		{ reps: 3, percentageOfMax: 80 },
+		{ reps: 3, percentageOfMax: 90 },
+		{ reps: 3, percentageOfMax: 90 },
+	],
+	week3: [
+		{ reps: 10, percentageOfMax: 50 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 3, percentageOfMax: 80 },
+		{ reps: 2, percentageOfMax: 85 },
+		{ reps: 1, percentageOfMax: 90 },
+		{ reps: 1, percentageOfMax: 95 },
+	],
+	week4: [
+		{ reps: 10, percentageOfMax: 50 },
+		{ reps: 8, percentageOfMax: 60 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 5, percentageOfMax: 70 },
+		{ reps: 5, percentageOfMax: 70 },
+	],
+};
 
-type Exercise = InferSelectModel<typeof exercises>;
-
-interface SetScheme {
-	reps: number;
-	weight?: number;
-	percentageOfMax?: number;
-	rpe?: number;
+function getWeekPattern(
+	workoutNumber: number,
+): Pick<SetsInsert, "reps" | "percentageOfMax">[] {
+	const weekNumber = Math.floor((workoutNumber - 1) / 4) + 1;
+	return PRIMARY_LIFT_PATTERNS[`week${weekNumber}`];
 }
 
-const NON_PRIMARY_SETS = 6;
-
-function getWeekNumber(workoutIndex: number): 1 | 2 | 3 | 4 {
-	return ((Math.floor(workoutIndex / 4) % 4) + 1) as 1 | 2 | 3 | 4;
-}
-
-function roundToNearest5(weight: number): number {
-	return Math.floor(weight / 5) * 5;
-}
-
-function calculateSetScheme(
-	exerciseType: (typeof ExerciseType)[keyof typeof ExerciseType],
-	workoutIndex: number,
-	oneRepMax: number | null,
-	definition: ExerciseDefinitionsSelect,
-): SetScheme[] {
-	const weekNumber = getWeekNumber(workoutIndex);
-	const weekKey = `week${weekNumber}` as keyof typeof PRIMARY_LIFT_PATTERNS;
-
-	if (exerciseType === ExerciseType.Enum.primary && oneRepMax) {
-		return PRIMARY_LIFT_PATTERNS[weekKey].map((pattern) => ({
-			...pattern,
-			weight: roundToNearest5(
-				Math.round((oneRepMax * (pattern.percentageOfMax || 0)) / 100),
-			),
-			rpe: 7, // Fixed RPE for primary lifts
-		}));
-	}
-
-	// For variations and accessories, use the definition's max values
-	const pattern = {
-		reps: definition.repMax ?? 8,
-		rpe: definition.rpeMax ?? 7,
-		weight: 100, // Default weight for non-primary exercises
-		percentageOfMax: null, // Non-primary exercises don't use percentage of max
-	};
-
-	// Return only NON_PRIMARY_SETS number of sets with the same pattern
-	return Array(NON_PRIMARY_SETS).fill(pattern);
+function chunkArray<T>(array: T[], size: number): T[][] {
+	return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+		array.slice(i * size, i * size + size),
+	);
 }
 
 export async function createSets(
-	userId: string,
-	exercise: Exercise,
-	exerciseType: (typeof ExerciseType)[keyof typeof ExerciseType],
-	workoutIndex: number,
-	oneRepMax: number | null,
-	definition: ExerciseDefinitionsSelect,
-): Promise<SetsInsert[]> {
-	const setSchemes = calculateSetScheme(
-		exerciseType,
-		workoutIndex,
-		oneRepMax,
-		definition,
-	);
+	userId: User["id"],
+	exercisesList: Array<{ id: string; exerciseDefinitionId: string }>,
+	definitions: ExerciseDefinitionsSelect[],
+	oneRepMaxMap: Map<string, number>,
+	tx: DrizzleTransaction,
+): Promise<void> {
+	const setValues = exercisesList.flatMap((exercise, index) => {
+		const definition = definitions.find(
+			(def) => def.id === exercise.exerciseDefinitionId,
+		);
 
-	return setSchemes.map((scheme, index) => ({
-		userId,
-		exerciseId: exercise.id,
-		weight: scheme.weight ?? 100,
-		reps: scheme.reps,
-		rpe: scheme.rpe ?? 7,
-		percentageOfMax: scheme.percentageOfMax ?? null,
-		setNumber: index + 1,
-		status: Status.Enum.pending,
-	}));
+		if (!definition) {
+			throw new Error(
+				`No definition found for exercise ${exercise.exerciseDefinitionId}`,
+			);
+		}
+
+		const oneRepMax = oneRepMaxMap.get(definition.id);
+		const workoutNumber = Math.floor(index / 6) + 1;
+		const weekPattern = getWeekPattern(workoutNumber);
+
+		if (definition.type === ExerciseType.Enum.primary && oneRepMax) {
+			return weekPattern.map(
+				(pattern, setIndex): SetsInsert => ({
+					userId,
+					exerciseId: exercise.id,
+					weight: roundDownToNearest5(
+						(oneRepMax * (pattern.percentageOfMax ?? 0)) / 100,
+					),
+					reps: pattern.reps,
+					rpe: 7,
+					percentageOfMax: pattern.percentageOfMax,
+					setNumber: setIndex + 1,
+					status: Status.Enum.pending,
+				}),
+			);
+		}
+
+		return Array.from({ length: 6 }).map(
+			(_, setIndex): SetsInsert => ({
+				userId,
+				exerciseId: exercise.id,
+				weight: 100,
+				reps: definition.repMax ?? 8,
+				rpe: definition.rpeMax ?? 7,
+				percentageOfMax: null,
+				setNumber: setIndex + 1,
+				status: Status.Enum.pending,
+			}),
+		);
+	});
+
+	const batches = chunkArray(setValues, 500);
+	for (const batch of batches) {
+		await tx.insert(sets).values(batch);
+	}
 }

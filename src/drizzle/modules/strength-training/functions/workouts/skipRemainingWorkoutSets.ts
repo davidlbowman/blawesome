@@ -1,12 +1,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import {
-	Status,
-	exercises,
-	sets,
-	workouts,
-} from "@/drizzle/modules/strength-training/schemas";
+import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
+import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
+import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq } from "drizzle-orm";
 
 export async function skipRemainingWorkoutSets(workoutId: string) {
@@ -22,20 +20,20 @@ export async function skipRemainingWorkoutSets(workoutId: string) {
 		// Skip all exercises and their sets
 		for (const exercise of workoutExercises) {
 			if (
-				exercise.status === Status.Pending ||
-				exercise.status === Status.InProgress
+				exercise.status === Status.Enum.pending ||
+				exercise.status === Status.Enum.in_progress
 			) {
 				// Skip only pending sets for this exercise
 				await tx
 					.update(sets)
 					.set({
-						status: Status.Skipped,
+						status: Status.Enum.skipped,
 						updatedAt: now,
 					})
 					.where(
 						and(
 							eq(sets.exerciseId, exercise.id),
-							eq(sets.status, Status.Pending),
+							eq(sets.status, Status.Enum.pending),
 						),
 					);
 
@@ -43,7 +41,7 @@ export async function skipRemainingWorkoutSets(workoutId: string) {
 				await tx
 					.update(exercises)
 					.set({
-						status: Status.Skipped,
+						status: Status.Enum.skipped,
 						updatedAt: now,
 					})
 					.where(eq(exercises.id, exercise.id));
@@ -54,7 +52,7 @@ export async function skipRemainingWorkoutSets(workoutId: string) {
 		await tx
 			.update(workouts)
 			.set({
-				status: Status.Completed,
+				status: Status.Enum.completed,
 				completedAt: now,
 				updatedAt: now,
 			})
