@@ -92,7 +92,9 @@ export function OneRMForm() {
 			// Insert one at a time to better identify which one fails
 			for (const exercise of validExercises) {
 				try {
-					const insertResponse = await insertOneRepMax(exercise);
+					const insertResponse = await insertOneRepMax({
+						oneRepMax: exercise,
+					});
 					if (!insertResponse.success) {
 						throw new Error("Failed to insert exercise");
 					}

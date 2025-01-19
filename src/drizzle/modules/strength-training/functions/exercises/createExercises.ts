@@ -1,6 +1,7 @@
 "use server";
 
 import type { User } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
 import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
 import {
@@ -15,17 +16,23 @@ import {
 	Status,
 } from "@/drizzle/modules/strength-training/types";
 
+interface CreateExercisesParams {
+	userId: User["id"];
+	workouts: Pick<WorkoutsSelect, "id" | "primaryLift">[];
+	definitions: ExerciseDefinitionsSelect[];
+	tx?: DrizzleTransaction;
+}
+
+type CreateExercisesResponse = Promise<
+	Response<Pick<ExercisesSelect, "id" | "exerciseDefinitionId">[]>
+>;
+
 export async function createExercises({
 	userId,
 	workouts,
 	definitions,
 	tx,
-}: {
-	userId: User["id"];
-	workouts: Pick<WorkoutsSelect, "id" | "primaryLift">[];
-	definitions: ExerciseDefinitionsSelect[];
-	tx?: DrizzleTransaction;
-}): Promise<Pick<ExercisesSelect, "id" | "exerciseDefinitionId">[]> {
+}: CreateExercisesParams): CreateExercisesResponse {
 	const queryRunner = tx || db;
 
 	const exerciseValues = workouts.flatMap((workout) => {
@@ -63,9 +70,12 @@ export async function createExercises({
 		.values(exerciseValues)
 		.returning();
 
-	return createdExercises.map((exercise) =>
-		exercisesSelectSchema
-			.pick({ id: true, exerciseDefinitionId: true })
-			.parse(exercise),
-	);
+	return {
+		success: true,
+		data: createdExercises.map((exercise) =>
+			exercisesSelectSchema
+				.pick({ id: true, exerciseDefinitionId: true })
+				.parse(exercise),
+		),
+	};
 }

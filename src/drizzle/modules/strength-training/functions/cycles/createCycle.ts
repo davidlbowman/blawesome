@@ -52,20 +52,30 @@ export async function createCycle({
 		}
 
 		// Step 2: Create workouts
-		const workoutList = await createWorkouts({
+		const createWorkoutsResponse = await createWorkouts({
 			userId,
 			cycleId: cycle.id,
 			startDate: cycle.startDate,
 			tx: trx,
 		});
 
+		if (!createWorkoutsResponse.success || !createWorkoutsResponse.data) {
+			throw new Error("Failed to create workouts");
+		}
+		const workoutList = createWorkoutsResponse.data;
+
 		// Step 3: Create exercises
-		const exerciseList = await createExercises({
+		const createExercisesResponse = await createExercises({
 			userId,
 			workouts: workoutList,
 			definitions,
 			tx: trx,
 		});
+
+		if (!createExercisesResponse.success || !createExercisesResponse.data) {
+			throw new Error("Failed to create exercises");
+		}
+		const exerciseList = createExercisesResponse.data;
 
 		// Step 4: Create sets
 		const oneRepMaxMap = new Map<

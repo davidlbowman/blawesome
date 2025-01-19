@@ -1,35 +1,37 @@
 "use server";
 
 import type { Response } from "@/drizzle/core/types";
-import { db } from "@/drizzle/db";
+import { type DrizzleTransaction, db } from "@/drizzle/db";
 import {
 	type OneRepMaxesInsert,
 	oneRepMaxes,
 } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
 import { sql } from "drizzle-orm";
 
-type InsertOneRepMaxParams = Pick<
-	OneRepMaxesInsert,
-	"userId" | "exerciseDefinitionId" | "weight"
->;
+interface InsertOneRepMaxParams {
+	oneRepMax: Pick<
+		OneRepMaxesInsert,
+		"userId" | "exerciseDefinitionId" | "weight"
+	>;
+	tx?: DrizzleTransaction;
+}
+
+type InsertOneRepMaxResponse = Promise<Response<void>>;
 
 export async function insertOneRepMax({
-	userId,
-	exerciseDefinitionId,
-	weight,
-}: InsertOneRepMaxParams): Promise<Response<void>> {
+	oneRepMax,
+	tx,
+}: InsertOneRepMaxParams): InsertOneRepMaxResponse {
+	const queryRunner = tx || db;
+
 	try {
-		await db
+		await queryRunner
 			.insert(oneRepMaxes)
-			.values({
-				userId,
-				exerciseDefinitionId,
-				weight,
-			})
+			.values(oneRepMax)
 			.onConflictDoUpdate({
 				target: [oneRepMaxes.userId, oneRepMaxes.exerciseDefinitionId],
 				set: {
-					weight,
+					weight: oneRepMax.weight,
 					updatedAt: sql`CURRENT_TIMESTAMP`,
 				},
 			});

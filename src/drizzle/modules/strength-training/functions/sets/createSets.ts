@@ -1,6 +1,7 @@
 "use server";
 
 import type { User } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
 import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
 import type { ExercisesSelect } from "@/drizzle/modules/strength-training/schemas/exercises";
@@ -86,13 +87,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 	);
 }
 
-export async function createSets({
-	userId,
-	exercisesList,
-	definitions,
-	oneRepMaxMap,
-	tx,
-}: {
+interface CreateSetsParams {
 	userId: User["id"];
 	exercisesList: Pick<ExercisesSelect, "id" | "exerciseDefinitionId">[];
 	definitions: ExerciseDefinitionsSelect[];
@@ -101,7 +96,17 @@ export async function createSets({
 		OneRepMaxesSelect["weight"]
 	>;
 	tx?: DrizzleTransaction;
-}): Promise<void> {
+}
+
+type CreateSetsResponse = Promise<Response<void>>;
+
+export async function createSets({
+	userId,
+	exercisesList,
+	definitions,
+	oneRepMaxMap,
+	tx,
+}: CreateSetsParams): CreateSetsResponse {
 	const queryRunner = tx || db;
 
 	const setValues = exercisesList.flatMap((exercise, index) => {
@@ -157,4 +162,6 @@ export async function createSets({
 	for (const batch of batches) {
 		await queryRunner.insert(sets).values(batch);
 	}
+
+	return { success: true, data: undefined };
 }
