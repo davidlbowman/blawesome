@@ -4,7 +4,7 @@ import { generateId } from "@/drizzle/utils/uuid";
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import type { z } from "zod";
+import { z } from "zod";
 
 export const oneRepMaxes = sqliteTable(
 	"one_rep_maxes",
@@ -31,7 +31,18 @@ export const oneRepMaxes = sqliteTable(
 	}),
 );
 
-export const oneRepMaxesInsertSchema = createInsertSchema(oneRepMaxes);
+const oneRepMaxValidation = {
+	weight: z.coerce.number().min(0, "Weight must be a positive number"),
+};
+
+export const oneRepMaxesInsertSchema = createInsertSchema(
+	oneRepMaxes,
+	oneRepMaxValidation,
+);
 export type OneRepMaxesInsert = z.infer<typeof oneRepMaxesInsertSchema>;
-export const oneRepMaxesSelectSchema = createSelectSchema(oneRepMaxes);
+
+export const oneRepMaxesSelectSchema = createSelectSchema(
+	oneRepMaxes,
+	oneRepMaxValidation,
+);
 export type OneRepMaxesSelect = z.infer<typeof oneRepMaxesSelectSchema>;

@@ -22,11 +22,17 @@ describe("Cycle Creation Flow", () => {
 			// 1. Create a test user
 			const email = faker.internet.email();
 			const password = faker.internet.password();
-			const user = await createUser({
+			const userResponse = await createUser({
 				email,
 				password,
 				tx,
 			});
+
+			if (!userResponse.success || !userResponse.data) {
+				throw new Error("Failed to create user");
+			}
+
+			const user = userResponse.data;
 
 			// 2. Insert test one rep maxes for primary lifts
 			const primaryExerciseDefinitions = await tx
@@ -92,11 +98,17 @@ describe("Cycle Creation Flow", () => {
 	test("should calculate correct weights based on one rep maxes", async () => {
 		await withTestTransaction(async (tx) => {
 			// 1. Create a test user
-			const user = await createUser({
+			const userResponse = await createUser({
 				email: faker.internet.email(),
 				password: faker.internet.password(),
 				tx,
 			});
+
+			if (!userResponse.success || !userResponse.data) {
+				throw new Error("Failed to create user");
+			}
+
+			const user = userResponse.data;
 
 			// 2. Get a primary lift exercise definition (e.g., Squat)
 			const [squatDefinition] = await tx

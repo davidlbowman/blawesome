@@ -2,6 +2,7 @@
 
 import { createHmac, randomBytes } from "node:crypto";
 import type { User } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -23,7 +24,7 @@ function createSignature(header: string, payload: string): string {
 		.digest("base64url");
 }
 
-export async function createUserSession(user: User) {
+export async function createUserSession(user: User): Promise<Response<string>> {
 	try {
 		const header = base64URLEncode(
 			JSON.stringify({
@@ -54,11 +55,14 @@ export async function createUserSession(user: User) {
 			path: "/",
 		});
 
-		return token;
+		return { success: true, data: token };
 	} catch (error) {
 		if (error instanceof Error) {
-			throw error;
+			return { success: false, error };
 		}
-		throw new Error("An unexpected error occurred while creating session");
+		return {
+			success: false,
+			error: new Error("An unexpected error occurred while creating session"),
+		};
 	}
 }

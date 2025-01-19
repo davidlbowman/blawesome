@@ -158,6 +158,9 @@ export function SidebarNav({ children }: SidebarNavProps) {
 		if (result.success) {
 			router.push("/");
 			router.refresh();
+		} else {
+			// Handle error case - maybe show a toast notification
+			console.error("Failed to logout:", result.error);
 		}
 	};
 

@@ -52,7 +52,12 @@ export function OneRMForm() {
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		try {
-			const userId = await getUserId();
+			const userIdResponse = await getUserId();
+			if (!userIdResponse.success || !userIdResponse.data) {
+				throw new Error("Failed to get user ID");
+			}
+			const userId = userIdResponse.data;
+
 			const exerciseDefinitions = await getPrimaryExerciseDefinitions();
 			const exercises = [
 				{
@@ -87,7 +92,10 @@ export function OneRMForm() {
 			// Insert one at a time to better identify which one fails
 			for (const exercise of validExercises) {
 				try {
-					await insertOneRepMax(exercise);
+					const insertResponse = await insertOneRepMax(exercise);
+					if (!insertResponse.success) {
+						throw new Error("Failed to insert exercise");
+					}
 				} catch (error) {
 					console.error("Failed to insert exercise:", exercise, error);
 					throw error;

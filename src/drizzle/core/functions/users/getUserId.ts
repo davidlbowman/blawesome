@@ -1,6 +1,7 @@
 "use server";
 
 import { users } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import type { DrizzleTransaction } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
@@ -15,11 +16,13 @@ interface GetUserIDParams {
 	tx?: DrizzleTransaction;
 }
 
-export async function getUserId({ tx }: GetUserIDParams = {}) {
+export async function getUserId({
+	tx,
+}: GetUserIDParams = {}): Promise<Response<string>> {
 	const queryRunner = tx || db;
 	const cookieStore = await cookies();
 	const token = cookieStore.get("session")?.value;
-	if (!token) throw new Error("Not authenticated");
+	if (!token) return { success: false, error: new Error("Not authenticated") };
 
 	const [_, payloadBase64] = token.split(".");
 	const payload = JSON.parse(base64URLDecode(payloadBase64));
@@ -33,8 +36,8 @@ export async function getUserId({ tx }: GetUserIDParams = {}) {
 
 	if (!user) {
 		console.error("User not found in database:", userId);
-		throw new Error("User not found");
+		return { success: false, error: new Error("User not found") };
 	}
 
-	return userId;
+	return { success: true, data: user.id };
 }

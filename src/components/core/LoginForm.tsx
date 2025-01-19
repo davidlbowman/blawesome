@@ -41,28 +41,30 @@ function LoginFormContent() {
 
 	async function onSubmit(data: VerifyUser) {
 		try {
-			const user = await verifyUser(data).catch((error: unknown) => {
+			const userResponse = await verifyUser(data).catch((error: unknown) => {
 				console.error("Verify user error:", error);
 				throw error;
 			});
 
-			if (!user) {
+			if (!userResponse.success || !userResponse.data) {
 				form.setError("root", { message: "Invalid email or password" });
 				return;
 			}
 
-			const session = await createUserSession(user).catch((error: unknown) => {
-				console.error("Session creation error:", error);
-				throw error;
-			});
+			const sessionResponse = await createUserSession(userResponse.data).catch(
+				(error: unknown) => {
+					console.error("Session creation error:", error);
+					throw error;
+				},
+			);
 
-			if (!session) {
+			if (!sessionResponse.success) {
 				console.error("Session creation error details:", {
-					error: session,
-					user: user.id,
+					error: sessionResponse.error,
+					user: userResponse.data?.id,
 				});
 				form.setError("root", {
-					message: session || "Failed to create session",
+					message: sessionResponse.error?.message || "Failed to create session",
 				});
 				return;
 			}

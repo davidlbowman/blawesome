@@ -4,7 +4,11 @@ import { getUserId } from "@/drizzle/core/functions/users/getUserId";
 import { getTrainingData } from "@/drizzle/modules/strength-training/functions/cycles/getTrainingData";
 
 export default async function StrengthTrainingPage() {
-	const userId = await getUserId();
+	const userIdResponse = await getUserId();
+	if (!userIdResponse.success || !userIdResponse.data) {
+		throw new Error("Failed to get user ID");
+	}
+	const userId = userIdResponse.data;
 	const { hasAllMaxes, cycles, workoutData } = await getTrainingData(userId);
 
 	if (!hasAllMaxes) {

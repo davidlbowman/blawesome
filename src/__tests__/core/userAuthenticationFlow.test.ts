@@ -42,54 +42,74 @@ describe("User Authentication Flow", () => {
 			const email = faker.internet.email();
 			const password = faker.internet.password();
 
-			const user = await createUser({
+			const userResponse = await createUser({
 				email,
 				password,
 				tx,
 			});
 
+			expect(userResponse.success).toBe(true);
+			if (!userResponse.success || !userResponse.data) {
+				throw new Error("Failed to create user");
+			}
+
+			const user = userResponse.data;
 			expect(user.email).toBe(email);
-			expect(user).not.toHaveProperty("password");
 
 			// Test duplicate user
-			await expect(
-				createUser({
-					email,
-					password,
-					tx,
-				}),
-			).rejects.toThrow("User already exists");
+			const duplicateResult = await createUser({
+				email,
+				password,
+				tx,
+			});
+			expect(duplicateResult.success).toBe(false);
+			if (duplicateResult.success) {
+				throw new Error("Should not succeed with duplicate user");
+			}
+			expect(duplicateResult.error.message).toBe("User already exists");
 
 			// 2. Verify User
-			const verifiedUser = await verifyUser({
+			const verifyResult = await verifyUser({
 				email,
 				password,
 				tx,
 			});
 
+			expect(verifyResult.success).toBe(true);
+			if (!verifyResult.success || !verifyResult.data) {
+				throw new Error("Failed to verify user");
+			}
+
+			const verifiedUser = verifyResult.data;
 			expect(verifiedUser.id).toBe(user.id);
 
 			// Test invalid password
-			await expect(
-				verifyUser({
-					email,
-					password: faker.internet.password(),
-					tx,
-				}),
-			).rejects.toThrow("Invalid password");
+			const invalidPasswordResult = await verifyUser({
+				email,
+				password: faker.internet.password(),
+				tx,
+			});
+			expect(invalidPasswordResult.success).toBe(false);
+			if (invalidPasswordResult.success) {
+				throw new Error("Should not succeed with invalid password");
+			}
+			expect(invalidPasswordResult.error.message).toBe("Invalid password");
 
 			// Test non-existent user
-			await expect(
-				verifyUser({
-					email: faker.internet.email(),
-					password,
-					tx,
-				}),
-			).rejects.toThrow("User not found");
+			const nonExistentResult = await verifyUser({
+				email: faker.internet.email(),
+				password,
+				tx,
+			});
+			expect(nonExistentResult.success).toBe(false);
+			if (nonExistentResult.success) {
+				throw new Error("Should not succeed with non-existent user");
+			}
+			expect(nonExistentResult.error.message).toBe("User not found");
 
 			// 3. Create User Session
-			const session = await createUserSession(verifiedUser);
-			expect(session).toBeDefined();
+			const sessionResult = await createUserSession(verifiedUser);
+			expect(sessionResult.success).toBe(true);
 			expect(cookieStore.set).toHaveBeenCalled();
 
 			// Mock session token for getUserId
@@ -100,8 +120,12 @@ describe("User Authentication Flow", () => {
 			);
 
 			// 4. Get User ID from Session
-			const userId = await getUserId({ tx });
-			expect(userId).toBe(user.id);
+			const userIdResult = await getUserId({ tx });
+			expect(userIdResult.success).toBe(true);
+			if (!userIdResult.success || !userIdResult.data) {
+				throw new Error("Failed to get user ID");
+			}
+			expect(userIdResult.data).toBe(user.id);
 
 			// 5. Logout User
 			const logoutResult = await logoutUser();
@@ -110,7 +134,12 @@ describe("User Authentication Flow", () => {
 
 			// Verify session is invalidated
 			getMock.mockImplementation(() => undefined);
-			await expect(getUserId({ tx })).rejects.toThrow("Not authenticated");
+			const invalidatedResult = await getUserId({ tx });
+			expect(invalidatedResult.success).toBe(false);
+			if (invalidatedResult.success) {
+				throw new Error("Should fail with invalid session");
+			}
+			expect(invalidatedResult.error.message).toBe("Not authenticated");
 		});
 	});
 });

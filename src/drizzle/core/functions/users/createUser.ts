@@ -6,6 +6,7 @@ import {
 	userInsertSchema,
 	userSelectSchema,
 } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import type { DrizzleTransaction } from "@/drizzle/db";
 import bcrypt from "bcrypt";
@@ -19,7 +20,7 @@ export async function createUser({
 	email: User["email"];
 	password: User["password"];
 	tx?: DrizzleTransaction;
-}): Promise<Pick<User, "id" | "email">> {
+}): Promise<Response<Pick<User, "id" | "email">>> {
 	const queryRunner = tx || db;
 
 	const existingUser = await queryRunner
@@ -28,7 +29,7 @@ export async function createUser({
 		.where(eq(users.email, email));
 
 	if (existingUser.length > 0) {
-		throw new Error("User already exists");
+		return { success: false, error: new Error("User already exists") };
 	}
 
 	try {
@@ -55,11 +56,14 @@ export async function createUser({
 			.pick({ id: true, email: true })
 			.parse(user);
 
-		return validatedUser;
+		return { success: true, data: validatedUser };
 	} catch (error) {
 		if (error instanceof Error) {
-			throw error;
+			return { success: false, error };
 		}
-		throw new Error("An unexpected error occurred while creating user");
+		return {
+			success: false,
+			error: new Error("An unexpected error occurred while creating user"),
+		};
 	}
 }
