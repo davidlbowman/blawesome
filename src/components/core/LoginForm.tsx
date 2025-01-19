@@ -49,7 +49,7 @@ function LoginFormContent() {
 			}
 
 			const sessionResponse = await createUserSession({
-				user: userResponse.data,
+				user: { id: userResponse.data.id, email: data.email },
 			});
 
 			if (!sessionResponse.success) {

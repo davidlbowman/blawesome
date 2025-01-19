@@ -1,6 +1,7 @@
 "use server";
 
 import type { UserSelect } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import {
 	type CyclesSelect,
@@ -9,7 +10,6 @@ import {
 } from "@/drizzle/modules/strength-training/schemas/cycles";
 import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq } from "drizzle-orm";
-import type { Response } from "@/drizzle/core/types";
 
 interface GetActiveCycleParams {
 	userId: UserSelect["id"];

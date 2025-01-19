@@ -1,6 +1,7 @@
 "use server";
 
 import type { UserSelect } from "@/drizzle/core/schemas/users";
+import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import {
 	type CyclesSelect,
@@ -8,7 +9,6 @@ import {
 	cyclesSelectSchema,
 } from "@/drizzle/modules/strength-training/schemas/cycles";
 import { desc, eq } from "drizzle-orm";
-import type { Response } from "@/drizzle/core/types";
 
 interface GetCyclesParams {
 	userId: UserSelect["id"];

@@ -104,7 +104,7 @@ describe("User Authentication Flow", () => {
 
 			// 3. Create User Session
 			const sessionResult = await createUserSession({
-				user: verifiedUser,
+				user: { id: verifiedUser.id, email: user.email },
 			});
 			expect(sessionResult.success).toBe(true);
 			expect(cookieStore.set).toHaveBeenCalled();
@@ -122,7 +122,7 @@ describe("User Authentication Flow", () => {
 			if (!userIdResult.success || !userIdResult.data) {
 				throw new Error("Failed to get user ID");
 			}
-			expect(userIdResult.data).toBe(user.id);
+			expect(userIdResult.data.id).toBe(user.id);
 
 			// 5. Logout User
 			const logoutResult = await logoutUser();

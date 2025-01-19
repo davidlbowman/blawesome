@@ -25,7 +25,7 @@ function createSignature(header: string, payload: string): string {
 }
 
 interface CreateUserSessionParams {
-	user: UserSelect;
+	user: Pick<UserSelect, "id" | "email">;
 }
 
 type CreateUserSessionResponse = Promise<Response<string>>;

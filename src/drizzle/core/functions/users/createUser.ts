@@ -2,10 +2,10 @@
 
 import { users } from "@/drizzle/core/schemas/users";
 import {
-	userInsertSchema,
-	userSelectSchema,
 	type UserInsert,
 	type UserSelect,
+	userInsertSchema,
+	userSelectSchema,
 } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
@@ -14,7 +14,7 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
 interface CreateUserParams {
-	user: NonNullable<Pick<UserInsert, "email" | "password">>;
+	user: Pick<UserInsert, "email" | "password">;
 	tx?: DrizzleTransaction;
 }
 

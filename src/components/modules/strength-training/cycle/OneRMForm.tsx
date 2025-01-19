@@ -56,7 +56,7 @@ export function OneRMForm() {
 			if (!userIdResponse.success || !userIdResponse.data) {
 				throw new Error("Failed to get user ID");
 			}
-			const userId = userIdResponse.data;
+			const userId = userIdResponse.data.id;
 
 			const exerciseDefinitions = await getPrimaryExerciseDefinitions();
 			const exercises = [
@@ -93,7 +93,11 @@ export function OneRMForm() {
 			for (const exercise of validExercises) {
 				try {
 					const insertResponse = await insertOneRepMax({
-						oneRepMax: exercise,
+						oneRepMax: {
+							userId,
+							exerciseDefinitionId: exercise.exerciseDefinitionId,
+							weight: exercise.weight,
+						},
 					});
 					if (!insertResponse.success) {
 						throw new Error("Failed to insert exercise");

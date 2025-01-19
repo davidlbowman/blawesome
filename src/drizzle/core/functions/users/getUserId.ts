@@ -6,6 +6,7 @@ import { db } from "@/drizzle/db";
 import type { DrizzleTransaction } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 
 function base64URLDecode(str: string): string {
 	const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
@@ -16,11 +17,15 @@ interface GetUserIDParams {
 	tx?: DrizzleTransaction;
 }
 
+type GetUserIDResponse = Promise<Response<Pick<UserSelect, "id">>>;
+
 export async function getUserId({
 	tx,
-}: GetUserIDParams = {}): Promise<Response<string>> {
+}: GetUserIDParams = {}): GetUserIDResponse {
 	const queryRunner = tx || db;
+
 	const cookieStore = await cookies();
+
 	const token = cookieStore.get("session")?.value;
 	if (!token) return { success: false, error: new Error("Not authenticated") };
 
@@ -39,5 +44,5 @@ export async function getUserId({
 		return { success: false, error: new Error("User not found") };
 	}
 
-	return { success: true, data: user.id };
+	return { success: true, data: { id: user.id } };
 }

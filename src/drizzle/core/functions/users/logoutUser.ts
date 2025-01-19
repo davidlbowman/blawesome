@@ -3,7 +3,9 @@
 import type { Response } from "@/drizzle/core/types";
 import { cookies } from "next/headers";
 
-export async function logoutUser(): Promise<Response<void>> {
+type LogoutUserResponse = Promise<Response<void>>;
+
+export async function logoutUser(): LogoutUserResponse {
 	try {
 		const cookiesStore = await cookies();
 		cookiesStore.delete("session");

@@ -9,13 +9,25 @@ export default async function StrengthTrainingPage() {
 		throw new Error("Failed to get user ID");
 	}
 	const userId = userIdResponse.data;
-	const { hasAllMaxes, cycles, workoutData } = await getTrainingData(userId);
+
+	const trainingDataResponse = await getTrainingData({
+		userId,
+	});
+	if (!trainingDataResponse.success || !trainingDataResponse.data) {
+		throw new Error("Failed to get training data");
+	}
+
+	const { hasAllMaxes, cycles, workoutData } = trainingDataResponse.data;
 
 	if (!hasAllMaxes) {
 		return <OneRMForm />;
 	}
 
 	return (
-		<DashboardView userId={userId} cycles={cycles} workoutData={workoutData} />
+		<DashboardView
+			userId={userId.id}
+			cycles={cycles}
+			workoutData={workoutData}
+		/>
 	);
 }

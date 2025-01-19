@@ -8,11 +8,11 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
 interface VerifyUserParams {
-	user: NonNullable<Pick<UserSelect, "email" | "password">>;
+	user: Pick<UserSelect, "email" | "password">;
 	tx?: DrizzleTransaction;
 }
 
-type VerifyUserResponse = Promise<Response<UserSelect>>;
+type VerifyUserResponse = Promise<Response<Pick<UserSelect, "id">>>;
 
 export async function verifyUser({
 	user,
@@ -23,7 +23,10 @@ export async function verifyUser({
 	const queryRunner = tx || db;
 
 	const [verifiedUser] = await queryRunner
-		.select()
+		.select({
+			id: users.id,
+			password: users.password,
+		})
 		.from(users)
 		.where(eq(users.email, email));
 
@@ -40,5 +43,5 @@ export async function verifyUser({
 		return { success: false, error: new Error("Invalid password") };
 	}
 
-	return { success: true, data: verifiedUser };
+	return { success: true, data: { id: verifiedUser.id } };
 }

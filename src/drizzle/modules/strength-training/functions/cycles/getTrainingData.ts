@@ -8,8 +8,24 @@ import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepM
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { and, desc, eq } from "drizzle-orm";
+import type { Response } from "@/drizzle/core/types";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 
-export async function getTrainingData(userId: string) {
+interface GetTrainingDataParams {
+	userId: Pick<UserSelect, "id">;
+}
+
+type GetTrainingDataResponse = Promise<
+	Response<{
+		hasAllMaxes: boolean;
+		cycles: CyclesSelect[];
+		workoutData: WorkoutsSelect[];
+	}>
+>;
+
+export async function getTrainingData({
+	userId,
+}: GetTrainingDataParams): GetTrainingDataResponse {
 	// Start both queries in parallel
 	const [exerciseData, cycleData] = await Promise.all([
 		db
@@ -27,7 +43,7 @@ export async function getTrainingData(userId: string) {
 				oneRepMaxes,
 				and(
 					eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
-					eq(oneRepMaxes.userId, userId),
+					eq(oneRepMaxes.userId, userId.id),
 				),
 			)
 			.where(eq(exerciseDefinitions.type, "primary")),
@@ -51,7 +67,7 @@ export async function getTrainingData(userId: string) {
 			})
 			.from(cycles)
 			.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
-			.where(eq(cycles.userId, userId))
+			.where(eq(cycles.userId, userId.id))
 			.orderBy(desc(cycles.createdAt)),
 	]);
 
@@ -71,8 +87,11 @@ export async function getTrainingData(userId: string) {
 		.sort((a, b) => a.sequence - b.sequence);
 
 	return {
-		hasAllMaxes,
-		cycles: userCycles,
-		workoutData,
+		success: true,
+		data: {
+			hasAllMaxes,
+			cycles: userCycles,
+			workoutData,
+		},
 	};
 }
