@@ -15,12 +15,8 @@ export const cycles = sqliteTable("cycles", {
 	startDate: integer("start_date", { mode: "timestamp" }).notNull(),
 	endDate: integer("end_date", { mode: "timestamp" }),
 	status: text("status").notNull().default(Status.Enum.pending),
-	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
-	updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 

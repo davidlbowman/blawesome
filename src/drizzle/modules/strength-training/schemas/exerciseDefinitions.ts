@@ -20,12 +20,8 @@ export const exerciseDefinitions = sqliteTable(
 		primaryLiftDay: text("primary_lift_day").notNull(),
 		rpeMax: integer("rpe_max"),
 		repMax: integer("rep_max"),
-		createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-			() => new Date(),
-		),
-		updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-			() => new Date(),
-		),
+		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+		updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 	},
 	(table) => ({
 		nameTypeUnique: unique().on(table.name, table.type),

@@ -22,12 +22,8 @@ export const sets = sqliteTable("sets", {
 	percentageOfMax: integer("percentage_of_max"),
 	setNumber: integer("set_number").notNull(),
 	status: text("status").notNull().default(Status.Enum.pending),
-	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
-	updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 

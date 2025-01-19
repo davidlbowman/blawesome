@@ -80,7 +80,7 @@ export default async function Page({
 			workoutId={workout.id}
 			cycleId={cycleId}
 			status={workout.status}
-			date={workout.date}
+			date={workout.createdAt}
 			primaryExercise={{
 				id: mainExercise.exercise.id,
 				name: mainExercise.definition.name,

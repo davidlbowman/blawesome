@@ -13,6 +13,7 @@ export default async function StrengthTrainingPage() {
 	const trainingDataResponse = await getTrainingData({
 		userId,
 	});
+
 	if (!trainingDataResponse.success || !trainingDataResponse.data) {
 		throw new Error("Failed to get training data");
 	}

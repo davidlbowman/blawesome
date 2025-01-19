@@ -1,12 +1,12 @@
 "use server";
 
 import { users } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import type { DrizzleTransaction } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import type { UserSelect } from "@/drizzle/core/schemas/users";
 
 function base64URLDecode(str: string): string {
 	const base64 = str.replace(/-/g, "+").replace(/_/g, "/");

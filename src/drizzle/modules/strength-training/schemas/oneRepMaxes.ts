@@ -1,7 +1,6 @@
 import { users } from "@/drizzle/core/schemas/users";
 import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
 import { generateId } from "@/drizzle/utils/uuid";
-import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -19,12 +18,8 @@ export const oneRepMaxes = sqliteTable(
 			.references(() => exerciseDefinitions.id)
 			.notNull(),
 		weight: integer("weight").notNull(),
-		createdAt: integer("created_at", { mode: "timestamp" }).default(
-			sql`CURRENT_TIMESTAMP`,
-		),
-		updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-			sql`CURRENT_TIMESTAMP`,
-		),
+		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+		updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 	},
 	(table) => ({
 		userExerciseUnique: unique().on(table.userId, table.exerciseDefinitionId),

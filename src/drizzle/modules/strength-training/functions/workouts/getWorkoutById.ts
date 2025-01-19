@@ -42,7 +42,7 @@ interface ExerciseWithDefinition {
 
 export interface WorkoutDetails {
 	id: WorkoutsSelect["id"];
-	date: WorkoutsSelect["date"];
+	createdAt: WorkoutsSelect["createdAt"];
 	status: Status;
 	exercises: ExerciseWithDefinition[];
 }
@@ -54,7 +54,7 @@ export async function getWorkoutById(
 		.select({
 			workout: {
 				id: workouts.id,
-				date: workouts.date,
+				createdAt: workouts.createdAt,
 				status: workouts.status,
 			},
 			exercise: {
@@ -134,7 +134,7 @@ export async function getWorkoutById(
 
 	return {
 		id: workout.id,
-		date: workout.date,
+		createdAt: workout.createdAt,
 		status: workout.status as Status,
 		exercises: Array.from(exercisesMap.values()),
 	};

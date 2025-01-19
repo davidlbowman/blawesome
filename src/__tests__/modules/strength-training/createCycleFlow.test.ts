@@ -46,15 +46,23 @@ describe("Cycle Creation Flow", () => {
 						userId: user.id,
 						exerciseDefinitionId: def.id,
 						weight: faker.number.int({ min: 100, max: 400 }),
+						createdAt: new Date(),
+						updatedAt: new Date(),
 					}),
 				),
 			);
 
 			// 3. Create cycle
-			const cycle = await createCycle({
-				userId: user.id,
+			const cycleResponse = await createCycle({
+				user: { id: user.id },
 				tx,
 			});
+
+			if (!cycleResponse.success || !cycleResponse.data) {
+				throw new Error("Failed to create cycle");
+			}
+
+			const cycle = cycleResponse.data;
 
 			// 4. Verify cycle was created
 			expect(cycle.userId).toBe(user.id);
@@ -133,13 +141,21 @@ describe("Cycle Creation Flow", () => {
 				userId: user.id,
 				exerciseDefinitionId: squatDefinition.id,
 				weight: oneRepMax,
+				createdAt: new Date(),
+				updatedAt: new Date(),
 			});
 
 			// 4. Create cycle
-			const cycle = await createCycle({
-				userId: user.id,
+			const cycleResponse = await createCycle({
+				user: { id: user.id },
 				tx,
 			});
+
+			if (!cycleResponse.success || !cycleResponse.data) {
+				throw new Error("Failed to create cycle");
+			}
+
+			const cycle = cycleResponse.data;
 
 			// 5. Get the first squat workout
 			const squatWorkout = await tx

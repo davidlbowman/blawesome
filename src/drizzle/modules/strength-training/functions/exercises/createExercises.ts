@@ -17,7 +17,7 @@ import {
 } from "@/drizzle/modules/strength-training/types";
 
 interface CreateExercisesParams {
-	userId: UserSelect["id"];
+	userId: Pick<UserSelect, "id">;
 	workouts: Pick<WorkoutsSelect, "id" | "primaryLift">[];
 	definitions: ExerciseDefinitionsSelect[];
 	tx?: DrizzleTransaction;
@@ -56,11 +56,13 @@ export async function createExercises({
 			}
 
 			return exercisesInsertSchema.parse({
-				userId,
+				userId: userId.id,
 				workoutId: workout.id,
 				exerciseDefinitionId: definition.id,
 				order: index + 1,
 				status: Status.Enum.pending,
+				createdAt: new Date(),
+				updatedAt: new Date(),
 			});
 		});
 	});
@@ -68,14 +70,16 @@ export async function createExercises({
 	const createdExercises = await queryRunner
 		.insert(exercises)
 		.values(exerciseValues)
-		.returning();
+		.returning()
+		.then((exercises) =>
+			exercisesSelectSchema
+				.pick({ id: true, exerciseDefinitionId: true })
+				.array()
+				.parse(exercises),
+		);
 
 	return {
 		success: true,
-		data: createdExercises.map((exercise) =>
-			exercisesSelectSchema
-				.pick({ id: true, exerciseDefinitionId: true })
-				.parse(exercise),
-		),
+		data: createdExercises,
 	};
 }

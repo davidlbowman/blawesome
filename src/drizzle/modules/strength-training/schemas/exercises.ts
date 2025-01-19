@@ -23,12 +23,8 @@ export const exercises = sqliteTable("exercises", {
 	oneRepMax: integer("one_rep_max"),
 	order: integer("order").notNull(),
 	status: text("status").notNull().default(Status.Enum.pending),
-	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
-	updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
+	createdAt: integer("created_at", { mode: "timestamp" }),
+	updatedAt: integer("updated_at", { mode: "timestamp" }),
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 

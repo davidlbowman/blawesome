@@ -16,27 +16,27 @@ export const workouts = sqliteTable("workouts", {
 	cycleId: text("cycle_id")
 		.references(() => cycles.id)
 		.notNull(),
-	date: integer("date", { mode: "timestamp" }).notNull(),
 	primaryLift: text("primary_lift").notNull(),
 	status: text("status").notNull().default(Status.Enum.pending),
 	sequence: integer("sequence").notNull(),
-	createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
-	updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-		() => new Date(),
-	),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 	completedAt: integer("completed_at", { mode: "timestamp" }),
 });
 
-export const workoutsInsertSchema = createInsertSchema(workouts).extend({
+const workoutValidation = {
 	primaryLift: PrimaryLift,
 	status: Status,
-});
+};
+
+export const workoutsInsertSchema = createInsertSchema(
+	workouts,
+	workoutValidation,
+);
 export type WorkoutsInsert = z.infer<typeof workoutsInsertSchema>;
 
-export const workoutsSelectSchema = createSelectSchema(workouts).extend({
-	primaryLift: PrimaryLift,
-	status: Status,
-});
+export const workoutsSelectSchema = createSelectSchema(
+	workouts,
+	workoutValidation,
+);
 export type WorkoutsSelect = z.infer<typeof workoutsSelectSchema>;

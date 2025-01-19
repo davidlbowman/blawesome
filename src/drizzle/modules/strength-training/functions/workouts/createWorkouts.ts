@@ -14,7 +14,7 @@ import { PrimaryLift, Status } from "@/drizzle/modules/strength-training/types";
 
 interface CreateWorkoutsParams {
 	userId: UserSelect["id"];
-	cycle: Pick<CyclesSelect, "id" | "startDate">;
+	cycle: Pick<CyclesSelect, "id">;
 	tx?: DrizzleTransaction;
 }
 
@@ -30,13 +30,11 @@ export async function createWorkouts({
 	const queryRunner = tx || db;
 
 	const workoutValues = Array.from({ length: 16 }).map((_, index) => {
-		const workoutDate = new Date(cycle.startDate);
-		workoutDate.setDate(cycle.startDate.getDate() + index * 2);
-
 		return workoutsInsertSchema.parse({
 			userId,
 			cycleId: cycle.id,
-			date: workoutDate,
+			createdAt: new Date(),
+			updatedAt: new Date(),
 			primaryLift: PrimaryLift.options[index % PrimaryLift.options.length],
 			status: Status.Enum.pending,
 			sequence: index + 1,
@@ -46,12 +44,16 @@ export async function createWorkouts({
 	const createdWorkouts = await queryRunner
 		.insert(workouts)
 		.values(workoutValues)
-		.returning();
+		.returning()
+		.then((workouts) =>
+			workoutsSelectSchema
+				.pick({ id: true, primaryLift: true })
+				.array()
+				.parse(workouts),
+		);
 
 	return {
 		success: true,
-		data: createdWorkouts.map((workout) =>
-			workoutsSelectSchema.pick({ id: true, primaryLift: true }).parse(workout),
-		),
+		data: createdWorkouts,
 	};
 }

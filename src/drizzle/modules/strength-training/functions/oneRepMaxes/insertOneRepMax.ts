@@ -6,7 +6,6 @@ import {
 	type OneRepMaxesInsert,
 	oneRepMaxes,
 } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
-import { sql } from "drizzle-orm";
 
 interface InsertOneRepMaxParams {
 	oneRepMax: Pick<
@@ -27,12 +26,16 @@ export async function insertOneRepMax({
 	try {
 		await queryRunner
 			.insert(oneRepMaxes)
-			.values(oneRepMax)
+			.values({
+				...oneRepMax,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			})
 			.onConflictDoUpdate({
 				target: [oneRepMaxes.userId, oneRepMaxes.exerciseDefinitionId],
 				set: {
 					weight: oneRepMax.weight,
-					updatedAt: sql`CURRENT_TIMESTAMP`,
+					updatedAt: new Date(),
 				},
 			});
 		return { success: true, data: undefined };

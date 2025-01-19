@@ -3,6 +3,7 @@ import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
 import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
 import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { oneRepMaxes } from "../schemas/oneRepMaxes";
 
 export async function clearWorkoutData() {
 	try {
@@ -11,6 +12,7 @@ export async function clearWorkoutData() {
 			await tx.delete(exercises);
 			await tx.delete(workouts);
 			await tx.delete(cycles);
+			await tx.delete(oneRepMaxes);
 		});
 
 		return { success: true };

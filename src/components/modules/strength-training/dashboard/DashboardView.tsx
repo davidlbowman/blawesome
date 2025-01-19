@@ -31,7 +31,7 @@ export function DashboardView({
 	const consistency = 85; // Eventually this will be calculated
 
 	async function handleStartNewCycle() {
-		await createCycle({ userId });
+		await createCycle({ user: { id: userId } });
 		router.refresh();
 	}
 

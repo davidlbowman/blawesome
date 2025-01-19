@@ -24,6 +24,8 @@ export const exercisesList = Array.from(
 	exercises.map((exercise) => ({
 		...exercise,
 		primaryLiftDay: primaryLift,
+		createdAt: new Date(),
+		updatedAt: new Date(),
 	})),
 );
 

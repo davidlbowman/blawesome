@@ -29,14 +29,22 @@ export function WorkoutList({
 					{currentWorkout && (
 						<div>
 							<h3 className="text-lg font-medium mb-4">Current Workout</h3>
-							<WorkoutCard {...currentWorkout} cycleId={cycleId} />
+							<WorkoutCard
+								{...currentWorkout}
+								cycleId={cycleId}
+								date={currentWorkout.createdAt}
+							/>
 						</div>
 					)}
 
 					{nextWorkouts.length > 0 && (
 						<div>
 							<h3 className="text-lg font-medium mb-4">Next Workout</h3>
-							<WorkoutCard {...nextWorkouts[0]} cycleId={cycleId} />
+							<WorkoutCard
+								{...nextWorkouts[0]}
+								cycleId={cycleId}
+								date={nextWorkouts[0].createdAt}
+							/>
 						</div>
 					)}
 
@@ -49,6 +57,7 @@ export function WorkoutList({
 										key={workout.id}
 										{...workout}
 										cycleId={cycleId}
+										date={workout.createdAt}
 									/>
 								))}
 							</div>
@@ -64,6 +73,7 @@ export function WorkoutList({
 										key={workout.id}
 										{...workout}
 										cycleId={cycleId}
+										date={workout.createdAt}
 									/>
 								))}
 							</div>

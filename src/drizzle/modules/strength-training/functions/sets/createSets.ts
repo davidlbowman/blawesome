@@ -138,6 +138,8 @@ export async function createSets({
 					percentageOfMax: pattern.percentageOfMax,
 					setNumber: setIndex + 1,
 					status: Status.Enum.pending,
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				}),
 			);
 		}
@@ -153,6 +155,8 @@ export async function createSets({
 					percentageOfMax: null,
 					setNumber: setIndex + 1,
 					status: Status.Enum.pending,
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				}),
 		);
 	});
