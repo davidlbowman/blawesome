@@ -1,6 +1,6 @@
 "use server";
 
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
 import { createExercises } from "@/drizzle/modules/strength-training/functions/exercises/createExercises";
 import { createSets } from "@/drizzle/modules/strength-training/functions/sets/createSets";
@@ -21,7 +21,7 @@ export async function createCycle({
 	userId,
 	tx,
 }: {
-	userId: User["id"];
+	userId: UserSelect["id"];
 	tx?: DrizzleTransaction;
 }) {
 	const queryRunner = tx || db;
@@ -54,8 +54,10 @@ export async function createCycle({
 		// Step 2: Create workouts
 		const createWorkoutsResponse = await createWorkouts({
 			userId,
-			cycleId: cycle.id,
-			startDate: cycle.startDate,
+			cycle: {
+				id: cycle.id,
+				startDate: cycle.startDate,
+			},
 			tx: trx,
 		});
 

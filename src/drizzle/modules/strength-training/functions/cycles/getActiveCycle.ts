@@ -1,6 +1,6 @@
 "use server";
 
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import {
 	type CyclesSelect,
@@ -9,10 +9,17 @@ import {
 } from "@/drizzle/modules/strength-training/schemas/cycles";
 import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq } from "drizzle-orm";
+import type { Response } from "@/drizzle/core/types";
 
-export async function getActiveCycle(
-	userId: User["id"],
-): Promise<CyclesSelect | null> {
+interface GetActiveCycleParams {
+	userId: UserSelect["id"];
+}
+
+type GetActiveCycleResponse = Promise<Response<CyclesSelect | null>>;
+
+export async function getActiveCycle({
+	userId,
+}: GetActiveCycleParams): GetActiveCycleResponse {
 	const [activeCycle] = await db
 		.select()
 		.from(cycles)
@@ -20,7 +27,14 @@ export async function getActiveCycle(
 			and(eq(cycles.userId, userId), eq(cycles.status, Status.Enum.pending)),
 		);
 
-	if (!activeCycle) return null;
+	if (!activeCycle) {
+		return {
+			success: false,
+			error: new Error("No active cycle found"),
+		};
+	}
+
 	const parsedCycle = cyclesSelectSchema.parse(activeCycle);
-	return parsedCycle;
+
+	return { success: true, data: parsedCycle };
 }

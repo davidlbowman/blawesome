@@ -22,7 +22,7 @@ const userValidation = {
 };
 
 export const userSelectSchema = createSelectSchema(users, userValidation);
-export type User = z.infer<typeof userSelectSchema>;
+export type UserSelect = z.infer<typeof userSelectSchema>;
 
 export const userInsertSchema = createInsertSchema(users, userValidation);
 export type UserInsert = z.infer<typeof userInsertSchema>;

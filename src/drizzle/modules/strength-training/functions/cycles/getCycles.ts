@@ -1,6 +1,6 @@
 "use server";
 
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import { db } from "@/drizzle/db";
 import {
 	type CyclesSelect,
@@ -8,17 +8,30 @@ import {
 	cyclesSelectSchema,
 } from "@/drizzle/modules/strength-training/schemas/cycles";
 import { desc, eq } from "drizzle-orm";
+import type { Response } from "@/drizzle/core/types";
 
-export async function getCycles(userId: User["id"]): Promise<CyclesSelect[]> {
+interface GetCyclesParams {
+	userId: UserSelect["id"];
+}
+
+type GetCyclesResponse = Promise<Response<CyclesSelect[]>>;
+
+export async function getCycles({
+	userId,
+}: GetCyclesParams): GetCyclesResponse {
 	const userCycles = await db
 		.select()
 		.from(cycles)
 		.where(eq(cycles.userId, userId))
 		.orderBy(desc(cycles.createdAt));
 
+	if (!userCycles) {
+		return { success: false, error: new Error("No cycles found") };
+	}
+
 	const parsedCycles = userCycles.map((cycle) =>
 		cyclesSelectSchema.parse(cycle),
 	);
 
-	return parsedCycles;
+	return { success: true, data: parsedCycles };
 }

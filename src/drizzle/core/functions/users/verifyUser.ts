@@ -1,6 +1,6 @@
 "use server";
 
-import { type User, users } from "@/drizzle/core/schemas/users";
+import { type UserSelect, users } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import type { DrizzleTransaction } from "@/drizzle/db";
@@ -8,30 +8,37 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
 interface VerifyUserParams {
-	email: User["email"];
-	password: User["password"];
+	user: NonNullable<Pick<UserSelect, "email" | "password">>;
 	tx?: DrizzleTransaction;
 }
 
-export async function verifyUser(
-	data: VerifyUserParams,
-): Promise<Response<User>> {
-	const queryRunner = data.tx || db;
+type VerifyUserResponse = Promise<Response<UserSelect>>;
 
-	const [user] = await queryRunner
+export async function verifyUser({
+	user,
+	tx,
+}: VerifyUserParams): VerifyUserResponse {
+	const { email, password } = user;
+
+	const queryRunner = tx || db;
+
+	const [verifiedUser] = await queryRunner
 		.select()
 		.from(users)
-		.where(eq(users.email, data.email));
+		.where(eq(users.email, email));
 
-	if (!user) {
+	if (!verifiedUser) {
 		return { success: false, error: new Error("User not found") };
 	}
 
-	const isPasswordMatched = await bcrypt.compare(data.password, user.password);
+	const isPasswordMatched = await bcrypt.compare(
+		password,
+		verifiedUser.password,
+	);
 
 	if (!isPasswordMatched) {
 		return { success: false, error: new Error("Invalid password") };
 	}
 
-	return { success: true, data: user };
+	return { success: true, data: verifiedUser };
 }

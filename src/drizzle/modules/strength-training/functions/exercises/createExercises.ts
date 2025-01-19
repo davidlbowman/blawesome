@@ -1,6 +1,6 @@
 "use server";
 
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
 import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
@@ -17,7 +17,7 @@ import {
 } from "@/drizzle/modules/strength-training/types";
 
 interface CreateExercisesParams {
-	userId: User["id"];
+	userId: UserSelect["id"];
 	workouts: Pick<WorkoutsSelect, "id" | "primaryLift">[];
 	definitions: ExerciseDefinitionsSelect[];
 	tx?: DrizzleTransaction;

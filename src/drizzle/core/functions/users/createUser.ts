@@ -1,10 +1,11 @@
 "use server";
 
 import { users } from "@/drizzle/core/schemas/users";
-import type { User } from "@/drizzle/core/schemas/users";
 import {
 	userInsertSchema,
 	userSelectSchema,
+	type UserInsert,
+	type UserSelect,
 } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
@@ -12,39 +13,41 @@ import type { DrizzleTransaction } from "@/drizzle/db";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
-export async function createUser({
-	email,
-	password,
-	tx,
-}: {
-	email: User["email"];
-	password: User["password"];
+interface CreateUserParams {
+	user: NonNullable<Pick<UserInsert, "email" | "password">>;
 	tx?: DrizzleTransaction;
-}): Promise<Response<Pick<User, "id" | "email">>> {
+}
+
+type CreateUserResponse = Promise<Response<Pick<UserSelect, "id" | "email">>>;
+
+export async function createUser({
+	user,
+	tx,
+}: CreateUserParams): CreateUserResponse {
 	const queryRunner = tx || db;
 
 	const existingUser = await queryRunner
 		.select()
 		.from(users)
-		.where(eq(users.email, email));
+		.where(eq(users.email, user.email));
 
 	if (existingUser.length > 0) {
 		return { success: false, error: new Error("User already exists") };
 	}
 
 	try {
-		const hashedPassword = await bcrypt.hash(password, 10);
+		const hashedPassword = await bcrypt.hash(user.password, 10);
 
 		const validatedCredentials = userSelectSchema
 			.pick({ email: true, password: true })
-			.parse({ email, password });
+			.parse({ email: user.email, password: user.password });
 
 		const validatedInput = userInsertSchema.parse({
 			...validatedCredentials,
 			password: hashedPassword,
 		});
 
-		const [user] = await queryRunner
+		const [validatedUserResponse] = await queryRunner
 			.insert(users)
 			.values(validatedInput)
 			.returning({
@@ -54,7 +57,7 @@ export async function createUser({
 
 		const validatedUser = userSelectSchema
 			.pick({ id: true, email: true })
-			.parse(user);
+			.parse(validatedUserResponse);
 
 		return { success: true, data: validatedUser };
 	} catch (error) {

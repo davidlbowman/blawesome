@@ -20,11 +20,11 @@ describe("Cycle Creation Flow", () => {
 	test("should create a complete cycle with workouts, exercises, and sets", async () => {
 		await withTestTransaction(async (tx) => {
 			// 1. Create a test user
-			const email = faker.internet.email();
-			const password = faker.internet.password();
 			const userResponse = await createUser({
-				email,
-				password,
+				user: {
+					email: faker.internet.email(),
+					password: faker.internet.password(),
+				},
 				tx,
 			});
 
@@ -99,8 +99,10 @@ describe("Cycle Creation Flow", () => {
 		await withTestTransaction(async (tx) => {
 			// 1. Create a test user
 			const userResponse = await createUser({
-				email: faker.internet.email(),
-				password: faker.internet.password(),
+				user: {
+					email: faker.internet.email(),
+					password: faker.internet.password(),
+				},
 				tx,
 			});
 

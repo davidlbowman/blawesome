@@ -1,6 +1,6 @@
 "use server";
 
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
 import type { ExerciseDefinitionsSelect } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
@@ -88,7 +88,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 }
 
 interface CreateSetsParams {
-	userId: User["id"];
+	userId: UserSelect["id"];
 	exercisesList: Pick<ExercisesSelect, "id" | "exerciseDefinitionId">[];
 	definitions: ExerciseDefinitionsSelect[];
 	oneRepMaxMap: Map<

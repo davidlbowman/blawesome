@@ -1,6 +1,6 @@
 "use server";
 
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { type DrizzleTransaction, db } from "@/drizzle/db";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
@@ -13,9 +13,8 @@ import {
 import { PrimaryLift, Status } from "@/drizzle/modules/strength-training/types";
 
 interface CreateWorkoutsParams {
-	userId: User["id"];
-	cycleId: CyclesSelect["id"];
-	startDate: CyclesSelect["startDate"];
+	userId: UserSelect["id"];
+	cycle: Pick<CyclesSelect, "id" | "startDate">;
 	tx?: DrizzleTransaction;
 }
 
@@ -25,19 +24,18 @@ type CreateWorkoutsResponse = Promise<
 
 export async function createWorkouts({
 	userId,
-	cycleId,
-	startDate,
+	cycle,
 	tx,
 }: CreateWorkoutsParams): CreateWorkoutsResponse {
 	const queryRunner = tx || db;
 
 	const workoutValues = Array.from({ length: 16 }).map((_, index) => {
-		const workoutDate = new Date(startDate);
-		workoutDate.setDate(startDate.getDate() + index * 2);
+		const workoutDate = new Date(cycle.startDate);
+		workoutDate.setDate(cycle.startDate.getDate() + index * 2);
 
 		return workoutsInsertSchema.parse({
 			userId,
-			cycleId,
+			cycleId: cycle.id,
 			date: workoutDate,
 			primaryLift: PrimaryLift.options[index % PrimaryLift.options.length],
 			status: Status.Enum.pending,

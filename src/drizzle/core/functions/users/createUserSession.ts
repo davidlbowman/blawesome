@@ -1,7 +1,7 @@
 "use server";
 
 import { createHmac, randomBytes } from "node:crypto";
-import type { User } from "@/drizzle/core/schemas/users";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { cookies } from "next/headers";
 
@@ -24,7 +24,15 @@ function createSignature(header: string, payload: string): string {
 		.digest("base64url");
 }
 
-export async function createUserSession(user: User): Promise<Response<string>> {
+interface CreateUserSessionParams {
+	user: UserSelect;
+}
+
+type CreateUserSessionResponse = Promise<Response<string>>;
+
+export async function createUserSession({
+	user,
+}: CreateUserSessionParams): CreateUserSessionResponse {
 	try {
 		const header = base64URLEncode(
 			JSON.stringify({

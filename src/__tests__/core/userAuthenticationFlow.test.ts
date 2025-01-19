@@ -43,8 +43,7 @@ describe("User Authentication Flow", () => {
 			const password = faker.internet.password();
 
 			const userResponse = await createUser({
-				email,
-				password,
+				user: { email, password },
 				tx,
 			});
 
@@ -58,8 +57,7 @@ describe("User Authentication Flow", () => {
 
 			// Test duplicate user
 			const duplicateResult = await createUser({
-				email,
-				password,
+				user: { email, password },
 				tx,
 			});
 			expect(duplicateResult.success).toBe(false);
@@ -70,8 +68,7 @@ describe("User Authentication Flow", () => {
 
 			// 2. Verify User
 			const verifyResult = await verifyUser({
-				email,
-				password,
+				user: { email, password },
 				tx,
 			});
 
@@ -85,8 +82,7 @@ describe("User Authentication Flow", () => {
 
 			// Test invalid password
 			const invalidPasswordResult = await verifyUser({
-				email,
-				password: faker.internet.password(),
+				user: { email, password: faker.internet.password() },
 				tx,
 			});
 			expect(invalidPasswordResult.success).toBe(false);
@@ -97,8 +93,7 @@ describe("User Authentication Flow", () => {
 
 			// Test non-existent user
 			const nonExistentResult = await verifyUser({
-				email: faker.internet.email(),
-				password,
+				user: { email: faker.internet.email(), password },
 				tx,
 			});
 			expect(nonExistentResult.success).toBe(false);
@@ -108,7 +103,9 @@ describe("User Authentication Flow", () => {
 			expect(nonExistentResult.error.message).toBe("User not found");
 
 			// 3. Create User Session
-			const sessionResult = await createUserSession(verifiedUser);
+			const sessionResult = await createUserSession({
+				user: verifiedUser,
+			});
 			expect(sessionResult.success).toBe(true);
 			expect(cookieStore.set).toHaveBeenCalled();
 
