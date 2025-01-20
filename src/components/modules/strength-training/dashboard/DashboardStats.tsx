@@ -13,14 +13,14 @@ import { LineChart } from "lucide-react";
 
 interface DashboardStatsProps {
 	totalCycles: number;
-	workoutsDone: number;
+	workoutsCompleted: number;
 	totalVolume: number;
 	consistency: number;
 }
 
 export function DashboardStats({
 	totalCycles,
-	workoutsDone,
+	workoutsCompleted,
 	totalVolume,
 	consistency,
 }: DashboardStatsProps) {
@@ -38,13 +38,13 @@ export function DashboardStats({
 					<span className="text-sm text-muted-foreground">Total Cycles</span>
 				</div>
 				<div className="flex flex-col space-y-1.5">
-					<span className="text-2xl font-semibold">{workoutsDone}</span>
-					<span className="text-sm text-muted-foreground">Workouts Done</span>
+					<span className="text-2xl font-semibold">{workoutsCompleted}</span>
+					<span className="text-sm text-muted-foreground">
+						Workouts Completed
+					</span>
 				</div>
 				<div className="flex flex-col space-y-1.5 line-through">
-					<span className="text-2xl font-semibold">
-						{totalVolume.toLocaleString()}lb
-					</span>
+					<span className="text-2xl font-semibold">{totalVolume}lbs</span>
 					<span className="text-sm text-muted-foreground">Total Volume</span>
 				</div>
 				<div className="flex flex-col space-y-1.5 line-through">

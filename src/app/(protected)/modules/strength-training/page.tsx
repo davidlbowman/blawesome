@@ -18,17 +18,15 @@ export default async function StrengthTrainingPage() {
 		throw new Error("Failed to get training data");
 	}
 
-	const { hasAllMaxes, cycles, workoutData } = trainingDataResponse.data;
-
-	if (!hasAllMaxes) {
+	if (!trainingDataResponse.data.hasAllMaxes) {
 		return <OneRMForm />;
 	}
 
 	return (
 		<DashboardView
-			userId={userIdResponse.data.id}
-			cycles={cycles}
-			workoutData={workoutData}
+			userId={{ id: userIdResponse.data.id }}
+			cycles={trainingDataResponse.data.cycles}
+			workoutData={trainingDataResponse.data.workoutData}
 		/>
 	);
 }

@@ -1,16 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import type { UserSelect } from "@/drizzle/core/schemas/users";
 import { createCycle } from "@/drizzle/modules/strength-training/functions/cycles/createCycle";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { Download, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CycleList } from "./CycleList";
 import { DashboardStats } from "./DashboardStats";
 
 interface DashboardViewProps {
-	userId: string;
+	userId: Pick<UserSelect, "id">;
 	cycles: CyclesSelect[];
 	workoutData: WorkoutsSelect[];
 }
@@ -22,16 +24,15 @@ export function DashboardView({
 }: DashboardViewProps) {
 	const router = useRouter();
 
-	// Calculate overall stats
 	const totalCycles = cycles.length;
-	const workoutsDone = workoutData.filter(
-		(w) => w.status === "completed",
+	const workoutsCompleted = workoutData.filter(
+		(w) => w.status === Status.Enum.completed,
 	).length;
 	const totalVolume = 123456; // Eventually this will be calculated
 	const consistency = 85; // Eventually this will be calculated
 
 	async function handleStartNewCycle() {
-		await createCycle({ user: { id: userId } });
+		await createCycle({ user: { id: userId.id } });
 		router.refresh();
 	}
 
@@ -51,7 +52,7 @@ export function DashboardView({
 
 			<DashboardStats
 				totalCycles={totalCycles}
-				workoutsDone={workoutsDone}
+				workoutsCompleted={workoutsCompleted}
 				totalVolume={totalVolume}
 				consistency={consistency}
 			/>

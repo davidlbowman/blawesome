@@ -2,7 +2,7 @@
 
 import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
-import { db } from "@/drizzle/db";
+import { type DrizzleTransaction, db } from "@/drizzle/db";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
 import {
 	cycles,
@@ -17,11 +17,13 @@ import {
 } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { ExerciseType } from "@/drizzle/modules/strength-training/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 interface GetTrainingDataParams {
 	userId: Pick<UserSelect, "id">;
+	tx?: DrizzleTransaction;
 }
 
 type GetTrainingDataResponse = Promise<
@@ -34,39 +36,43 @@ type GetTrainingDataResponse = Promise<
 
 export async function getTrainingData({
 	userId,
+	tx,
 }: GetTrainingDataParams): GetTrainingDataResponse {
-	const [exerciseData, cycleData] = await Promise.all([
-		db
-			.select({ weight: oneRepMaxes.weight })
-			.from(oneRepMaxes)
-			.innerJoin(
-				exerciseDefinitions,
-				and(
-					eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
-					eq(exerciseDefinitions.type, ExerciseType.Enum.primary),
-				),
-			)
-			.where(eq(oneRepMaxes.userId, userId.id))
-			.then((rows) =>
-				z.array(oneRepMaxesSelectSchema.pick({ weight: true })).parse(rows),
+	const queryRunner = tx || db;
+
+	const exerciseData = await queryRunner
+		.select({ weight: oneRepMaxes.weight })
+		.from(oneRepMaxes)
+		.innerJoin(
+			exerciseDefinitions,
+			and(
+				eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
+				eq(exerciseDefinitions.type, ExerciseType.Enum.primary),
 			),
-		db
-			.select()
-			.from(cycles)
-			.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
-			.where(eq(cycles.userId, userId.id))
-			.orderBy(desc(cycles.createdAt))
-			.then((rows) =>
-				z
-					.array(
-						z.object({
-							cycle: cyclesSelectSchema,
-							workout: workoutsSelectSchema,
-						}),
-					)
-					.parse(rows),
-			),
-	]);
+		)
+		.where(eq(oneRepMaxes.userId, userId.id))
+		.then((rows) =>
+			z.array(oneRepMaxesSelectSchema.pick({ weight: true })).parse(rows),
+		);
+
+	const cyclesData = await queryRunner
+		.select()
+		.from(cycles)
+		.where(eq(cycles.userId, userId.id))
+		.orderBy(desc(cycles.createdAt))
+		.then((rows) => z.array(cyclesSelectSchema).parse(rows));
+
+	const currentCycle = cyclesData.find(
+		(cycle) => cycle.status !== Status.Enum.completed,
+	);
+
+	const workoutsData = currentCycle
+		? await queryRunner
+				.select()
+				.from(workouts)
+				.where(eq(workouts.cycleId, currentCycle.id))
+				.then((rows) => z.array(workoutsSelectSchema).parse(rows))
+		: [];
 
 	const hasAllMaxes = exerciseData.every((data) => data.weight);
 
@@ -74,8 +80,8 @@ export async function getTrainingData({
 		success: true,
 		data: {
 			hasAllMaxes,
-			cycles: cycleData.map((row) => row.cycle),
-			workoutData: cycleData.map((row) => row.workout),
+			cycles: cyclesData,
+			workoutData: workoutsData,
 		},
 	};
 }
