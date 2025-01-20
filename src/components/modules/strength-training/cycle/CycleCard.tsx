@@ -3,22 +3,18 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
 import { formatDate } from "@/lib/formatDate";
 import { Calendar, CheckCircle, Dumbbell } from "lucide-react";
 import Link from "next/link";
 
 interface CycleCardProps {
-	id: string;
-	status: string;
-	startDate: Date;
-	completedAt?: Date | null;
+	cycle: Pick<CyclesSelect, "id" | "status" | "startDate" | "completedAt">;
 	completedWorkouts: number;
 	totalWorkouts: number;
-	nextWorkout?: {
-		primaryLift: string;
-		status: string;
-	} | null;
+	nextWorkout?: Pick<WorkoutsSelect, "primaryLift" | "status">;
 }
 
 const getStatusColor = (status: string) => {
@@ -41,11 +37,15 @@ const getPrimaryLiftDisplayName = (lift: string) => {
 		.join(" ");
 };
 
+const formatStatus = (status: Status) => {
+	return status
+		.split("_")
+		.map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
+};
+
 export function CycleCard({
-	id,
-	status,
-	startDate,
-	completedAt,
+	cycle,
 	completedWorkouts,
 	totalWorkouts,
 	nextWorkout,
@@ -53,28 +53,23 @@ export function CycleCard({
 	const progressPercentage = (completedWorkouts / totalWorkouts) * 100;
 
 	return (
-		<Link href={`/modules/strength-training/${id}`} className="block">
+		<Link href={`/modules/strength-training/${cycle.id}`} className="block">
 			<Card className="w-full transition-colors hover:bg-muted/50">
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">
-						Workout Cycle {id.slice(0, 8)}
+						Workout Cycle {cycle.id.slice(0, 8)}
 					</CardTitle>
-					<Badge className={getStatusColor(status)}>
-						{status
-							.split("_")
-							.map(
-								(word: string) => word.charAt(0).toUpperCase() + word.slice(1),
-							)
-							.join(" ")}
+					<Badge className={getStatusColor(cycle.status)}>
+						{formatStatus(cycle.status)}
 					</Badge>
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center space-x-4 text-sm text-muted-foreground">
 						<Calendar className="h-4 w-4" />
 						<span>
-							{status === Status.Enum.completed && completedAt
-								? `Completed on ${formatDate({ date: completedAt })}`
-								: `Started on ${formatDate({ date: startDate })}`}
+							{cycle.status === Status.Enum.completed && cycle.completedAt
+								? `Completed on ${formatDate({ date: cycle.completedAt })}`
+								: `Started on ${formatDate({ date: cycle.startDate })}`}
 						</span>
 					</div>
 					<div className="mt-4 space-y-2">
@@ -86,7 +81,7 @@ export function CycleCard({
 						</div>
 						<Progress value={progressPercentage} className="h-2" />
 					</div>
-					{status !== Status.Enum.completed && nextWorkout && (
+					{cycle.status !== Status.Enum.completed && nextWorkout && (
 						<div className="mt-4 flex items-center space-x-4 text-sm">
 							{nextWorkout.status === Status.Enum.completed ? (
 								<CheckCircle className="h-4 w-4 text-green-500" />
@@ -105,7 +100,7 @@ export function CycleCard({
 							</span>
 						</div>
 					)}
-					{status === Status.Enum.completed && (
+					{cycle.status === Status.Enum.completed && (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
 							<CheckCircle className="h-4 w-4" />
 							<span className="font-medium">Cycle Completed</span>

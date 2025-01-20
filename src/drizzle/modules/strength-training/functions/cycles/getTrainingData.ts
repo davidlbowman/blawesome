@@ -29,8 +29,8 @@ interface GetTrainingDataParams {
 type GetTrainingDataResponse = Promise<
 	Response<{
 		hasAllMaxes: boolean;
-		cycles: CyclesSelect[];
-		workoutData: WorkoutsSelect[];
+		allCompletedCycles: CyclesSelect[];
+		currentCycleWorkouts: WorkoutsSelect[];
 	}>
 >;
 
@@ -80,8 +80,8 @@ export async function getTrainingData({
 		success: true,
 		data: {
 			hasAllMaxes,
-			cycles: cyclesData,
-			workoutData: workoutsData,
+			allCompletedCycles: cyclesData,
+			currentCycleWorkouts: workoutsData,
 		},
 	};
 }

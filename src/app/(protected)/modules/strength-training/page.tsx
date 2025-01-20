@@ -25,8 +25,8 @@ export default async function StrengthTrainingPage() {
 	return (
 		<DashboardView
 			userId={{ id: userIdResponse.data.id }}
-			cycles={trainingDataResponse.data.cycles}
-			workoutData={trainingDataResponse.data.workoutData}
+			allCompletedCycles={trainingDataResponse.data.allCompletedCycles}
+			currentCycleWorkouts={trainingDataResponse.data.currentCycleWorkouts}
 		/>
 	);
 }

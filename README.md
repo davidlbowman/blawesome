@@ -14,5 +14,5 @@ Blawesome (bloom + awesome) is an open-source goal tracking platform that grows 
 - 
 ## TODO
 
-- [ ] Fix Timestamp in Schemas
+- [ ] Move functions to /lib and establish better aliases for shorter imports.
 - [ ] Add JWT Types

@@ -13,20 +13,20 @@ import { DashboardStats } from "./DashboardStats";
 
 interface DashboardViewProps {
 	userId: Pick<UserSelect, "id">;
-	cycles: CyclesSelect[];
-	workoutData: WorkoutsSelect[];
+	allCompletedCycles: CyclesSelect[];
+	currentCycleWorkouts: WorkoutsSelect[];
 }
 
 export function DashboardView({
 	userId,
-	cycles,
-	workoutData,
+	allCompletedCycles,
+	currentCycleWorkouts,
 }: DashboardViewProps) {
 	const router = useRouter();
 
-	const totalCycles = cycles.length;
-	const workoutsCompleted = workoutData.filter(
-		(w) => w.status === Status.Enum.completed,
+	const totalCycles = allCompletedCycles.length;
+	const workoutsCompleted = currentCycleWorkouts.filter(
+		(w: WorkoutsSelect) => w.status === Status.Enum.completed,
 	).length;
 	const totalVolume = 123456; // Eventually this will be calculated
 	const consistency = 85; // Eventually this will be calculated
@@ -57,7 +57,10 @@ export function DashboardView({
 				consistency={consistency}
 			/>
 
-			<CycleList cycles={cycles} workoutData={workoutData} />
+			<CycleList
+				allCompletedCycles={allCompletedCycles}
+				currentCycleWorkouts={currentCycleWorkouts}
+			/>
 		</div>
 	);
 }

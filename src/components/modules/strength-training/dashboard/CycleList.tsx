@@ -6,79 +6,37 @@ import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/c
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
 
-type WorkoutStats = {
-	totalWorkouts: number;
-	completedWorkouts: number;
-	nextWorkout: WorkoutsSelect | undefined;
-};
-
-function calculateWorkoutStats(workouts: WorkoutsSelect[]): WorkoutStats {
-	// Group workouts by cycle
-	const workoutsByCycle = workouts.reduce(
-		(acc, workout) => {
-			if (!acc[workout.cycleId]) {
-				acc[workout.cycleId] = [];
-			}
-			acc[workout.cycleId].push(workout);
-			return acc;
-		},
-		{} as Record<string, WorkoutsSelect[]>,
-	);
-
-	// Get the active cycle's workouts (the one that has pending workouts)
-	const activeCycleWorkouts =
-		Object.values(workoutsByCycle).find((cycleWorkouts) =>
-			cycleWorkouts.some((w) => w.status === Status.Enum.pending),
-		) ?? [];
-
-	return {
-		totalWorkouts: 16, // Each cycle has exactly 16 workouts
-		completedWorkouts: activeCycleWorkouts.filter(
-			(w) => w.status === Status.Enum.completed,
-		).length,
-		nextWorkout: activeCycleWorkouts.find(
-			(w) => w.status === Status.Enum.pending,
-		),
-	};
-}
-
-function getCompletedWorkouts(cycle: CyclesSelect, stats: WorkoutStats) {
-	return cycle.status === Status.Enum.completed ? 16 : stats.completedWorkouts;
-}
-
-function getNextWorkout(
-	cycle: CyclesSelect,
-	nextWorkout: WorkoutsSelect | undefined,
-) {
-	if (cycle.status === Status.Enum.completed || !nextWorkout) {
-		return undefined;
-	}
-
-	return {
-		primaryLift: nextWorkout.primaryLift,
-		status: nextWorkout.status,
-	};
-}
-
 interface CycleListProps {
-	cycles: CyclesSelect[];
-	workoutData: WorkoutsSelect[];
+	allCompletedCycles: CyclesSelect[];
+	currentCycleWorkouts: WorkoutsSelect[];
 }
 
-export function CycleList({ cycles, workoutData }: CycleListProps) {
-	const stats = calculateWorkoutStats(workoutData);
+export function CycleList({
+	allCompletedCycles,
+	currentCycleWorkouts,
+}: CycleListProps) {
+	const WORKOUTS_PER_CYCLE = 16;
+	const TOTAL_COMPLETE_CYCLES_SHOWN = 10;
 
-	// Separate current and completed cycles
-	const currentCycle = cycles.find(
+	const currentCycle = allCompletedCycles.find(
 		(cycle) => cycle.status !== Status.Enum.completed,
 	);
-	const completedCycles = cycles
-		.filter((cycle) => cycle.status === Status.Enum.completed)
+
+	const completedWorkouts = currentCycleWorkouts.filter(
+		(w: WorkoutsSelect) => w.status === Status.Enum.completed,
+	).length;
+
+	const nextWorkout = currentCycleWorkouts.find(
+		(w: WorkoutsSelect) => w.status === Status.Enum.pending,
+	);
+
+	const completedCycles = allCompletedCycles
+		.filter((cycle: CyclesSelect) => cycle.status === Status.Enum.completed)
 		.sort(
-			(a, b) =>
+			(a: CyclesSelect, b: CyclesSelect) =>
 				(b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0),
 		)
-		.slice(0, 3);
+		.slice(0, TOTAL_COMPLETE_CYCLES_SHOWN);
 
 	return (
 		<Card>
@@ -90,11 +48,15 @@ export function CycleList({ cycles, workoutData }: CycleListProps) {
 					<div>
 						<h3 className="text-lg font-semibold mb-4">Current Cycle</h3>
 						<CycleCard
-							key={currentCycle.id}
-							{...currentCycle}
-							completedWorkouts={getCompletedWorkouts(currentCycle, stats)}
-							totalWorkouts={stats.totalWorkouts}
-							nextWorkout={getNextWorkout(currentCycle, stats.nextWorkout)}
+							cycle={{
+								id: currentCycle.id,
+								status: currentCycle.status,
+								startDate: currentCycle.startDate,
+								completedAt: currentCycle.completedAt,
+							}}
+							completedWorkouts={completedWorkouts}
+							totalWorkouts={WORKOUTS_PER_CYCLE}
+							nextWorkout={nextWorkout}
 						/>
 					</div>
 				)}
@@ -106,10 +68,14 @@ export function CycleList({ cycles, workoutData }: CycleListProps) {
 							{completedCycles.map((cycle) => (
 								<CycleCard
 									key={cycle.id}
-									{...cycle}
-									completedWorkouts={getCompletedWorkouts(cycle, stats)}
-									totalWorkouts={stats.totalWorkouts}
-									nextWorkout={getNextWorkout(cycle, stats.nextWorkout)}
+									cycle={{
+										id: cycle.id,
+										status: cycle.status,
+										startDate: cycle.startDate,
+										completedAt: cycle.completedAt,
+									}}
+									completedWorkouts={16}
+									totalWorkouts={16}
 								/>
 							))}
 						</div>
