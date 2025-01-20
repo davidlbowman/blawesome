@@ -7,8 +7,11 @@ import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas
 import { Status } from "@/drizzle/modules/strength-training/types";
 
 interface CycleListProps {
-	allCompletedCycles: CyclesSelect[];
-	currentCycleWorkouts: WorkoutsSelect[];
+	allCompletedCycles: Pick<
+		CyclesSelect,
+		"id" | "status" | "startDate" | "completedAt"
+	>[];
+	currentCycleWorkouts: Pick<WorkoutsSelect, "status" | "primaryLift">[];
 }
 
 export function CycleList({
@@ -23,18 +26,25 @@ export function CycleList({
 	);
 
 	const completedWorkouts = currentCycleWorkouts.filter(
-		(w: WorkoutsSelect) => w.status === Status.Enum.completed,
+		(w: Pick<WorkoutsSelect, "status" | "primaryLift">) =>
+			w.status === Status.Enum.completed,
 	).length;
 
 	const nextWorkout = currentCycleWorkouts.find(
-		(w: WorkoutsSelect) => w.status === Status.Enum.pending,
+		(w: Pick<WorkoutsSelect, "status" | "primaryLift">) =>
+			w.status === Status.Enum.pending,
 	);
 
 	const completedCycles = allCompletedCycles
-		.filter((cycle: CyclesSelect) => cycle.status === Status.Enum.completed)
+		.filter(
+			(cycle: Pick<CyclesSelect, "status" | "startDate" | "completedAt">) =>
+				cycle.status === Status.Enum.completed,
+		)
 		.sort(
-			(a: CyclesSelect, b: CyclesSelect) =>
-				(b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0),
+			(
+				a: Pick<CyclesSelect, "startDate" | "completedAt">,
+				b: Pick<CyclesSelect, "startDate" | "completedAt">,
+			) => (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0),
 		)
 		.slice(0, TOTAL_COMPLETE_CYCLES_SHOWN);
 

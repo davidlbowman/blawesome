@@ -29,8 +29,11 @@ interface GetTrainingDataParams {
 type GetTrainingDataResponse = Promise<
 	Response<{
 		hasAllMaxes: boolean;
-		allCompletedCycles: CyclesSelect[];
-		currentCycleWorkouts: WorkoutsSelect[];
+		allCompletedCycles: Pick<
+			CyclesSelect,
+			"id" | "status" | "startDate" | "completedAt"
+		>[];
+		currentCycleWorkouts: Pick<WorkoutsSelect, "status" | "primaryLift">[];
 	}>
 >;
 
@@ -56,11 +59,27 @@ export async function getTrainingData({
 		);
 
 	const cyclesData = await queryRunner
-		.select()
+		.select({
+			id: cycles.id,
+			status: cycles.status,
+			startDate: cycles.startDate,
+			completedAt: cycles.completedAt,
+		})
 		.from(cycles)
 		.where(eq(cycles.userId, userId.id))
 		.orderBy(desc(cycles.createdAt))
-		.then((rows) => z.array(cyclesSelectSchema).parse(rows));
+		.then((rows) =>
+			z
+				.array(
+					cyclesSelectSchema.pick({
+						id: true,
+						status: true,
+						startDate: true,
+						completedAt: true,
+					}),
+				)
+				.parse(rows),
+		);
 
 	const currentCycle = cyclesData.find(
 		(cycle) => cycle.status !== Status.Enum.completed,
@@ -68,10 +87,22 @@ export async function getTrainingData({
 
 	const workoutsData = currentCycle
 		? await queryRunner
-				.select()
+				.select({
+					status: workouts.status,
+					primaryLift: workouts.primaryLift,
+				})
 				.from(workouts)
 				.where(eq(workouts.cycleId, currentCycle.id))
-				.then((rows) => z.array(workoutsSelectSchema).parse(rows))
+				.then((rows) =>
+					z
+						.array(
+							workoutsSelectSchema.pick({
+								status: true,
+								primaryLift: true,
+							}),
+						)
+						.parse(rows),
+				)
 		: [];
 
 	const hasAllMaxes = exerciseData.every((data) => data.weight);

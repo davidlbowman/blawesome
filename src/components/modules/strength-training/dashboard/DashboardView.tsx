@@ -13,8 +13,11 @@ import { DashboardStats } from "./DashboardStats";
 
 interface DashboardViewProps {
 	userId: Pick<UserSelect, "id">;
-	allCompletedCycles: CyclesSelect[];
-	currentCycleWorkouts: WorkoutsSelect[];
+	allCompletedCycles: Pick<
+		CyclesSelect,
+		"id" | "status" | "startDate" | "completedAt"
+	>[];
+	currentCycleWorkouts: Pick<WorkoutsSelect, "status" | "primaryLift">[];
 }
 
 export function DashboardView({
@@ -26,7 +29,8 @@ export function DashboardView({
 
 	const totalCycles = allCompletedCycles.length;
 	const workoutsCompleted = currentCycleWorkouts.filter(
-		(w: WorkoutsSelect) => w.status === Status.Enum.completed,
+		(w: Pick<WorkoutsSelect, "status" | "primaryLift">) =>
+			w.status === Status.Enum.completed,
 	).length;
 	const totalVolume = 123456; // Eventually this will be calculated
 	const consistency = 85; // Eventually this will be calculated
