@@ -4,12 +4,21 @@ import type { UserSelect } from "@/drizzle/core/schemas/users";
 import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
-import { cycles } from "@/drizzle/modules/strength-training/schemas/cycles";
+import {
+	cycles,
+	cyclesSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/cycles";
 import { exerciseDefinitions } from "@/drizzle/modules/strength-training/schemas/exerciseDefinitions";
 import { oneRepMaxes } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
-import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { oneRepMaxesSelectSchema } from "@/drizzle/modules/strength-training/schemas/oneRepMaxes";
+import {
+	type WorkoutsSelect,
+	workoutsSelectSchema,
+} from "@/drizzle/modules/strength-training/schemas/workouts";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { ExerciseType } from "@/drizzle/modules/strength-training/types";
 import { and, desc, eq } from "drizzle-orm";
+import { z } from "zod";
 
 interface GetTrainingDataParams {
 	userId: Pick<UserSelect, "id">;
@@ -26,72 +35,47 @@ type GetTrainingDataResponse = Promise<
 export async function getTrainingData({
 	userId,
 }: GetTrainingDataParams): GetTrainingDataResponse {
-	// Start both queries in parallel
 	const [exerciseData, cycleData] = await Promise.all([
 		db
-			.select({
-				exercise: {
-					id: exerciseDefinitions.id,
-					type: exerciseDefinitions.type,
-				},
-				oneRepMax: {
-					weight: oneRepMaxes.weight,
-				},
-			})
-			.from(exerciseDefinitions)
-			.leftJoin(
-				oneRepMaxes,
+			.select({ weight: oneRepMaxes.weight })
+			.from(oneRepMaxes)
+			.innerJoin(
+				exerciseDefinitions,
 				and(
 					eq(oneRepMaxes.exerciseDefinitionId, exerciseDefinitions.id),
-					eq(oneRepMaxes.userId, userId.id),
+					eq(exerciseDefinitions.type, ExerciseType.Enum.primary),
 				),
 			)
-			.where(eq(exerciseDefinitions.type, "primary")),
-
+			.where(eq(oneRepMaxes.userId, userId.id))
+			.then((rows) =>
+				z.array(oneRepMaxesSelectSchema.pick({ weight: true })).parse(rows),
+			),
 		db
-			.select({
-				cycle: {
-					id: cycles.id,
-					status: cycles.status,
-					startDate: cycles.startDate,
-					endDate: cycles.endDate,
-					completedAt: cycles.completedAt,
-				},
-				workout: {
-					id: workouts.id,
-					cycleId: workouts.cycleId,
-					primaryLift: workouts.primaryLift,
-					status: workouts.status,
-					sequence: workouts.sequence,
-				},
-			})
+			.select()
 			.from(cycles)
 			.leftJoin(workouts, eq(workouts.cycleId, cycles.id))
 			.where(eq(cycles.userId, userId.id))
-			.orderBy(desc(cycles.createdAt)),
+			.orderBy(desc(cycles.createdAt))
+			.then((rows) =>
+				z
+					.array(
+						z.object({
+							cycle: cyclesSelectSchema,
+							workout: workoutsSelectSchema,
+						}),
+					)
+					.parse(rows),
+			),
 	]);
 
-	const hasAllMaxes = exerciseData.every((data) => data.oneRepMax?.weight);
-
-	// Process cycle data
-	const userCycles = cycleData.reduce((acc: CyclesSelect[], row) => {
-		if (!acc.some((c) => c.id === row.cycle.id)) {
-			acc.push(row.cycle as CyclesSelect);
-		}
-		return acc;
-	}, []);
-
-	const workoutData = cycleData
-		.filter((row) => row.workout)
-		.map((row) => row.workout as WorkoutsSelect)
-		.sort((a, b) => a.sequence - b.sequence);
+	const hasAllMaxes = exerciseData.every((data) => data.weight);
 
 	return {
 		success: true,
 		data: {
 			hasAllMaxes,
-			cycles: userCycles,
-			workoutData,
+			cycles: cycleData.map((row) => row.cycle),
+			workoutData: cycleData.map((row) => row.workout),
 		},
 	};
 }

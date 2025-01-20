@@ -5,13 +5,13 @@ import { getTrainingData } from "@/drizzle/modules/strength-training/functions/c
 
 export default async function StrengthTrainingPage() {
 	const userIdResponse = await getUserId();
+
 	if (!userIdResponse.success || !userIdResponse.data) {
 		throw new Error("Failed to get user ID");
 	}
-	const userId = userIdResponse.data;
 
 	const trainingDataResponse = await getTrainingData({
-		userId,
+		userId: { id: userIdResponse.data.id },
 	});
 
 	if (!trainingDataResponse.success || !trainingDataResponse.data) {
@@ -26,7 +26,7 @@ export default async function StrengthTrainingPage() {
 
 	return (
 		<DashboardView
-			userId={userId.id}
+			userId={userIdResponse.data.id}
 			cycles={cycles}
 			workoutData={workoutData}
 		/>
