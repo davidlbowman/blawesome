@@ -1,11 +1,16 @@
 import { WorkoutView } from "@/components/modules/strength-training/workout/WorkoutView";
 import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
 
 export default async function Page({
 	params,
 }: {
-	params: Promise<{ cycleId: string; workoutId: string }>;
+	params: Promise<{
+		cycleId: CyclesSelect["id"];
+		workoutId: WorkoutsSelect["id"];
+	}>;
 }) {
 	const { cycleId, workoutId } = await params;
 	const workout = await getWorkoutDetails(workoutId);

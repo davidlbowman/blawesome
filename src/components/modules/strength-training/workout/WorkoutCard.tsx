@@ -3,23 +3,25 @@
 import { ProgressBar } from "@/components/modules/strength-training/shared/ProgressBar";
 import { StatusBadge } from "@/components/modules/strength-training/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
 import { formatDate } from "@/lib/formatDate";
 import { Calendar, CheckCircle, Dumbbell, XCircle } from "lucide-react";
 import Link from "next/link";
 
-type StatusType = (typeof Status.Enum)[keyof typeof Status.Enum];
-
 interface WorkoutCardProps {
-	id: string;
-	status: StatusType;
-	date: Date;
-	completedAt?: Date | null;
-	primaryLift: string;
-	sequence: number;
+	workout: Pick<
+		WorkoutsSelect,
+		| "id"
+		| "cycleId"
+		| "status"
+		| "createdAt"
+		| "completedAt"
+		| "primaryLift"
+		| "sequence"
+	>;
 	completedSets: number;
 	totalSets: number;
-	cycleId: string;
 }
 
 const getPrimaryLiftDisplayName = (lift: string) => {
@@ -30,48 +32,44 @@ const getPrimaryLiftDisplayName = (lift: string) => {
 };
 
 export function WorkoutCard({
-	id,
-	status,
-	date,
-	completedAt,
-	primaryLift,
-	sequence,
-	cycleId,
+	workout,
 	completedSets,
 	totalSets,
 }: WorkoutCardProps) {
 	return (
 		<Link
-			href={`/modules/strength-training/${cycleId}/${id}`}
+			href={`/modules/strength-training/${workout.cycleId}/${workout.id}`}
 			className="block"
 		>
 			<Card className="w-full transition-colors hover:bg-muted/50">
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-sm font-medium">
-						Workout {sequence} - {getPrimaryLiftDisplayName(primaryLift)}
+						{`Workout ${workout.sequence} - ${getPrimaryLiftDisplayName(
+							workout.primaryLift,
+						)}`}
 					</CardTitle>
-					<StatusBadge status={status} />
+					<StatusBadge status={workout.status} />
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center space-x-4 text-sm text-muted-foreground">
 						<Calendar className="h-4 w-4" />
 						<span>
-							{status === Status.Enum.completed && completedAt
-								? `Completed on ${formatDate({ date: completedAt })}`
-								: status === Status.Enum.skipped
-									? `Skipped on ${formatDate({ date: completedAt ?? date })}`
-									: `Scheduled for ${formatDate({ date: date })}`}
+							{workout.status === Status.Enum.completed && workout.completedAt
+								? `Completed on ${formatDate({ date: workout.completedAt })}`
+								: workout.status === Status.Enum.skipped
+									? `Skipped on ${formatDate({ date: workout.completedAt ?? workout.createdAt })}`
+									: `Scheduled for ${formatDate({ date: workout.createdAt })}`}
 						</span>
 					</div>
 					<div className="mt-4">
 						<ProgressBar value={completedSets} max={totalSets} />
 					</div>
-					{status === Status.Enum.completed ? (
+					{workout.status === Status.Enum.completed ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-green-500">
 							<CheckCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Completed</span>
 						</div>
-					) : status === Status.Enum.skipped ? (
+					) : workout.status === Status.Enum.skipped ? (
 						<div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
 							<XCircle className="h-4 w-4" />
 							<span className="font-medium">Workout Skipped</span>
@@ -80,7 +78,7 @@ export function WorkoutCard({
 						<div className="mt-4 flex items-center space-x-4 text-sm">
 							<Dumbbell className="h-4 w-4 text-muted-foreground" />
 							<span>
-								{status === Status.Enum.in_progress ? (
+								{workout.status === Status.Enum.in_progress ? (
 									<span className="font-medium">In Progress</span>
 								) : (
 									<span>Upcoming Workout</span>

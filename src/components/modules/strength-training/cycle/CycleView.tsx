@@ -1,44 +1,57 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
+import { skipRemainingWorkouts } from "@/drizzle/modules/strength-training/functions/cycles/skipRemainingWorkouts";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
+import { Status } from "@/drizzle/modules/strength-training/types";
+import { redirect } from "next/navigation";
 import { WorkoutList } from "../workout/WorkoutList";
 import { CycleStats } from "./CycleStats";
 
 interface CycleViewProps {
-	cycleId: string;
-	cycleWorkoutStats: {
-		totalWorkouts: number;
-		completedWorkouts: number;
-	};
-	totalVolume: number;
-	consistency: number;
-	currentWorkout?: WorkoutListData;
-	nextWorkouts: WorkoutListData[];
-	previousWorkouts: WorkoutListData[];
-	onSkipRemainingWorkouts: () => void;
+	cycleId: Pick<CyclesSelect, "id">;
+	workouts: Pick<
+		WorkoutsSelect,
+		| "id"
+		| "cycleId"
+		| "status"
+		| "createdAt"
+		| "completedAt"
+		| "primaryLift"
+		| "sequence"
+	>[];
 }
 
-interface WorkoutListData extends WorkoutsSelect {
-	completedSets: number;
-	totalSets: number;
-}
+export function CycleView({ workouts, cycleId }: CycleViewProps) {
+	const totalWorkouts = workouts.length;
+	const completedWorkouts = workouts.filter(
+		(workout) => workout.status === Status.Enum.completed,
+	).length;
+	const totalVolume = 10000;
+	const consistency = 100;
 
-export function CycleView({
-	cycleId,
-	cycleWorkoutStats,
-	totalVolume,
-	consistency,
-	currentWorkout,
-	nextWorkouts,
-	previousWorkouts,
-	onSkipRemainingWorkouts,
-}: CycleViewProps) {
+	const currentWorkout = workouts.find(
+		(workout) => workout.status === Status.Enum.in_progress,
+	);
+	const nextWorkouts = workouts.filter(
+		(workout) => workout.status === Status.Enum.pending,
+	);
+	const previousWorkouts = workouts.filter(
+		(workout) =>
+			workout.status === Status.Enum.completed ||
+			workout.status === Status.Enum.skipped,
+	);
+
+	async function handleSkipRemainingWorkouts() {
+		"use server";
+		await skipRemainingWorkouts(cycleId.id);
+		redirect("/modules/strength-training");
+	}
+
 	return (
 		<div className="container mx-auto p-6 space-y-8">
 			<CycleStats
-				totalWorkouts={cycleWorkoutStats.totalWorkouts}
-				completedWorkouts={cycleWorkoutStats.completedWorkouts}
+				totalWorkouts={totalWorkouts}
+				completedWorkouts={completedWorkouts}
 				totalVolume={totalVolume}
 				consistency={consistency}
 			/>
@@ -47,17 +60,16 @@ export function CycleView({
 				currentWorkout={currentWorkout}
 				nextWorkouts={nextWorkouts}
 				previousWorkouts={previousWorkouts}
-				cycleId={cycleId}
 			/>
 
 			{nextWorkouts.length > 0 ? (
-				<form action={onSkipRemainingWorkouts}>
+				<form action={handleSkipRemainingWorkouts}>
 					<Button type="submit" variant="destructive" className="w-full">
 						Skip Remaining Workouts & End Cycle
 					</Button>
 				</form>
 			) : (
-				<form action={onSkipRemainingWorkouts}>
+				<form action={handleSkipRemainingWorkouts}>
 					<Button type="submit" className="w-full">
 						Complete Cycle
 					</Button>

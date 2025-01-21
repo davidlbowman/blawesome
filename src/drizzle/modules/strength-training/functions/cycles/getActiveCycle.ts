@@ -20,12 +20,13 @@ type GetActiveCycleResponse = Promise<Response<CyclesSelect | null>>;
 export async function getActiveCycle({
 	userId,
 }: GetActiveCycleParams): GetActiveCycleResponse {
-	const [activeCycle] = await db
+	const activeCycle = await db
 		.select()
 		.from(cycles)
 		.where(
 			and(eq(cycles.userId, userId), eq(cycles.status, Status.Enum.pending)),
-		);
+		)
+		.then((cycle) => cyclesSelectSchema.parse(cycle));
 
 	if (!activeCycle) {
 		return {
@@ -34,7 +35,5 @@ export async function getActiveCycle({
 		};
 	}
 
-	const parsedCycle = cyclesSelectSchema.parse(activeCycle);
-
-	return { success: true, data: parsedCycle };
+	return { success: true, data: activeCycle };
 }

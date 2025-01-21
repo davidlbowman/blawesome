@@ -42,9 +42,7 @@ export function CycleStats({
 					<span className="text-sm text-muted-foreground">Workouts Done</span>
 				</div>
 				<div className="flex flex-col space-y-1.5">
-					<span className="text-2xl font-semibold">
-						{totalVolume.toLocaleString()}lb
-					</span>
+					<span className="text-2xl font-semibold">{`${totalVolume} lbs`}</span>
 					<span className="text-sm text-muted-foreground">Total Volume</span>
 				</div>
 				<div className="flex flex-col space-y-1.5">
