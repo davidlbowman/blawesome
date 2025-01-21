@@ -12,7 +12,7 @@ import { Status } from "@/drizzle/modules/strength-training/types";
 import { and, eq } from "drizzle-orm";
 
 interface GetActiveCycleParams {
-	userId: UserSelect["id"];
+	userId: Pick<UserSelect, "id">;
 }
 
 type GetActiveCycleResponse = Promise<Response<CyclesSelect | null>>;
@@ -24,7 +24,7 @@ export async function getActiveCycle({
 		.select()
 		.from(cycles)
 		.where(
-			and(eq(cycles.userId, userId), eq(cycles.status, Status.Enum.pending)),
+			and(eq(cycles.userId, userId.id), eq(cycles.status, Status.Enum.pending)),
 		)
 		.then((cycle) => cyclesSelectSchema.parse(cycle));
 

@@ -14,6 +14,9 @@ export default async function Page({
 }) {
 	const { cycleId, workoutId } = await params;
 	const workout = await getWorkoutDetails(workoutId);
+	// const exercises = await selectExercisesAndSetsByWorkoutId({
+	// 	workoutId: { id: workoutId },
+	// });
 
 	if (!workout) {
 		return <div>Workout not found</div>;

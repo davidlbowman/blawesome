@@ -28,13 +28,15 @@ export const exerciseDefinitions = sqliteTable(
 	}),
 );
 
+const exerciseDefinitionsValidators = {
+	type: ExerciseType,
+	category: AllExerciseCategories,
+	primaryLiftDay: PrimaryLift,
+};
+
 export const exerciseDefinitionsInsertSchema = createInsertSchema(
 	exerciseDefinitions,
-	{
-		type: ExerciseType,
-		category: AllExerciseCategories,
-		primaryLiftDay: PrimaryLift,
-	},
+	exerciseDefinitionsValidators,
 );
 export type ExerciseDefinitionsInsert = z.infer<
 	typeof exerciseDefinitionsInsertSchema
@@ -42,11 +44,7 @@ export type ExerciseDefinitionsInsert = z.infer<
 
 export const exerciseDefinitionsSelectSchema = createSelectSchema(
 	exerciseDefinitions,
-	{
-		type: ExerciseType,
-		category: AllExerciseCategories,
-		primaryLiftDay: PrimaryLift,
-	},
+	exerciseDefinitionsValidators,
 );
 export type ExerciseDefinitionsSelect = z.infer<
 	typeof exerciseDefinitionsSelectSchema
