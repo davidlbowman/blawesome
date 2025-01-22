@@ -13,44 +13,33 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
+import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
+import { ExerciseType } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useEffect, useState } from "react";
 
-interface SetPerformance {
-	weight: number;
-	reps: number | null;
-	rpe: number | null;
-}
-
 interface RestTimerProps {
 	show: boolean;
+	set: AllSetsByWorkoutId[number];
 	onOpenChange: (open: boolean) => void;
-	exerciseName: string;
-	currentSetNumber: number;
-	totalSets: number;
-	isPrimary: boolean;
-	isLastSet: boolean;
-	performance: SetPerformance;
-	onPerformanceChange: (performance: SetPerformance) => void;
 	onCompleteSet: () => void;
 	onSkipRemainingExerciseSets: () => void;
 }
 
 export function RestTimer({
 	show,
+	set,
 	onOpenChange,
-	exerciseName,
-	currentSetNumber,
-	totalSets,
-	isPrimary,
-	isLastSet,
-	performance,
-	onPerformanceChange,
 	onCompleteSet,
 	onSkipRemainingExerciseSets,
 }: RestTimerProps) {
+	const exerciseName = set.exerciseDefinitions.name;
+	const currentSetNumber = set.sets.setNumber;
+	const totalSets = 6; // TODO: Get from database
+	const isPrimary = set.exerciseDefinitions.type === ExerciseType.Enum.primary;
+	const isLastSet = set.sets.setNumber === totalSets;
+
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const [time, setTime] = useState(0);
 
@@ -90,7 +79,7 @@ export function RestTimer({
 
 			{isPrimary ? (
 				<div className="space-y-4">
-					<div>
+					{/* <div>
 						<Label htmlFor="weight">Weight (lbs)</Label>
 						<Input
 							id="weight"
@@ -103,9 +92,9 @@ export function RestTimer({
 								})
 							}
 						/>
-					</div>
+					</div> */}
 
-					<div>
+					{/* <div>
 						<Label htmlFor="reps">Reps</Label>
 						<Input
 							id="reps"
@@ -118,11 +107,11 @@ export function RestTimer({
 								})
 							}
 						/>
-					</div>
+					</div> */}
 				</div>
 			) : (
 				<>
-					<div>
+					{/* <div>
 						<Label htmlFor="weight">Weight (lbs)</Label>
 						<Input
 							id="weight"
@@ -135,22 +124,22 @@ export function RestTimer({
 								})
 							}
 						/>
-					</div>
+					</div> */}
 
-					<div>
+					{/* <div>
 						<Label>RPE</Label>
 						<div className="grid grid-cols-6 gap-2">
 							{[5, 6, 7, 8, 9, 10].map((rpe) => (
 								<Button
 									key={rpe}
 									variant={performance.rpe === rpe ? "default" : "outline"}
-									onClick={() => onPerformanceChange({ ...performance, rpe })}
+									// onClick={() => onPerformanceChange({ ...performance, rpe })}
 								>
 									{rpe}
 								</Button>
 							))}
 						</div>
-					</div>
+					</div> */}
 				</>
 			)}
 

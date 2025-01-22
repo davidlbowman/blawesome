@@ -6,9 +6,8 @@ import Link from "next/link";
 interface WorkoutActionsProps {
 	status: string;
 	cycleId: string;
-	isLastSet: boolean;
 	onStartWorkout: () => void;
-	onStartRest: () => void;
+	// onStartRest: () => boolean;
 	onSkipSet: () => void;
 	onCompleteWorkout: () => void;
 	onSkipRemainingWorkoutSets: () => void;
@@ -17,13 +16,14 @@ interface WorkoutActionsProps {
 export function WorkoutActions({
 	status,
 	cycleId,
-	isLastSet,
 	onStartWorkout,
-	onStartRest,
+	// onStartRest,
 	onSkipSet,
 	onCompleteWorkout,
 	onSkipRemainingWorkoutSets,
 }: WorkoutActionsProps) {
+	const isLastSet = false; // TODO: Implement
+
 	if (status === "completed") {
 		return (
 			<Link
@@ -58,7 +58,10 @@ export function WorkoutActions({
 	return (
 		<div className="space-y-2">
 			<div className="grid grid-cols-2 gap-2">
-				<Button className="w-full" size="lg" onClick={onStartRest}>
+				{/* <Button className="w-full" size="lg" onClick={onStartRest}>
+					Rest
+				</Button> */}
+				<Button className="w-full" size="lg">
 					Rest
 				</Button>
 				{isLastSet ? (

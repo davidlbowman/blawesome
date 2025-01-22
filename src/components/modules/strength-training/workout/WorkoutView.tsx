@@ -1,11 +1,19 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
+import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
+import { skipSets } from "@/drizzle/modules/strength-training/functions/workouts/skipSets";
+import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ExerciseList } from "../exercise/ExerciseList";
+import { RestTimer } from "./RestTimer";
+import { WorkoutActions } from "./WorkoutActions";
 import { WorkoutHeader } from "./WorkoutHeader";
 import { WorkoutStats } from "./WorkoutStats";
 
@@ -16,109 +24,109 @@ interface WorkoutViewProps {
 }
 
 export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
-	console.log(cycleId, workoutId);
-	// const router = useRouter();
+	const router = useRouter();
 
-	// const startingSetIndex = sets.findIndex(
-	// 	(set) => set.sets.status === Status.Enum.pending,
-	// );
-	// const [currentSetIndex, setCurrentSetIndex] = useState<number | null>(
-	// 	startingSetIndex !== -1 ? startingSetIndex : null,
-	// );
+	const startingSetIndex = sets.findIndex(
+		(set) => set.sets.status === Status.Enum.pending,
+	);
 
-	// async function handleStartWorkout() {
-	// 	const startWorkoutResponse = await startWorkout({
-	// 		workoutId: { id: workoutId.id },
-	// 	});
+	const [currentSetIndex, setCurrentSetIndex] = useState<number | null>(
+		startingSetIndex !== -1 ? startingSetIndex : null,
+	);
 
-	// 	if (!startWorkoutResponse.success) {
-	// 		return; // TODO: Handle error
-	// 	}
+	const [showRestTimer, setShowRestTimer] = useState(false);
 
-	// 	router.refresh();
-	// }
+	async function handleStartWorkout() {
+		const startWorkoutResponse = await startWorkout({
+			workoutId: { id: workoutId.id },
+		});
 
-	// async function handleSkipSet() {
-	// 	if (currentSetIndex === null) return;
+		if (!startWorkoutResponse.success) {
+			return; // TODO: Handle error
+		}
 
-	// 	const skipSetResponse = await skipSets({
-	// 		setIds: [{ id: sets[currentSetIndex].sets.id }],
-	// 	});
+		router.refresh();
+	}
 
-	// 	if (!skipSetResponse.success) {
-	// 		return; // TODO: Handle error
-	// 	}
+	async function handleSkipSet() {
+		if (currentSetIndex === null) return;
 
-	// 	setCurrentSetIndex(currentSetIndex + 1);
-	// 	router.refresh();
-	// }
+		const skipSetResponse = await skipSets({
+			setIds: [{ id: sets[currentSetIndex].sets.id }],
+		});
 
-	// async function handleCompleteSet() {
-	// 	if (currentSetIndex === null) return;
+		if (!skipSetResponse.success) {
+			return; // TODO: Handle error
+		}
 
-	// 	const completeSetResponse = await completeSet({
-	// 		setId: { id: sets[currentSetIndex].sets.id },
-	// 	});
+		setCurrentSetIndex(currentSetIndex + 1);
+		router.refresh();
+	}
 
-	// 	if (!completeSetResponse.success) {
-	// 		return; // TODO: Handle error
-	// 	}
+	async function handleCompleteSet() {
+		if (currentSetIndex === null) return;
 
-	// 	setCurrentSetIndex(currentSetIndex + 1);
-	// 	router.refresh();
-	// }
+		const completeSetResponse = await completeSet({
+			setId: { id: sets[currentSetIndex].sets.id },
+		});
 
-	// async function handleSkipRemainingExerciseSets() {
-	// 	if (currentSetIndex === null) return;
-	// 	const currentExerciseId = sets[currentSetIndex].exercises.id;
-	// 	const remainingSetsInExercise = sets
-	// 		.slice(currentSetIndex)
-	// 		.filter((set) => set.exercises.id === currentExerciseId)
-	// 		.map((set) => ({ id: set.sets.id }));
+		if (!completeSetResponse.success) {
+			return; // TODO: Handle error
+		}
 
-	// 	const skipSetsResponse = await skipSets({
-	// 		setIds: remainingSetsInExercise,
-	// 	});
+		setCurrentSetIndex(currentSetIndex + 1);
+		router.refresh();
+	}
 
-	// 	if (!skipSetsResponse.success) {
-	// 		return; // TODO: Handle error
-	// 	}
+	async function handleSkipRemainingExerciseSets() {
+		if (currentSetIndex === null) return;
+		const currentExerciseId = sets[currentSetIndex].exercises.id;
+		const remainingSetsInExercise = sets
+			.slice(currentSetIndex)
+			.filter((set) => set.exercises.id === currentExerciseId)
+			.map((set) => ({ id: set.sets.id }));
 
-	// 	setCurrentSetIndex(currentSetIndex + remainingSetsInExercise.length);
-	// 	router.refresh();
-	// }
+		const skipSetsResponse = await skipSets({
+			setIds: remainingSetsInExercise,
+		});
 
-	// async function handleSkipRemainingWorkoutSets() {
-	// 	if (currentSetIndex === null) return;
-	// 	const remainingSetsInWorkout = sets.slice(currentSetIndex).map((set) => ({
-	// 		id: set.sets.id,
-	// 	}));
+		if (!skipSetsResponse.success) {
+			return; // TODO: Handle error
+		}
 
-	// 	const skipSetsResponse = await skipSets({
-	// 		setIds: remainingSetsInWorkout,
-	// 	});
+		setCurrentSetIndex(currentSetIndex + remainingSetsInExercise.length);
+		router.refresh();
+	}
 
-	// 	if (!skipSetsResponse.success) {
-	// 		return; // TODO: Handle error
-	// 	}
+	async function handleSkipRemainingWorkoutSets() {
+		if (currentSetIndex === null) return;
+		const remainingSetsInWorkout = sets.slice(currentSetIndex).map((set) => ({
+			id: set.sets.id,
+		}));
 
-	// 	setCurrentSetIndex(null);
-	// 	router.refresh();
-	// }
+		const skipSetsResponse = await skipSets({
+			setIds: remainingSetsInWorkout,
+		});
 
-	// async function handleCompleteWorkout() {
-	// 	const completeWorkoutResponse = await completeWorkout({
-	// 		workoutId: { id: workoutId.id },
-	// 	});
+		if (!skipSetsResponse.success) {
+			return; // TODO: Handle error
+		}
 
-	// 	if (!completeWorkoutResponse.success) {
-	// 		return; // TODO: Handle error
-	// 	}
+		setCurrentSetIndex(null);
+		router.refresh();
+	}
 
-	// 	router.refresh();
-	// }
+	async function handleCompleteWorkout() {
+		const completeWorkoutResponse = await completeWorkout({
+			workoutId: { id: workoutId.id },
+		});
 
-	// TODO:handleStartRest
+		if (!completeWorkoutResponse.success) {
+			return; // TODO: Handle error
+		}
+
+		router.refresh();
+	}
 
 	// Workout Header
 	const workoutPrimaryLift = sets[0].workouts.primaryLift;
@@ -161,34 +169,25 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 
 				<ExerciseList sets={sets} />
 
-				{/* <WorkoutActions
+				<WorkoutActions
 					status={workoutStatus}
-					cycleId={cycleId}
-					isLastSet={isLastSet}
+					cycleId={cycleId.id}
 					onStartWorkout={handleStartWorkout}
-					onStartRest={handleStartRest}
+					// onStartRest={handleStartRest}
 					onSkipSet={handleSkipSet}
 					onCompleteWorkout={handleCompleteWorkout}
 					onSkipRemainingWorkoutSets={handleSkipRemainingWorkoutSets}
-				/> */}
+				/>
 
-				{/* <RestTimer
-					show={showRestTimer}
-					onOpenChange={setShowRestTimer}
-					exerciseName={currentExerciseName}
-					currentSetNumber={currentSetIndex + 1}
-					totalSets={
-						currentExerciseIndex === 0
-							? primaryExercise.sets.length
-							: (accessoryExercises[currentExerciseIndex - 1]?.sets.length ?? 0)
-					}
-					isPrimary={currentExerciseIndex === 0}
-					isLastSet={isLastSet}
-					performance={performance}
-					onPerformanceChange={setPerformance}
-					onCompleteSet={handleCompleteSet}
-					onSkipRemainingExerciseSets={handleSkipRemainingExerciseSets}
-				/> */}
+				{currentSetIndex !== null && (
+					<RestTimer
+						show={showRestTimer}
+						onOpenChange={setShowRestTimer}
+						set={sets[currentSetIndex]}
+						onCompleteSet={handleCompleteSet}
+						onSkipRemainingExerciseSets={handleSkipRemainingExerciseSets}
+					/>
+				)}
 			</CardContent>
 		</Card>
 	);
