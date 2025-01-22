@@ -54,7 +54,7 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		router.refresh();
 	}
 
-	async function handleCompleteSet() {
+	async function handleCurrentSet(status: Status) {
 		if (currentSetIndex === null) return;
 		const isLastSetInExercise =
 			sets[currentSetIndex].exercises.id !==
@@ -64,51 +64,7 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		const updateSetStatusAndCascadeResponse = await updateSetStatusAndCascade({
 			setId: {
 				id: sets[currentSetIndex].sets.id,
-				status: Status.Enum.completed,
-			},
-			exerciseId: {
-				id: sets[currentSetIndex].exercises.id,
-				status: Status.Enum.completed,
-			},
-			workoutId: { id: workoutId.id, status: Status.Enum.completed },
-			isLastSetInExercise,
-			isLastSetInWorkout,
-		});
-
-		if (!updateSetStatusAndCascadeResponse.success) {
-			return; // TODO: Handle error
-		}
-
-		if (isLastSetInWorkout) {
-			setCurrentExercise(null);
-			setCurrentSetIndex(null);
-		} else {
-			setCurrentExercise(
-				isLastSetInExercise
-					? sets[currentSetIndex + 1].exerciseDefinitions.name
-					: null,
-			);
-			setCurrentSetIndex(currentSetIndex + 1);
-		}
-
-		router.refresh();
-	}
-
-	async function handleSkipSet() {
-		if (currentSetIndex === null) return;
-		const isLastSetInExercise =
-			sets[currentSetIndex].exercises.id !==
-			sets[currentSetIndex + 1]?.exercises.id;
-		const isLastSetInWorkout = sets[currentSetIndex] === sets[sets.length - 1];
-
-		console.log(
-			`isLastSetInExercise: ${isLastSetInExercise}, isLastSetInWorkout: ${isLastSetInWorkout}`,
-		);
-
-		const updateSetStatusAndCascadeResponse = await updateSetStatusAndCascade({
-			setId: {
-				id: sets[currentSetIndex].sets.id,
-				status: Status.Enum.skipped,
+				status,
 			},
 			exerciseId: {
 				id: sets[currentSetIndex].exercises.id,
@@ -238,7 +194,7 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 					cycleId={cycleId.id}
 					onStartWorkout={handleStartWorkout}
 					// onStartRest={handleStartRest}
-					onSkipSet={handleSkipSet}
+					onHandleCurrentSet={handleCurrentSet}
 					onCompleteWorkout={handleCompleteWorkout}
 					onSkipRemainingWorkoutSets={handleSkipRemainingWorkoutSets}
 				/>
@@ -248,7 +204,7 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 						show={showRestTimer}
 						onOpenChange={setShowRestTimer}
 						set={sets[currentSetIndex]}
-						onCompleteSet={handleCompleteSet}
+						onHandleCurrentSet={handleCurrentSet}
 						onSkipRemainingExerciseSets={handleSkipRemainingExerciseSets}
 					/>
 				)}

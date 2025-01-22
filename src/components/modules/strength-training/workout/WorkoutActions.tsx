@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import Link from "next/link";
 
 interface WorkoutActionsProps {
@@ -8,7 +9,7 @@ interface WorkoutActionsProps {
 	cycleId: string;
 	onStartWorkout: () => void;
 	// onStartRest: () => boolean;
-	onSkipSet: () => void;
+	onHandleCurrentSet: (status: Status) => void;
 	onCompleteWorkout: () => void;
 	onSkipRemainingWorkoutSets: () => void;
 }
@@ -18,7 +19,7 @@ export function WorkoutActions({
 	cycleId,
 	onStartWorkout,
 	// onStartRest,
-	onSkipSet,
+	onHandleCurrentSet,
 	onCompleteWorkout,
 	onSkipRemainingWorkoutSets,
 }: WorkoutActionsProps) {
@@ -69,7 +70,11 @@ export function WorkoutActions({
 						Skip and Complete Workout
 					</Button>
 				) : (
-					<Button variant="outline" size="lg" onClick={onSkipSet}>
+					<Button
+						variant="outline"
+						size="lg"
+						onClick={() => onHandleCurrentSet(Status.Enum.skipped)}
+					>
 						Skip Set
 					</Button>
 				)}

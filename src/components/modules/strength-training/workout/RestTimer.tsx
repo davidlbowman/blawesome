@@ -14,7 +14,10 @@ import {
 	DrawerTitle,
 } from "@/components/ui/drawer";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
-import { ExerciseType } from "@/drizzle/modules/strength-training/types";
+import {
+	ExerciseType,
+	Status,
+} from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useEffect, useState } from "react";
 
@@ -22,7 +25,7 @@ interface RestTimerProps {
 	show: boolean;
 	set: AllSetsByWorkoutId[number];
 	onOpenChange: (open: boolean) => void;
-	onCompleteSet: () => void;
+	onHandleCurrentSet: (status: Status) => void;
 	onSkipRemainingExerciseSets: () => void;
 }
 
@@ -30,7 +33,7 @@ export function RestTimer({
 	show,
 	set,
 	onOpenChange,
-	onCompleteSet,
+	onHandleCurrentSet,
 	onSkipRemainingExerciseSets,
 }: RestTimerProps) {
 	const exerciseName = set.exerciseDefinitions.name;
@@ -143,7 +146,7 @@ export function RestTimer({
 			)}
 
 			<div className="flex flex-col gap-2 pt-4">
-				<Button onClick={onCompleteSet}>
+				<Button onClick={() => onHandleCurrentSet(Status.Enum.completed)}>
 					{isLastSet ? "Complete Workout" : "Start Next Set"}
 				</Button>
 				<Button
