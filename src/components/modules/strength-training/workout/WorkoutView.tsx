@@ -34,6 +34,15 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		startingSetIndex !== -1 ? startingSetIndex : null,
 	);
 
+	const currentExercise =
+		currentSetIndex !== null
+			? sets[currentSetIndex].exerciseDefinitions.name
+			: null;
+
+	console.log(
+		`starting index: ${startingSetIndex}, current set index: ${currentSetIndex}, current exercise: ${currentExercise}`,
+	);
+
 	const [showRestTimer, setShowRestTimer] = useState(false);
 
 	async function handleStartWorkout() {
@@ -167,7 +176,11 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 					consistency={workoutConsistency}
 				/>
 
-				<ExerciseList sets={sets} />
+				<ExerciseList
+					sets={sets}
+					currentExercise={currentExercise}
+					currentSetIndex={currentSetIndex}
+				/>
 
 				<WorkoutActions
 					status={workoutStatus}

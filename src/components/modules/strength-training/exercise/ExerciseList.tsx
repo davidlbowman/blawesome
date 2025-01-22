@@ -5,10 +5,15 @@ import { PrimaryExerciseCard } from "./PrimaryExerciseCard";
 
 interface ExerciseListProps {
 	sets: AllSetsByWorkoutId;
-	className?: string;
+	currentExercise: string | null;
+	currentSetIndex: number | null;
 }
 
-export function ExerciseList({ sets, className }: ExerciseListProps) {
+export function ExerciseList({
+	sets,
+	currentSetIndex,
+	currentExercise,
+}: ExerciseListProps) {
 	const primaryExercise = sets.find(
 		(e) => e.exerciseDefinitions.type === ExerciseType.Enum.primary,
 	);
@@ -25,11 +30,13 @@ export function ExerciseList({ sets, className }: ExerciseListProps) {
 		);
 
 	return (
-		<div className={className}>
+		<div>
 			{primaryExercise && (
 				<PrimaryExerciseCard
 					key={primaryExercise.exercises.id}
 					sets={primaryExerciseSets}
+					currentExercise={currentExercise}
+					currentSetIndex={currentSetIndex}
 					className="mb-6"
 				/>
 			)}
@@ -37,7 +44,11 @@ export function ExerciseList({ sets, className }: ExerciseListProps) {
 			{accessoryExercises.length > 0 && (
 				<div className="grid md:grid-cols-2 gap-6">
 					{accessoryExercises.map((exercise) => (
-						<ExerciseCard key={exercise.exercises.id} sets={exercise} />
+						<ExerciseCard
+							key={exercise.exercises.id}
+							sets={exercise}
+							currentExercise={currentExercise}
+						/>
 					))}
 				</div>
 			)}

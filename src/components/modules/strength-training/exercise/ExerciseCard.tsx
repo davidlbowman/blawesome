@@ -1,18 +1,21 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
+import { cn } from "@/lib/utils";
 import { StatusBadge } from "../shared/StatusBadge";
 
 interface ExerciseCardProps {
 	sets: AllSetsByWorkoutId[number];
+	currentExercise: string | null;
 }
 
-export function ExerciseCard({ sets }: ExerciseCardProps) {
+export function ExerciseCard({ sets, currentExercise }: ExerciseCardProps) {
 	const { name, type } = sets.exerciseDefinitions;
 	const status = sets.workouts.status;
 	const { weight, reps, rpe } = sets.sets;
+	const isCurrentExercise = currentExercise === name;
 
 	return (
-		<Card>
+		<Card className={cn(isCurrentExercise && "bg-muted")}>
 			<CardHeader className="pb-2">
 				<div className="flex items-center justify-between">
 					<h4 className="text-base font-semibold">{name}</h4>

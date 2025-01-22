@@ -6,18 +6,23 @@ import { SetTable } from "./SetTable";
 
 interface PrimaryExerciseCardProps {
 	sets: AllSetsByWorkoutId;
+	currentExercise: string | null;
+	currentSetIndex: number | null;
 	className?: string;
 }
 
 export function PrimaryExerciseCard({
 	sets,
+	currentExercise,
+	currentSetIndex,
 	className,
 }: PrimaryExerciseCardProps) {
 	const exerciseName = sets[0].exerciseDefinitions.name;
 	const exerciseStatus = sets[0].exercises.status;
+	const isCurrentExercise = currentExercise === exerciseName;
 
 	return (
-		<Card className={cn("bg-muted", className)}>
+		<Card className={cn(className)}>
 			<CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle className="text-lg font-semibold">
 					{exerciseName}
@@ -26,7 +31,11 @@ export function PrimaryExerciseCard({
 				<StatusBadge status={exerciseStatus} />
 			</CardHeader>
 			<CardContent>
-				<SetTable sets={sets} />
+				<SetTable
+					sets={sets}
+					isCurrentExercise={isCurrentExercise}
+					currentSetIndex={currentSetIndex}
+				/>
 			</CardContent>
 		</Card>
 	);
