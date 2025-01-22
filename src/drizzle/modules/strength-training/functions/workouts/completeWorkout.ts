@@ -1,54 +1,39 @@
 "use server";
 
+import type { Response } from "@/drizzle/core/types";
 import { db } from "@/drizzle/db";
-import { exercises } from "@/drizzle/modules/strength-training/schemas/exercises";
-import { sets } from "@/drizzle/modules/strength-training/schemas/sets";
 import { workouts } from "@/drizzle/modules/strength-training/schemas/workouts";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { eq } from "drizzle-orm";
+import { Status } from "../../types";
 
-export async function completeWorkout(workoutId: string) {
+interface CompleteWorkoutProps {
+	workoutId: Pick<WorkoutsSelect, "id">;
+}
+
+type CompleteWorkoutResponse = Promise<Response<void>>;
+
+export async function completeWorkout({
+	workoutId,
+}: CompleteWorkoutProps): CompleteWorkoutResponse {
 	const now = new Date();
 
-	return await db.transaction(async (tx) => {
-		// Get all exercises for this workout
-		const workoutExercises = await tx
-			.select()
-			.from(exercises)
-			.where(eq(exercises.workoutId, workoutId));
+	try {
+		await db.transaction(async (tx) => {
+			await tx
+				.update(workouts)
+				.set({ status: Status.Enum.completed, updatedAt: now })
+				.where(eq(workouts.id, workoutId.id));
+		});
 
-		// Complete all exercises and their sets
-		for (const exercise of workoutExercises) {
-			if (exercise.status === "pending" || exercise.status === "in_progress") {
-				// Complete all pending sets for this exercise
-				await tx
-					.update(sets)
-					.set({
-						status: "completed",
-						updatedAt: now,
-						completedAt: now,
-					})
-					.where(eq(sets.exerciseId, exercise.id));
-
-				// Complete the exercise
-				await tx
-					.update(exercises)
-					.set({
-						status: "completed",
-						updatedAt: now,
-						completedAt: now,
-					})
-					.where(eq(exercises.id, exercise.id));
-			}
-		}
-
-		// Mark the workout as completed
-		await tx
-			.update(workouts)
-			.set({
-				status: "completed",
-				completedAt: now,
-				updatedAt: now,
-			})
-			.where(eq(workouts.id, workoutId));
-	});
+		return { success: true, data: undefined };
+	} catch (error) {
+		return {
+			success: false,
+			error:
+				error instanceof Error
+					? error
+					: new Error("Failed to complete workout"),
+		};
+	}
 }

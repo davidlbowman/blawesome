@@ -1,199 +1,124 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
-import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
-import { skipRemainingExerciseSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingExerciseSets";
-import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
-import { skipSet } from "@/drizzle/modules/strength-training/functions/workouts/skipSet";
-import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
+import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
+import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { ExerciseList } from "../exercise/ExerciseList";
-import type { ExerciseWithSets } from "../exercise/types";
-import { RestTimer } from "./RestTimer";
-import { WorkoutActions } from "./WorkoutActions";
 import { WorkoutHeader } from "./WorkoutHeader";
 import { WorkoutStats } from "./WorkoutStats";
 
-interface SetPerformance {
-	weight: number;
-	reps: number | null;
-	rpe: number | null;
-}
-
 interface WorkoutViewProps {
-	workoutId: string;
-	cycleId: string;
-	primaryExercise: ExerciseWithSets;
-	accessoryExercises: ExerciseWithSets[];
-	startingExerciseIndex: number;
-	startingSetIndex: number;
+	cycleId: Pick<CyclesSelect, "id">;
+	workoutId: Pick<WorkoutsSelect, "id">;
 	sets: AllSetsByWorkoutId;
 }
 
-export function WorkoutView({
-	workoutId,
-	cycleId,
-	primaryExercise,
-	accessoryExercises,
-	startingExerciseIndex,
-	startingSetIndex,
-	sets,
-}: WorkoutViewProps) {
-	const router = useRouter();
-	const [showRestTimer, setShowRestTimer] = useState(false);
-	const [currentExerciseIndex, setCurrentExerciseIndex] = useState(
-		startingExerciseIndex,
-	);
-	const [currentSetIndex, setCurrentSetIndex] = useState(startingSetIndex);
-	const [performance, setPerformance] = useState<SetPerformance>({
-		weight: 0,
-		reps: null,
-		rpe: null,
-	});
+export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
+	console.log(cycleId, workoutId);
+	// const router = useRouter();
 
-	const handleStartWorkout = async () => {
-		await startWorkout(workoutId);
-		router.refresh();
-	};
+	// const startingSetIndex = sets.findIndex(
+	// 	(set) => set.sets.status === Status.Enum.pending,
+	// );
+	// const [currentSetIndex, setCurrentSetIndex] = useState<number | null>(
+	// 	startingSetIndex !== -1 ? startingSetIndex : null,
+	// );
 
-	const handleStartRest = async () => {
-		const currentExercise =
-			currentExerciseIndex === 0
-				? primaryExercise
-				: accessoryExercises[currentExerciseIndex - 1];
+	// async function handleStartWorkout() {
+	// 	const startWorkoutResponse = await startWorkout({
+	// 		workoutId: { id: workoutId.id },
+	// 	});
 
-		const currentSet = currentExercise.sets[currentSetIndex];
+	// 	if (!startWorkoutResponse.success) {
+	// 		return; // TODO: Handle error
+	// 	}
 
-		setPerformance({
-			weight: currentSet.weight,
-			reps: currentExerciseIndex === 0 ? currentSet.reps : null,
-			rpe: currentExerciseIndex === 0 ? null : 8, // Default RPE for accessory exercises
-		});
+	// 	router.refresh();
+	// }
 
-		setShowRestTimer(true);
-	};
+	// async function handleSkipSet() {
+	// 	if (currentSetIndex === null) return;
 
-	const handleSkipSet = async () => {
-		await skipSet(workoutId);
-		await router.refresh();
+	// 	const skipSetResponse = await skipSets({
+	// 		setIds: [{ id: sets[currentSetIndex].sets.id }],
+	// 	});
 
-		if (currentExerciseIndex === 0) {
-			if (currentSetIndex + 1 < primaryExercise.sets.length) {
-				setCurrentSetIndex(currentSetIndex + 1);
-			} else if (accessoryExercises.length > 0) {
-				setCurrentExerciseIndex(1);
-				setCurrentSetIndex(0);
-			}
-		} else {
-			const currentAccessoryExercise =
-				accessoryExercises[currentExerciseIndex - 1];
-			if (currentSetIndex + 1 < currentAccessoryExercise.sets.length) {
-				setCurrentSetIndex(currentSetIndex + 1);
-			} else if (currentExerciseIndex < accessoryExercises.length) {
-				setCurrentExerciseIndex(currentExerciseIndex + 1);
-				setCurrentSetIndex(0);
-			}
-		}
-	};
+	// 	if (!skipSetResponse.success) {
+	// 		return; // TODO: Handle error
+	// 	}
 
-	const handleCompleteWorkout = async () => {
-		await completeWorkout(workoutId);
-		router.refresh();
-	};
+	// 	setCurrentSetIndex(currentSetIndex + 1);
+	// 	router.refresh();
+	// }
 
-	const handleSkipRemainingWorkoutSets = async () => {
-		await skipRemainingWorkoutSets(workoutId);
-		await completeWorkout(workoutId);
-		await router.refresh();
-		router.push(`/modules/strength-training/${cycleId}`);
-	};
+	// async function handleCompleteSet() {
+	// 	if (currentSetIndex === null) return;
 
-	const handleCompleteSet = async () => {
-		const currentExercise =
-			currentExerciseIndex === 0
-				? {
-						id: primaryExercise.sets[currentSetIndex].id,
-						exerciseId: primaryExercise.id,
-					}
-				: {
-						id: accessoryExercises[currentExerciseIndex - 1].sets[
-							currentSetIndex
-						].id,
-						exerciseId: accessoryExercises[currentExerciseIndex - 1].id,
-					};
+	// 	const completeSetResponse = await completeSet({
+	// 		setId: { id: sets[currentSetIndex].sets.id },
+	// 	});
 
-		if (!currentExercise.id) return;
+	// 	if (!completeSetResponse.success) {
+	// 		return; // TODO: Handle error
+	// 	}
 
-		await completeSet(
-			currentExercise.id,
-			currentExercise.exerciseId,
-			workoutId,
-			performance,
-		);
+	// 	setCurrentSetIndex(currentSetIndex + 1);
+	// 	router.refresh();
+	// }
 
-		await router.refresh();
-		setShowRestTimer(false);
+	// async function handleSkipRemainingExerciseSets() {
+	// 	if (currentSetIndex === null) return;
+	// 	const currentExerciseId = sets[currentSetIndex].exercises.id;
+	// 	const remainingSetsInExercise = sets
+	// 		.slice(currentSetIndex)
+	// 		.filter((set) => set.exercises.id === currentExerciseId)
+	// 		.map((set) => ({ id: set.sets.id }));
 
-		if (currentExerciseIndex === 0) {
-			if (currentSetIndex + 1 < primaryExercise.sets.length) {
-				setCurrentSetIndex(currentSetIndex + 1);
-			} else if (accessoryExercises.length > 0) {
-				setCurrentExerciseIndex(1);
-				setCurrentSetIndex(0);
-			}
-		} else {
-			const currentAccessoryExercise =
-				accessoryExercises[currentExerciseIndex - 1];
-			if (currentSetIndex + 1 < currentAccessoryExercise.sets.length) {
-				setCurrentSetIndex(currentSetIndex + 1);
-			} else if (currentExerciseIndex < accessoryExercises.length) {
-				setCurrentExerciseIndex(currentExerciseIndex + 1);
-				setCurrentSetIndex(0);
-			}
-		}
+	// 	const skipSetsResponse = await skipSets({
+	// 		setIds: remainingSetsInExercise,
+	// 	});
 
-		setPerformance({
-			weight: 0,
-			reps: null,
-			rpe: null,
-		});
-	};
+	// 	if (!skipSetsResponse.success) {
+	// 		return; // TODO: Handle error
+	// 	}
 
-	const handleSkipRemainingExerciseSets = async () => {
-		const currentExercise =
-			currentExerciseIndex === 0
-				? primaryExercise
-				: accessoryExercises[currentExerciseIndex - 1];
+	// 	setCurrentSetIndex(currentSetIndex + remainingSetsInExercise.length);
+	// 	router.refresh();
+	// }
 
-		await skipRemainingExerciseSets(currentExercise.id);
+	// async function handleSkipRemainingWorkoutSets() {
+	// 	if (currentSetIndex === null) return;
+	// 	const remainingSetsInWorkout = sets.slice(currentSetIndex).map((set) => ({
+	// 		id: set.sets.id,
+	// 	}));
 
-		if (currentExerciseIndex === 0 && accessoryExercises.length > 0) {
-			setCurrentExerciseIndex(1);
-			setCurrentSetIndex(0);
-		} else if (currentExerciseIndex < accessoryExercises.length) {
-			setCurrentExerciseIndex(currentExerciseIndex + 1);
-			setCurrentSetIndex(0);
-		}
+	// 	const skipSetsResponse = await skipSets({
+	// 		setIds: remainingSetsInWorkout,
+	// 	});
 
-		setShowRestTimer(false);
-		await router.refresh();
-	};
+	// 	if (!skipSetsResponse.success) {
+	// 		return; // TODO: Handle error
+	// 	}
 
-	const isLastSet =
-		currentExerciseIndex === accessoryExercises.length &&
-		currentSetIndex ===
-			(accessoryExercises[accessoryExercises.length - 1]?.sets.length ?? 0) - 1;
+	// 	setCurrentSetIndex(null);
+	// 	router.refresh();
+	// }
 
-	const currentExerciseName =
-		currentExerciseIndex === 0
-			? primaryExercise.name
-			: accessoryExercises[currentExerciseIndex - 1]?.name;
+	// async function handleCompleteWorkout() {
+	// 	const completeWorkoutResponse = await completeWorkout({
+	// 		workoutId: { id: workoutId.id },
+	// 	});
 
-	// Fixed Code
+	// 	if (!completeWorkoutResponse.success) {
+	// 		return; // TODO: Handle error
+	// 	}
+
+	// 	router.refresh();
+	// }
+
+	// TODO:handleStartRest
 
 	// Workout Header
 	const workoutPrimaryLift = sets[0].workouts.primaryLift;
@@ -210,7 +135,7 @@ export function WorkoutView({
 		0,
 	);
 	const workoutVolumeChange = 0; // TODO: Calculate volume change
-	const workoutPrimaryLiftWeight = primaryExercise.oneRepMax ?? 0;
+	const workoutPrimaryLiftWeight = 0; // TODO: Calculate primary lift weight
 	const workoutPrimaryLiftChange = 0; // TODO: Calculate primary lift change
 	const workoutConsistency =
 		(workoutCompletedSetCount / workoutTotalSets) * 100;
@@ -234,13 +159,9 @@ export function WorkoutView({
 					consistency={workoutConsistency}
 				/>
 
-				<ExerciseList
-					sets={sets}
-					currentExerciseIndex={currentExerciseIndex}
-					currentSetIndex={currentSetIndex}
-				/>
+				<ExerciseList sets={sets} />
 
-				<WorkoutActions
+				{/* <WorkoutActions
 					status={workoutStatus}
 					cycleId={cycleId}
 					isLastSet={isLastSet}
@@ -249,9 +170,9 @@ export function WorkoutView({
 					onSkipSet={handleSkipSet}
 					onCompleteWorkout={handleCompleteWorkout}
 					onSkipRemainingWorkoutSets={handleSkipRemainingWorkoutSets}
-				/>
+				/> */}
 
-				<RestTimer
+				{/* <RestTimer
 					show={showRestTimer}
 					onOpenChange={setShowRestTimer}
 					exerciseName={currentExerciseName}
@@ -267,7 +188,7 @@ export function WorkoutView({
 					onPerformanceChange={setPerformance}
 					onCompleteSet={handleCompleteSet}
 					onSkipRemainingExerciseSets={handleSkipRemainingExerciseSets}
-				/>
+				/> */}
 			</CardContent>
 		</Card>
 	);

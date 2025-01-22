@@ -7,31 +7,33 @@ import {
 	sets,
 } from "@/drizzle/modules/strength-training/schemas/sets";
 import { Status } from "@/drizzle/modules/strength-training/types";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
-interface CompleteSetParams {
-	setId: Pick<SetsSelect, "id">;
+interface SkipSetsParams {
+	setIds: Pick<SetsSelect, "id">[];
 }
 
-type CompleteSetResponse = Promise<Response<void>>;
+type SkipSetsResponse = Promise<Response<void>>;
 
-export async function completeSet({
-	setId,
-}: CompleteSetParams): CompleteSetResponse {
+export async function skipSets({ setIds }: SkipSetsParams): SkipSetsResponse {
 	try {
 		await db.transaction(async (tx) => {
 			await tx
 				.update(sets)
-				.set({ status: Status.Enum.completed })
-				.where(eq(sets.id, setId.id));
+				.set({ status: Status.Enum.skipped })
+				.where(
+					inArray(
+						sets.id,
+						setIds.map((set) => set.id),
+					),
+				);
 		});
 
 		return { success: true, data: undefined };
 	} catch (error) {
 		return {
 			success: false,
-			error:
-				error instanceof Error ? error : new Error("Failed to complete set"),
+			error: error instanceof Error ? error : new Error("Failed to skip set"),
 		};
 	}
 }

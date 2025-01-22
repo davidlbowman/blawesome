@@ -14,6 +14,7 @@ Blawesome (bloom + awesome) is an open-source goal tracking platform that grows 
 - 
 ## TODO
 
+- [ ] Standardize Drizzle Queries (Create Return Types using Zod Schemas Up top and z.infer)
 - [ ] Ensure queries are only returning the data we need
 - [ ] Move functions to /lib and establish better aliases for shorter imports
 - [ ] Add JWT Types

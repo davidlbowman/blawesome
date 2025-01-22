@@ -5,8 +5,6 @@ import { PrimaryExerciseCard } from "./PrimaryExerciseCard";
 
 interface ExerciseListProps {
 	sets: AllSetsByWorkoutId;
-	currentExerciseIndex?: number;
-	currentSetIndex?: number;
 	className?: string;
 }
 
