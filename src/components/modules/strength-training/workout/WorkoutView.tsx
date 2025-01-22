@@ -1,9 +1,8 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
-import { completeSetAndWorkout } from "@/drizzle/modules/strength-training/functions/sets/completeSetAndWorkout";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
+import { updateSetStatusAndCascade } from "@/drizzle/modules/strength-training/functions/sets/updateSetStatusAndCascade";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
 import { skipSets } from "@/drizzle/modules/strength-training/functions/workouts/skipSets";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
@@ -35,8 +34,10 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		startingSetIndex !== -1 ? startingSetIndex : null,
 	);
 
-	const [currentExercise] = useState<string | null>(
-		sets[startingSetIndex].exerciseDefinitions.name,
+	const [currentExercise, setCurrentExercise] = useState<string | null>(
+		startingSetIndex !== -1
+			? sets[startingSetIndex].exerciseDefinitions.name
+			: null,
 	);
 
 	const [showRestTimer, setShowRestTimer] = useState(false);
@@ -53,52 +54,87 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		router.refresh();
 	}
 
+	async function handleCompleteSet() {
+		if (currentSetIndex === null) return;
+		const isLastSetInExercise =
+			sets[currentSetIndex].exercises.id !==
+			sets[currentSetIndex + 1]?.exercises.id;
+		const isLastSetInWorkout = sets[currentSetIndex] === sets[sets.length - 1];
+
+		const updateSetStatusAndCascadeResponse = await updateSetStatusAndCascade({
+			setId: {
+				id: sets[currentSetIndex].sets.id,
+				status: Status.Enum.completed,
+			},
+			exerciseId: {
+				id: sets[currentSetIndex].exercises.id,
+				status: Status.Enum.completed,
+			},
+			workoutId: { id: workoutId.id, status: Status.Enum.completed },
+			isLastSetInExercise,
+			isLastSetInWorkout,
+		});
+
+		if (!updateSetStatusAndCascadeResponse.success) {
+			return; // TODO: Handle error
+		}
+
+		if (isLastSetInWorkout) {
+			setCurrentExercise(null);
+			setCurrentSetIndex(null);
+		} else {
+			setCurrentExercise(
+				isLastSetInExercise
+					? sets[currentSetIndex + 1].exerciseDefinitions.name
+					: null,
+			);
+			setCurrentSetIndex(currentSetIndex + 1);
+		}
+
+		router.refresh();
+	}
+
 	async function handleSkipSet() {
 		if (currentSetIndex === null) return;
 		const isLastSetInExercise =
 			sets[currentSetIndex].exercises.id !==
-			sets[currentSetIndex + 1].exercises.id;
+			sets[currentSetIndex + 1]?.exercises.id;
+		const isLastSetInWorkout = sets[currentSetIndex] === sets[sets.length - 1];
 
 		console.log(
-			`index: ${currentSetIndex}, isLastSetInExercise: ${isLastSetInExercise}`,
+			`isLastSetInExercise: ${isLastSetInExercise}, isLastSetInWorkout: ${isLastSetInWorkout}`,
 		);
 
-		if (!isLastSetInExercise) {
-			const skipSetResponse = await skipSets({
-				setIds: [{ id: sets[currentSetIndex].sets.id }],
-			});
-
-			if (!skipSetResponse.success) {
-				return; // TODO: Handle error
-			}
-		} else {
-			const completeSetAndWorkoutResponse = await completeSetAndWorkout({
-				setId: { id: sets[currentSetIndex].sets.id },
-				exerciseId: { id: sets[currentSetIndex].exercises.id },
-			});
-
-			if (!completeSetAndWorkoutResponse.success) {
-				return; // TODO: Handle error
-			}
-		}
-
-		setCurrentSetIndex(currentSetIndex + 1);
-		console.log(`new index: ${currentSetIndex}`);
-		router.refresh();
-	}
-
-	async function handleCompleteSet() {
-		if (currentSetIndex === null) return;
-
-		const completeSetResponse = await completeSet({
-			setId: { id: sets[currentSetIndex].sets.id },
+		const updateSetStatusAndCascadeResponse = await updateSetStatusAndCascade({
+			setId: {
+				id: sets[currentSetIndex].sets.id,
+				status: Status.Enum.skipped,
+			},
+			exerciseId: {
+				id: sets[currentSetIndex].exercises.id,
+				status: Status.Enum.completed,
+			},
+			workoutId: { id: workoutId.id, status: Status.Enum.completed },
+			isLastSetInExercise,
+			isLastSetInWorkout,
 		});
 
-		if (!completeSetResponse.success) {
+		if (!updateSetStatusAndCascadeResponse.success) {
 			return; // TODO: Handle error
 		}
 
-		setCurrentSetIndex(currentSetIndex + 1);
+		if (isLastSetInWorkout) {
+			setCurrentExercise(null);
+			setCurrentSetIndex(null);
+		} else {
+			setCurrentExercise(
+				isLastSetInExercise
+					? sets[currentSetIndex + 1].exerciseDefinitions.name
+					: null,
+			);
+			setCurrentSetIndex(currentSetIndex + 1);
+		}
+
 		router.refresh();
 	}
 

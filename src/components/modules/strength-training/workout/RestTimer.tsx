@@ -13,7 +13,6 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
-
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { ExerciseType } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
