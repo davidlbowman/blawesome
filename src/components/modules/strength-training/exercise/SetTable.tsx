@@ -6,20 +6,13 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import type { SetsInsert } from "@/drizzle/modules/strength-training/schemas/sets";
-import { Status } from "@/drizzle/modules/strength-training/types";
-import { cn } from "@/lib/utils";
+import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 
 interface SetTableProps {
-	sets: Pick<
-		SetsInsert,
-		"id" | "setNumber" | "weight" | "reps" | "rpe" | "status"
-	>[];
-	currentSetIndex?: number;
-	isActive: boolean;
+	sets: AllSetsByWorkoutId;
 }
 
-export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
+export function SetTable({ sets }: SetTableProps) {
 	return (
 		<Table>
 			<TableHeader>
@@ -31,20 +24,12 @@ export function SetTable({ sets, currentSetIndex, isActive }: SetTableProps) {
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{sets.map((set, index) => (
-					<TableRow
-						key={set.id}
-						className={cn({
-							"bg-muted": isActive && index === currentSetIndex,
-							"bg-muted/50":
-								set.status === Status.Enum.completed ||
-								set.status === Status.Enum.skipped,
-						})}
-					>
-						<TableCell>{set.setNumber}</TableCell>
-						<TableCell>{set.weight} lbs</TableCell>
-						<TableCell>{set.reps}</TableCell>
-						<TableCell>{set.rpe}</TableCell>
+				{sets.map((set) => (
+					<TableRow key={set.sets.id}>
+						<TableCell>{set.sets.setNumber}</TableCell>
+						<TableCell>{set.sets.weight} lbs</TableCell>
+						<TableCell>{set.sets.reps}</TableCell>
+						<TableCell>{set.sets.rpe}</TableCell>
 					</TableRow>
 				))}
 			</TableBody>

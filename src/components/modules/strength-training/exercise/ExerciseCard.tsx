@@ -1,36 +1,18 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Status } from "@/drizzle/modules/strength-training/types";
-import { cn } from "@/lib/utils";
+import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { StatusBadge } from "../shared/StatusBadge";
-import type { ExerciseWithSets } from "./types";
 
 interface ExerciseCardProps {
-	exercise: ExerciseWithSets;
-	currentExerciseId: string;
-	currentSetIndex: number;
+	sets: AllSetsByWorkoutId[number];
 }
 
-export function ExerciseCard({
-	exercise,
-	currentExerciseId,
-	currentSetIndex,
-}: ExerciseCardProps) {
-	const { name, type, sets, status } = exercise;
-	const isCurrentExercise = exercise.id === currentExerciseId;
-	const targetReps = sets[0]?.reps ?? "-";
-	const targetRpe = sets[0]?.rpe ?? "-";
-	const suggestedWeight = sets[0]?.weight ?? "-";
-
-	// If exercise is completed, show all sets as completed
-	const setsDisplay =
-		status === Status.Enum.completed
-			? `${sets.length}/${sets.length}`
-			: isCurrentExercise
-				? `${currentSetIndex + 1}/${sets.length}`
-				: `${sets.filter((set) => set.status === Status.Enum.completed || set.status === Status.Enum.skipped).length}/${sets.length}`;
+export function ExerciseCard({ sets }: ExerciseCardProps) {
+	const { name, type } = sets.exerciseDefinitions;
+	const status = sets.workouts.status;
+	const { weight, reps, rpe } = sets.sets;
 
 	return (
-		<Card className={cn(isCurrentExercise && "ring-2 ring-primary")}>
+		<Card>
 			<CardHeader className="pb-2">
 				<div className="flex items-center justify-between">
 					<h4 className="text-base font-semibold">{name}</h4>
@@ -44,19 +26,19 @@ export function ExerciseCard({
 				<div className="grid grid-cols-4 gap-4">
 					<div className="flex flex-col">
 						<span className="text-sm font-medium">Weight</span>
-						<span className="text-2xl">{suggestedWeight} lbs</span>
+						<span className="text-2xl">{weight} lbs</span>
 					</div>
 					<div className="flex flex-col">
 						<span className="text-sm font-medium">RPE</span>
-						<span className="text-2xl">{targetRpe}</span>
+						<span className="text-2xl">{rpe}</span>
 					</div>
 					<div className="flex flex-col">
 						<span className="text-sm font-medium">Reps</span>
-						<span className="text-2xl">{targetReps}</span>
+						<span className="text-2xl">{reps}</span>
 					</div>
 					<div className="flex flex-col">
 						<span className="text-sm font-medium">Sets</span>
-						<span className="text-2xl">{setsDisplay}</span>
+						<span className="text-2xl">6</span>
 					</div>
 				</div>
 			</CardContent>

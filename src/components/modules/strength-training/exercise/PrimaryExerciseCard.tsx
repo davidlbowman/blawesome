@@ -1,38 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Status } from "@/drizzle/modules/strength-training/types";
+import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "../shared/StatusBadge";
 import { SetTable } from "./SetTable";
-import type { ExerciseWithSets } from "./types";
 
 interface PrimaryExerciseCardProps {
-	exercise: ExerciseWithSets;
-	currentSetIndex?: number;
+	sets: AllSetsByWorkoutId;
 	className?: string;
 }
 
 export function PrimaryExerciseCard({
-	exercise,
-	currentSetIndex,
+	sets,
 	className,
 }: PrimaryExerciseCardProps) {
-	const isActive = exercise.status === Status.Enum.in_progress;
+	const exerciseName = sets[0].exerciseDefinitions.name;
+	const exerciseStatus = sets[0].exercises.status;
 
 	return (
 		<Card className={cn("bg-muted", className)}>
 			<CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle className="text-lg font-semibold">
-					{exercise.name}
+					{exerciseName}
 					<span className="ml-2 text-xs text-muted-foreground">(Primary)</span>
 				</CardTitle>
-				<StatusBadge status={exercise.status} />
+				<StatusBadge status={exerciseStatus} />
 			</CardHeader>
 			<CardContent>
-				<SetTable
-					sets={exercise.sets}
-					currentSetIndex={currentSetIndex}
-					isActive={isActive}
-				/>
+				<SetTable sets={sets} />
 			</CardContent>
 		</Card>
 	);

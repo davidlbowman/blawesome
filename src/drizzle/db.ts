@@ -162,7 +162,8 @@ if (!dbUrl) {
 	throw new Error("DATABASE_URL is not defined");
 }
 
-export const db = drizzle(createClient({ url: dbUrl }), { logger });
+export const db = drizzle(createClient({ url: dbUrl }));
+// export const db = drizzle(createClient({ url: dbUrl }), { logger });
 
 // Extract transaction type from db.transaction
 export type DrizzleTransaction = Parameters<

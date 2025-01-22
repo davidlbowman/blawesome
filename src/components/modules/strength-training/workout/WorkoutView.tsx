@@ -2,12 +2,13 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
+import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
 import { skipRemainingExerciseSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingExerciseSets";
 import { skipRemainingWorkoutSets } from "@/drizzle/modules/strength-training/functions/workouts/skipRemainingWorkoutSets";
 import { skipSet } from "@/drizzle/modules/strength-training/functions/workouts/skipSet";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
-import type { Status } from "@/drizzle/modules/strength-training/types";
+import { Status } from "@/drizzle/modules/strength-training/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ExerciseList } from "../exercise/ExerciseList";
@@ -16,7 +17,6 @@ import { RestTimer } from "./RestTimer";
 import { WorkoutActions } from "./WorkoutActions";
 import { WorkoutHeader } from "./WorkoutHeader";
 import { WorkoutStats } from "./WorkoutStats";
-import type { WorkoutStatsProps } from "./WorkoutStats";
 
 interface SetPerformance {
 	weight: number;
@@ -27,25 +27,21 @@ interface SetPerformance {
 interface WorkoutViewProps {
 	workoutId: string;
 	cycleId: string;
-	status: Status;
-	date: Date;
 	primaryExercise: ExerciseWithSets;
 	accessoryExercises: ExerciseWithSets[];
-	stats: WorkoutStatsProps;
 	startingExerciseIndex: number;
 	startingSetIndex: number;
+	sets: AllSetsByWorkoutId;
 }
 
 export function WorkoutView({
 	workoutId,
 	cycleId,
-	status,
-	date,
 	primaryExercise,
 	accessoryExercises,
-	stats,
 	startingExerciseIndex,
 	startingSetIndex,
+	sets,
 }: WorkoutViewProps) {
 	const router = useRouter();
 	const [showRestTimer, setShowRestTimer] = useState(false);
@@ -197,25 +193,55 @@ export function WorkoutView({
 			? primaryExercise.name
 			: accessoryExercises[currentExerciseIndex - 1]?.name;
 
+	// Fixed Code
+
+	// Workout Header
+	const workoutPrimaryLift = sets[0].workouts.primaryLift;
+	const workoutCreatedAt = sets[0].workouts.createdAt;
+	const workoutStatus = sets[0].workouts.status;
+
+	// Workout Stats
+	const workoutCompletedSetCount = sets.filter(
+		(set) => set.sets.status === Status.Enum.completed,
+	).length;
+	const workoutTotalSets = sets.length;
+	const workoutTotalVolume = sets.reduce(
+		(acc, set) => acc + set.sets.weight * set.sets.reps,
+		0,
+	);
+	const workoutVolumeChange = 0; // TODO: Calculate volume change
+	const workoutPrimaryLiftWeight = primaryExercise.oneRepMax ?? 0;
+	const workoutPrimaryLiftChange = 0; // TODO: Calculate primary lift change
+	const workoutConsistency =
+		(workoutCompletedSetCount / workoutTotalSets) * 100;
+
 	return (
 		<Card>
 			<CardContent className="p-6 space-y-6">
 				<WorkoutHeader
-					exerciseName={primaryExercise.name}
-					date={date}
-					status={status}
+					exerciseName={workoutPrimaryLift}
+					date={workoutCreatedAt}
+					status={workoutStatus}
 				/>
 
-				<WorkoutStats {...stats} />
+				<WorkoutStats
+					completedSetCount={workoutCompletedSetCount}
+					totalSets={workoutTotalSets}
+					totalVolume={workoutTotalVolume}
+					volumeChange={workoutVolumeChange}
+					primaryLiftWeight={workoutPrimaryLiftWeight}
+					primaryLiftChange={workoutPrimaryLiftChange}
+					consistency={workoutConsistency}
+				/>
 
 				<ExerciseList
-					exercises={[primaryExercise, ...accessoryExercises]}
+					sets={sets}
 					currentExerciseIndex={currentExerciseIndex}
 					currentSetIndex={currentSetIndex}
 				/>
 
 				<WorkoutActions
-					status={status}
+					status={workoutStatus}
 					cycleId={cycleId}
 					isLastSet={isLastSet}
 					onStartWorkout={handleStartWorkout}

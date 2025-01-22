@@ -1,8 +1,10 @@
 import { WorkoutView } from "@/components/modules/strength-training/workout/WorkoutView";
+import { selectAllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { getWorkoutDetails } from "@/drizzle/modules/strength-training/functions/workouts/getWorkoutDetails";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
 import { Status } from "@/drizzle/modules/strength-training/types";
+import { notFound } from "next/navigation";
 
 export default async function Page({
 	params,
@@ -14,9 +16,6 @@ export default async function Page({
 }) {
 	const { cycleId, workoutId } = await params;
 	const workout = await getWorkoutDetails(workoutId);
-	// const exercises = await selectExercisesAndSetsByWorkoutId({
-	// 	workoutId: { id: workoutId },
-	// });
 
 	if (!workout) {
 		return <div>Workout not found</div>;
@@ -35,33 +34,6 @@ export default async function Page({
 	const accessoryExercises = sorted.filter(
 		(e) =>
 			e.definition.type === "variation" || e.definition.type === "accessory",
-	);
-
-	// Calculate stats
-	const totalSets = sorted.reduce(
-		(acc, exercise) => acc + exercise.sets.length,
-		0,
-	);
-
-	const completedSetCount = sorted.reduce(
-		(acc, exercise) =>
-			acc +
-			exercise.sets.filter(
-				(s) =>
-					s.status === Status.Enum.completed ||
-					s.status === Status.Enum.skipped,
-			).length,
-		0,
-	);
-
-	const totalVolume = sorted.reduce(
-		(acc, exercise) =>
-			acc +
-			exercise.sets.reduce(
-				(setAcc, set) => setAcc + set.weight * (set.reps ?? 0),
-				0,
-			),
-		0,
 	);
 
 	// Find the first incomplete exercise and set
@@ -83,12 +55,18 @@ export default async function Page({
 		}
 	}
 
+	const allSetsResponse = await selectAllSetsByWorkoutId({
+		workoutId: { id: workoutId },
+	});
+
+	if (!allSetsResponse.success || !allSetsResponse.data) {
+		return notFound();
+	}
+
 	return (
 		<WorkoutView
 			workoutId={workout.id}
 			cycleId={cycleId}
-			status={workout.status}
-			date={workout.createdAt}
 			primaryExercise={{
 				id: mainExercise.exercise.id,
 				name: mainExercise.definition.name,
@@ -105,17 +83,9 @@ export default async function Page({
 				sets: e.sets,
 				status: e.exercise.status,
 			}))}
-			stats={{
-				completedSetCount,
-				totalSets,
-				totalVolume,
-				volumeChange: 0, // TODO: Calculate volume change
-				primaryLiftWeight: mainExercise.oneRepMax ?? 0,
-				primaryLiftChange: 0, // TODO: Calculate primary lift change
-				consistency: (completedSetCount / totalSets) * 100,
-			}}
 			startingExerciseIndex={startingExerciseIndex}
 			startingSetIndex={startingSetIndex}
+			sets={allSetsResponse.data}
 		/>
 	);
 }
