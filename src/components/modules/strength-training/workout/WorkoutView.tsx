@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { completeSet } from "@/drizzle/modules/strength-training/functions/sets/completeSet";
+import { completeSetAndWorkout } from "@/drizzle/modules/strength-training/functions/sets/completeSetAndWorkout";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
 import { skipSets } from "@/drizzle/modules/strength-training/functions/workouts/skipSets";
@@ -34,13 +35,8 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		startingSetIndex !== -1 ? startingSetIndex : null,
 	);
 
-	const currentExercise =
-		currentSetIndex !== null
-			? sets[currentSetIndex].exerciseDefinitions.name
-			: null;
-
-	console.log(
-		`starting index: ${startingSetIndex}, current set index: ${currentSetIndex}, current exercise: ${currentExercise}`,
+	const [currentExercise] = useState<string | null>(
+		sets[startingSetIndex].exerciseDefinitions.name,
 	);
 
 	const [showRestTimer, setShowRestTimer] = useState(false);
@@ -59,16 +55,35 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 
 	async function handleSkipSet() {
 		if (currentSetIndex === null) return;
+		const isLastSetInExercise =
+			sets[currentSetIndex].exercises.id !==
+			sets[currentSetIndex + 1].exercises.id;
 
-		const skipSetResponse = await skipSets({
-			setIds: [{ id: sets[currentSetIndex].sets.id }],
-		});
+		console.log(
+			`index: ${currentSetIndex}, isLastSetInExercise: ${isLastSetInExercise}`,
+		);
 
-		if (!skipSetResponse.success) {
-			return; // TODO: Handle error
+		if (!isLastSetInExercise) {
+			const skipSetResponse = await skipSets({
+				setIds: [{ id: sets[currentSetIndex].sets.id }],
+			});
+
+			if (!skipSetResponse.success) {
+				return; // TODO: Handle error
+			}
+		} else {
+			const completeSetAndWorkoutResponse = await completeSetAndWorkout({
+				setId: { id: sets[currentSetIndex].sets.id },
+				exerciseId: { id: sets[currentSetIndex].exercises.id },
+			});
+
+			if (!completeSetAndWorkoutResponse.success) {
+				return; // TODO: Handle error
+			}
 		}
 
 		setCurrentSetIndex(currentSetIndex + 1);
+		console.log(`new index: ${currentSetIndex}`);
 		router.refresh();
 	}
 

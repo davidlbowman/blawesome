@@ -1,7 +1,7 @@
 "use server";
 
 import type { Response } from "@/drizzle/core/types";
-import { db } from "@/drizzle/db";
+import { type DrizzleTransaction, db } from "@/drizzle/db";
 import {
 	type SetsSelect,
 	sets,
@@ -11,23 +11,27 @@ import { inArray } from "drizzle-orm";
 
 interface SkipSetsParams {
 	setIds: Pick<SetsSelect, "id">[];
+	tx?: DrizzleTransaction;
 }
 
 type SkipSetsResponse = Promise<Response<void>>;
 
-export async function skipSets({ setIds }: SkipSetsParams): SkipSetsResponse {
+export async function skipSets({
+	setIds,
+	tx,
+}: SkipSetsParams): SkipSetsResponse {
 	try {
-		await db.transaction(async (tx) => {
-			await tx
-				.update(sets)
-				.set({ status: Status.Enum.skipped })
-				.where(
-					inArray(
-						sets.id,
-						setIds.map((set) => set.id),
-					),
-				);
-		});
+		const queryRunner = tx || db;
+
+		await queryRunner
+			.update(sets)
+			.set({ status: Status.Enum.skipped })
+			.where(
+				inArray(
+					sets.id,
+					setIds.map((set) => set.id),
+				),
+			);
 
 		return { success: true, data: undefined };
 	} catch (error) {

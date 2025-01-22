@@ -10,7 +10,7 @@ interface ExerciseCardProps {
 
 export function ExerciseCard({ sets, currentExercise }: ExerciseCardProps) {
 	const { name, type } = sets.exerciseDefinitions;
-	const status = sets.workouts.status;
+	const status = sets.exercises.status;
 	const { weight, reps, rpe } = sets.sets;
 	const isCurrentExercise = currentExercise === name;
 
