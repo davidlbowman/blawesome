@@ -32,14 +32,19 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { z } from "zod";
 
 interface RestTimerProps {
 	show: boolean;
 	set: AllSetsByWorkoutId[number];
 	setShowRestTimer: (open: boolean) => void;
 	onOpenChange: (open: boolean) => void;
-	onHandleCurrentSet: (status: Status) => void;
+	onHandleCurrentSet: (
+		status: Status,
+		weight: number,
+		reps: number,
+		rpe: number,
+	) => void;
 	onSkipRemainingExerciseSets: () => void;
 }
 
@@ -97,8 +102,12 @@ export function RestTimer({
 	const dialogTitle = `${exerciseName} - Set ${currentSetNumber}/${totalSets}`;
 
 	const onSubmit = (values: z.infer<typeof formSchema>) => {
-		console.log(values);
-		onHandleCurrentSet(Status.Enum.completed);
+		onHandleCurrentSet(
+			Status.Enum.completed,
+			values.weight,
+			values.reps ?? 0,
+			values.rpe ?? 0,
+		);
 		setShowRestTimer(false);
 	};
 

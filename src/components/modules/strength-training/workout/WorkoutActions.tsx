@@ -9,7 +9,12 @@ interface WorkoutActionsProps {
 	cycleId: string;
 	onStartWorkout: () => void;
 	onStartRest: () => void;
-	onHandleCurrentSet: (status: Status) => void;
+	onHandleCurrentSet: (
+		status: Status,
+		weight: number,
+		reps: number,
+		rpe: number,
+	) => void;
 	onCompleteWorkout: () => void;
 	onSkipRemainingWorkoutSets: () => void;
 }
@@ -70,7 +75,7 @@ export function WorkoutActions({
 					<Button
 						variant="outline"
 						size="lg"
-						onClick={() => onHandleCurrentSet(Status.Enum.skipped)}
+						onClick={() => onHandleCurrentSet(Status.Enum.skipped, 0, 0, 0)}
 					>
 						Skip Set
 					</Button>

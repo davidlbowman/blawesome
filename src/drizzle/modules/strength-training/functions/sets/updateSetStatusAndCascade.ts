@@ -9,7 +9,7 @@ import type { SetsSelect } from "../../schemas/sets";
 import { type WorkoutsSelect, workouts } from "../../schemas/workouts";
 
 interface UpdateSetStatusAndCascadeParams {
-	setId: Pick<SetsSelect, "id" | "status">;
+	setId: Pick<SetsSelect, "id" | "status" | "weight" | "reps" | "rpe">;
 	exerciseId: Pick<ExercisesSelect, "id" | "status">;
 	workoutId: Pick<WorkoutsSelect, "id" | "status">;
 	isLastSetInExercise: boolean;
@@ -33,6 +33,9 @@ export async function updateSetStatusAndCascade({
 				.update(sets)
 				.set({
 					status: setId.status,
+					weight: setId.weight,
+					reps: setId.reps,
+					rpe: setId.rpe,
 					updatedAt: now,
 					completedAt: now,
 				})

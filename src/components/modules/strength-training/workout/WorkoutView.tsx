@@ -54,7 +54,12 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		router.refresh();
 	}
 
-	async function handleCurrentSet(status: Status) {
+	async function handleCurrentSet(
+		status: Status,
+		weight: number,
+		reps: number,
+		rpe: number,
+	) {
 		if (currentSetIndex === null) return;
 		const isLastSetInExercise =
 			sets[currentSetIndex].exercises.id !==
@@ -65,6 +70,9 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 			setId: {
 				id: sets[currentSetIndex].sets.id,
 				status,
+				weight,
+				reps,
+				rpe,
 			},
 			exerciseId: {
 				id: sets[currentSetIndex].exercises.id,
