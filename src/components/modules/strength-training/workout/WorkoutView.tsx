@@ -83,12 +83,9 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 			setCurrentExercise(null);
 			setCurrentSetIndex(null);
 		} else {
-			setCurrentExercise(
-				isLastSetInExercise
-					? sets[currentSetIndex + 1].exerciseDefinitions.name
-					: null,
-			);
-			setCurrentSetIndex(currentSetIndex + 1);
+			const nextSetIndex = currentSetIndex + 1;
+			setCurrentExercise(sets[nextSetIndex].exerciseDefinitions.name);
+			setCurrentSetIndex(nextSetIndex);
 		}
 
 		router.refresh();
@@ -116,20 +113,28 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 
 	async function handleSkipRemainingWorkoutSets() {
 		if (currentSetIndex === null) return;
+
 		const remainingSetsInWorkout = sets.slice(currentSetIndex).map((set) => ({
 			id: set.sets.id,
 		}));
 
-		const skipSetsResponse = await skipSets({
-			setIds: remainingSetsInWorkout,
-		});
+		const remainingExercisesInWorkout = [
+			...new Set(sets.slice(currentSetIndex).map((set) => set.exercises.id)),
+		].map((id) => ({ id }));
 
-		if (!skipSetsResponse.success) {
-			return; // TODO: Handle error
-		}
+		console.log(remainingSetsInWorkout);
+		console.log(remainingExercisesInWorkout);
 
-		setCurrentSetIndex(null);
-		router.refresh();
+		// const skipSetsResponse = await skipSets({
+		// 	setIds: remainingSetsInWorkout,
+		// });
+
+		// if (!skipSetsResponse.success) {
+		// 	return; // TODO: Handle error
+		// }
+
+		// setCurrentSetIndex(null);
+		// router.refresh();
 	}
 
 	async function handleCompleteWorkout() {

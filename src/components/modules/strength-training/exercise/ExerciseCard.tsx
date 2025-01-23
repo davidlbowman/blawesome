@@ -14,8 +14,6 @@ export function ExerciseCard({ sets, currentExercise }: ExerciseCardProps) {
 	const { weight, reps, rpe } = sets.sets;
 	const isCurrentExercise = currentExercise === name;
 
-	isCurrentExercise && console.log(currentExercise, name);
-
 	return (
 		<Card className={cn(isCurrentExercise && "bg-muted")}>
 			<CardHeader className="pb-2">
