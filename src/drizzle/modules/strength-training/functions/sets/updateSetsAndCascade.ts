@@ -11,7 +11,7 @@ import { Status } from "../../types";
 interface UpdateSetsAndCascadeParams {
 	setIds: Pick<SetsSelect, "id">[];
 	exerciseId: Pick<ExercisesSelect, "id">[];
-	workoutId: Pick<WorkoutsSelect, "id">;
+	workoutId?: Pick<WorkoutsSelect, "id">;
 }
 
 type UpdateSetsAndCascadeResponse = Promise<Response<void>>;
@@ -53,14 +53,15 @@ export async function updateSetsAndCascade({
 					),
 				);
 
-			await tx
-				.update(workouts)
-				.set({
-					status: Status.Enum.completed,
-					updatedAt: now,
-					completedAt: now,
-				})
-				.where(eq(workouts.id, workoutId.id));
+			workoutId &&
+				(await tx
+					.update(workouts)
+					.set({
+						status: Status.Enum.completed,
+						updatedAt: now,
+						completedAt: now,
+					})
+					.where(eq(workouts.id, workoutId.id)));
 		});
 
 		return { success: true, data: undefined };

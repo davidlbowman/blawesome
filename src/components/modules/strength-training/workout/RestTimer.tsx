@@ -13,6 +13,8 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import {
 	ExerciseType,
@@ -24,6 +26,7 @@ import { useEffect, useState } from "react";
 interface RestTimerProps {
 	show: boolean;
 	set: AllSetsByWorkoutId[number];
+	setShowRestTimer: (open: boolean) => void;
 	onOpenChange: (open: boolean) => void;
 	onHandleCurrentSet: (status: Status) => void;
 	onSkipRemainingExerciseSets: () => void;
@@ -32,6 +35,7 @@ interface RestTimerProps {
 export function RestTimer({
 	show,
 	set,
+	setShowRestTimer,
 	onOpenChange,
 	onHandleCurrentSet,
 	onSkipRemainingExerciseSets,
@@ -81,78 +85,87 @@ export function RestTimer({
 
 			{isPrimary ? (
 				<div className="space-y-4">
-					{/* <div>
+					<div>
 						<Label htmlFor="weight">Weight (lbs)</Label>
 						<Input
 							id="weight"
 							type="number"
-							value={performance.weight}
-							onChange={(e) =>
-								onPerformanceChange({
-									...performance,
-									weight: Number(e.target.value),
-								})
-							}
+							value={set.sets.weight}
+							// onChange={(e) =>
+							// 	onPerformanceChange({
+							// 		...performance,
+							// 		weight: Number(e.target.value),
+							// 	})
+							// }
 						/>
-					</div> */}
+					</div>
 
-					{/* <div>
+					<div>
 						<Label htmlFor="reps">Reps</Label>
 						<Input
 							id="reps"
 							type="number"
-							value={performance.reps ?? ""}
-							onChange={(e) =>
-								onPerformanceChange({
-									...performance,
-									reps: e.target.value === "" ? null : Number(e.target.value),
-								})
-							}
+							value={set.sets.reps}
+							// onChange={(e) =>
+							// 	onPerformanceChange({
+							// 		...performance,
+							// 		reps: e.target.value === "" ? null : Number(e.target.value),
+							// 	})
+							// }
 						/>
-					</div> */}
+					</div>
 				</div>
 			) : (
 				<>
-					{/* <div>
+					<div>
 						<Label htmlFor="weight">Weight (lbs)</Label>
 						<Input
 							id="weight"
 							type="number"
-							value={performance.weight}
-							onChange={(e) =>
-								onPerformanceChange({
-									...performance,
-									weight: Number(e.target.value),
-								})
-							}
+							value={set.sets.weight}
+							// onChange={(e) =>
+							// 	onPerformanceChange({
+							// 		...performance,
+							// 		weight: Number(e.target.value),
+							// 	})
+							// }
 						/>
-					</div> */}
+					</div>
 
-					{/* <div>
+					<div>
 						<Label>RPE</Label>
 						<div className="grid grid-cols-6 gap-2">
 							{[5, 6, 7, 8, 9, 10].map((rpe) => (
 								<Button
 									key={rpe}
-									variant={performance.rpe === rpe ? "default" : "outline"}
+									variant={set.sets.rpe === rpe ? "default" : "outline"}
 									// onClick={() => onPerformanceChange({ ...performance, rpe })}
 								>
 									{rpe}
 								</Button>
 							))}
 						</div>
-					</div> */}
+					</div>
 				</>
 			)}
 
 			<div className="flex flex-col gap-2 pt-4">
-				<Button onClick={() => onHandleCurrentSet(Status.Enum.completed)}>
+				<Button
+					onClick={() => {
+						onHandleCurrentSet(Status.Enum.completed);
+						setShowRestTimer(false);
+					}}
+				>
 					{isLastSet ? "Complete Workout" : "Start Next Set"}
 				</Button>
+
 				<Button
 					variant="ghost"
 					className="text-destructive hover:text-destructive"
-					onClick={onSkipRemainingExerciseSets}
+					onClick={() => {
+						onSkipRemainingExerciseSets();
+						setShowRestTimer(false);
+					}}
 				>
 					Skip Remaining Exercise Sets
 				</Button>

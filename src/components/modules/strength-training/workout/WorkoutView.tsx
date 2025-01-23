@@ -5,7 +5,6 @@ import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/fun
 import { updateSetStatusAndCascade } from "@/drizzle/modules/strength-training/functions/sets/updateSetStatusAndCascade";
 import { updateSetsAndCascade } from "@/drizzle/modules/strength-training/functions/sets/updateSetsAndCascade";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
-import { skipSets } from "@/drizzle/modules/strength-training/functions/workouts/skipSets";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
 import type { CyclesSelect } from "@/drizzle/modules/strength-training/schemas/cycles";
 import type { WorkoutsSelect } from "@/drizzle/modules/strength-training/schemas/workouts";
@@ -94,21 +93,33 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 
 	async function handleSkipRemainingExerciseSets() {
 		if (currentSetIndex === null) return;
-		const currentExerciseId = sets[currentSetIndex].exercises.id;
+		const isLastExerciseInWorkout =
+			sets[currentSetIndex].exercises.id !==
+			sets[currentSetIndex + 1]?.exercises.id;
+
 		const remainingSetsInExercise = sets
 			.slice(currentSetIndex)
-			.filter((set) => set.exercises.id === currentExerciseId)
+			.filter((set) => set.exercises.id === sets[currentSetIndex].exercises.id)
 			.map((set) => ({ id: set.sets.id }));
 
-		const skipSetsResponse = await skipSets({
+		const updateSetsAndCascadeResponse = await updateSetsAndCascade({
 			setIds: remainingSetsInExercise,
+			exerciseId: [{ id: sets[currentSetIndex].exercises.id }],
 		});
 
-		if (!skipSetsResponse.success) {
+		if (!updateSetsAndCascadeResponse.success) {
 			return; // TODO: Handle error
 		}
 
-		setCurrentSetIndex(currentSetIndex + remainingSetsInExercise.length);
+		if (isLastExerciseInWorkout) {
+			setCurrentExercise(null);
+			setCurrentSetIndex(null);
+		} else {
+			const nextSetIndex = currentSetIndex + remainingSetsInExercise.length;
+			setCurrentExercise(sets[nextSetIndex].exerciseDefinitions.name);
+			setCurrentSetIndex(nextSetIndex);
+		}
+
 		router.refresh();
 	}
 
@@ -148,6 +159,10 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 		}
 
 		router.refresh();
+	}
+
+	function handleStartRest() {
+		setShowRestTimer(!showRestTimer);
 	}
 
 	// Workout Header
@@ -199,17 +214,18 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 					status={workoutStatus}
 					cycleId={cycleId.id}
 					onStartWorkout={handleStartWorkout}
-					// onStartRest={handleStartRest}
+					onStartRest={handleStartRest}
 					onHandleCurrentSet={handleCurrentSet}
 					onCompleteWorkout={handleCompleteWorkout}
 					onSkipRemainingWorkoutSets={handleSkipRemainingWorkoutSets}
 				/>
 
-				{currentSetIndex !== null && (
+				{showRestTimer && currentSetIndex !== null && (
 					<RestTimer
 						show={showRestTimer}
-						onOpenChange={setShowRestTimer}
 						set={sets[currentSetIndex]}
+						setShowRestTimer={setShowRestTimer}
+						onOpenChange={setShowRestTimer}
 						onHandleCurrentSet={handleCurrentSet}
 						onSkipRemainingExerciseSets={handleSkipRemainingExerciseSets}
 					/>

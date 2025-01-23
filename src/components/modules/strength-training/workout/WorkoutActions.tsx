@@ -8,7 +8,7 @@ interface WorkoutActionsProps {
 	status: string;
 	cycleId: string;
 	onStartWorkout: () => void;
-	// onStartRest: () => boolean;
+	onStartRest: () => void;
 	onHandleCurrentSet: (status: Status) => void;
 	onCompleteWorkout: () => void;
 	onSkipRemainingWorkoutSets: () => void;
@@ -18,7 +18,7 @@ export function WorkoutActions({
 	status,
 	cycleId,
 	onStartWorkout,
-	// onStartRest,
+	onStartRest,
 	onHandleCurrentSet,
 	onCompleteWorkout,
 	onSkipRemainingWorkoutSets,
@@ -59,10 +59,7 @@ export function WorkoutActions({
 	return (
 		<div className="space-y-2">
 			<div className="grid grid-cols-2 gap-2">
-				{/* <Button className="w-full" size="lg" onClick={onStartRest}>
-					Rest
-				</Button> */}
-				<Button className="w-full" size="lg">
+				<Button className="w-full" size="lg" onClick={onStartRest}>
 					Rest
 				</Button>
 				{isLastSet ? (
