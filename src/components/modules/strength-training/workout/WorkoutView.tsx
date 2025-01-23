@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import { updateSetStatusAndCascade } from "@/drizzle/modules/strength-training/functions/sets/updateSetStatusAndCascade";
+import { updateSetsAndCascade } from "@/drizzle/modules/strength-training/functions/sets/updateSetsAndCascade";
 import { completeWorkout } from "@/drizzle/modules/strength-training/functions/workouts/completeWorkout";
 import { skipSets } from "@/drizzle/modules/strength-training/functions/workouts/skipSets";
 import { startWorkout } from "@/drizzle/modules/strength-training/functions/workouts/startWorkout";
@@ -122,19 +123,19 @@ export function WorkoutView({ cycleId, workoutId, sets }: WorkoutViewProps) {
 			...new Set(sets.slice(currentSetIndex).map((set) => set.exercises.id)),
 		].map((id) => ({ id }));
 
-		console.log(remainingSetsInWorkout);
-		console.log(remainingExercisesInWorkout);
+		const updateSetsAndCascadeResponse = await updateSetsAndCascade({
+			setIds: remainingSetsInWorkout,
+			exerciseId: remainingExercisesInWorkout,
+			workoutId: { id: workoutId.id },
+		});
 
-		// const skipSetsResponse = await skipSets({
-		// 	setIds: remainingSetsInWorkout,
-		// });
+		if (!updateSetsAndCascadeResponse.success) {
+			return; // TODO: Handle error
+		}
 
-		// if (!skipSetsResponse.success) {
-		// 	return; // TODO: Handle error
-		// }
-
-		// setCurrentSetIndex(null);
-		// router.refresh();
+		setCurrentExercise(null);
+		setCurrentSetIndex(null);
+		router.refresh();
 	}
 
 	async function handleCompleteWorkout() {
