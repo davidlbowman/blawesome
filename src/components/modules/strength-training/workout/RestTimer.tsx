@@ -4,24 +4,35 @@ import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {
 	Drawer,
 	DrawerContent,
+	DrawerDescription,
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { AllSetsByWorkoutId } from "@/drizzle/modules/strength-training/functions/sets/selectAllSetsByWorkoutId";
 import {
 	ExerciseType,
 	Status,
 } from "@/drizzle/modules/strength-training/types";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 interface RestTimerProps {
 	show: boolean;
@@ -31,6 +42,12 @@ interface RestTimerProps {
 	onHandleCurrentSet: (status: Status) => void;
 	onSkipRemainingExerciseSets: () => void;
 }
+
+const formSchema = z.object({
+	weight: z.number().min(0),
+	reps: z.number().min(0).optional(),
+	rpe: z.number().min(5).max(10).optional(),
+});
 
 export function RestTimer({
 	show,
@@ -48,6 +65,15 @@ export function RestTimer({
 
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const [time, setTime] = useState(0);
+
+	const form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			weight: set.sets.weight,
+			reps: set.sets.reps,
+			rpe: set.sets.rpe ?? undefined,
+		},
+	});
 
 	useEffect(() => {
 		let interval: NodeJS.Timer;
@@ -70,106 +96,105 @@ export function RestTimer({
 
 	const dialogTitle = `${exerciseName} - Set ${currentSetNumber}/${totalSets}`;
 
+	const onSubmit = (values: z.infer<typeof formSchema>) => {
+		console.log(values);
+		onHandleCurrentSet(Status.Enum.completed);
+		setShowRestTimer(false);
+	};
+
 	const timerContent = (
 		<div className="space-y-6 p-4">
 			<div className="text-center space-y-3">
 				<div className="text-6xl font-mono font-bold tracking-tight">
 					{formatTime(time)}
 				</div>
-				<p className="text-sm text-muted-foreground">
-					{isPrimary
-						? "Enter your actual performance for this set. If you completed the set as prescribed, you can leave the values unchanged."
-						: "Enter the weight used and select your RPE (Rate of Perceived Exertion) for this set."}
-				</p>
 			</div>
 
-			{isPrimary ? (
-				<div className="space-y-4">
-					<div>
-						<Label htmlFor="weight">Weight (lbs)</Label>
-						<Input
-							id="weight"
-							type="number"
-							value={set.sets.weight}
-							// onChange={(e) =>
-							// 	onPerformanceChange({
-							// 		...performance,
-							// 		weight: Number(e.target.value),
-							// 	})
-							// }
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<FormField
+						control={form.control}
+						name="weight"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Weight (lbs)</FormLabel>
+								<FormControl>
+									<Input
+										type="number"
+										{...field}
+										onChange={(e) => field.onChange(Number(e.target.value))}
+									/>
+								</FormControl>
+							</FormItem>
+						)}
+					/>
+
+					{isPrimary ? (
+						<FormField
+							control={form.control}
+							name="reps"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Reps</FormLabel>
+									<FormControl>
+										<Input
+											type="number"
+											{...field}
+											onChange={(e) =>
+												field.onChange(
+													e.target.value === ""
+														? undefined
+														: Number(e.target.value),
+												)
+											}
+										/>
+									</FormControl>
+								</FormItem>
+							)}
 						/>
-					</div>
-
-					<div>
-						<Label htmlFor="reps">Reps</Label>
-						<Input
-							id="reps"
-							type="number"
-							value={set.sets.reps}
-							// onChange={(e) =>
-							// 	onPerformanceChange({
-							// 		...performance,
-							// 		reps: e.target.value === "" ? null : Number(e.target.value),
-							// 	})
-							// }
+					) : (
+						<FormField
+							control={form.control}
+							name="rpe"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>RPE</FormLabel>
+									<div className="grid grid-cols-6 gap-2">
+										{[5, 6, 7, 8, 9, 10].map((rpe) => (
+											<Button
+												key={rpe}
+												type="button"
+												variant={field.value === rpe ? "default" : "outline"}
+												onClick={() => field.onChange(rpe)}
+											>
+												{rpe}
+											</Button>
+										))}
+									</div>
+								</FormItem>
+							)}
 						/>
-					</div>
-				</div>
-			) : (
-				<>
-					<div>
-						<Label htmlFor="weight">Weight (lbs)</Label>
-						<Input
-							id="weight"
-							type="number"
-							value={set.sets.weight}
-							// onChange={(e) =>
-							// 	onPerformanceChange({
-							// 		...performance,
-							// 		weight: Number(e.target.value),
-							// 	})
-							// }
-						/>
-					</div>
+					)}
 
-					<div>
-						<Label>RPE</Label>
-						<div className="grid grid-cols-6 gap-2">
-							{[5, 6, 7, 8, 9, 10].map((rpe) => (
-								<Button
-									key={rpe}
-									variant={set.sets.rpe === rpe ? "default" : "outline"}
-									// onClick={() => onPerformanceChange({ ...performance, rpe })}
-								>
-									{rpe}
-								</Button>
-							))}
-						</div>
+					<div className="flex flex-col gap-2 pt-4">
+						<Button type="submit">
+							{isLastSet ? "Complete Workout" : "Start Next Set"}
+						</Button>
+
+						<Button
+							type="button"
+							variant="ghost"
+							className="text-destructive hover:text-destructive"
+							onClick={() => {
+								onSkipRemainingExerciseSets();
+								setShowRestTimer(false);
+							}}
+						>
+							Skip Remaining Exercise Sets
+						</Button>
 					</div>
-				</>
-			)}
-
-			<div className="flex flex-col gap-2 pt-4">
-				<Button
-					onClick={() => {
-						onHandleCurrentSet(Status.Enum.completed);
-						setShowRestTimer(false);
-					}}
-				>
-					{isLastSet ? "Complete Workout" : "Start Next Set"}
-				</Button>
-
-				<Button
-					variant="ghost"
-					className="text-destructive hover:text-destructive"
-					onClick={() => {
-						onSkipRemainingExerciseSets();
-						setShowRestTimer(false);
-					}}
-				>
-					Skip Remaining Exercise Sets
-				</Button>
-			</div>
+				</form>
+			</Form>
 		</div>
 	);
 
@@ -178,7 +203,14 @@ export function RestTimer({
 			<Dialog open={show} onOpenChange={onOpenChange}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>{dialogTitle}</DialogTitle>
+						<DialogTitle className="text-balance text-center text-2xl">
+							{dialogTitle}
+						</DialogTitle>
+						<DialogDescription className="text-sm text-muted-foreground text-balance text-center">
+							{isPrimary
+								? "Enter your actual performance for this set. If you completed the set as prescribed, you can leave the values unchanged."
+								: "Enter the weight used and select your RPE (Rate of Perceived Exertion) for this set."}
+						</DialogDescription>
 					</DialogHeader>
 					{timerContent}
 				</DialogContent>
@@ -190,7 +222,14 @@ export function RestTimer({
 		<Drawer open={show} onOpenChange={onOpenChange}>
 			<DrawerContent>
 				<DrawerHeader>
-					<DrawerTitle>{dialogTitle}</DrawerTitle>
+					<DrawerTitle className="text-balance text-center text-2xl">
+						{dialogTitle}
+					</DrawerTitle>
+					<DrawerDescription className="text-sm text-muted-foreground text-balance text-center">
+						{isPrimary
+							? "Enter your actual performance for this set. If you completed the set as prescribed, you can leave the values unchanged."
+							: "Enter the weight used and select your RPE (Rate of Perceived Exertion) for this set."}
+					</DrawerDescription>
 				</DrawerHeader>
 				{timerContent}
 			</DrawerContent>
